@@ -16,8 +16,8 @@
 
 // virtual memory configuration
 #define PGSHIFT 12
-const reg_t PGSIZE = 1 << PGSHIFT;
-const reg_t PGMASK = ~(PGSIZE-1);
+const uint64_t PGSIZE = 1 << PGSHIFT;
+const uint64_t PGMASK = ~(PGSIZE-1);
 #define MAX_PADDR_BITS 56 // imposed by Sv39 / Sv48
 
 struct insn_fetch_t
@@ -288,7 +288,7 @@ public:
       throw trap_store_access_fault((proc) ? proc->state.v : false, vaddr, 0, 0); // disallow SC to I/O space
   }
 
-  static const reg_t ICACHE_ENTRIES = 1024;
+  static const uint64_t ICACHE_ENTRIES = 1024;
 
   inline size_t icache_index(reg_t addr)
   {
@@ -400,10 +400,10 @@ private:
   icache_entry_t icache[ICACHE_ENTRIES];
 
   // implement a TLB for simulator performance
-  static const reg_t TLB_ENTRIES = 256;
+  static const uint64_t TLB_ENTRIES = 256;
   // If a TLB tag has TLB_CHECK_TRIGGERS set, then the MMU must check for a
   // trigger match before completing an access.
-  static const reg_t TLB_CHECK_TRIGGERS = reg_t(1) << 63;
+  static const uint64_t TLB_CHECK_TRIGGERS = uint64_t(1) << 63;
   tlb_entry_t tlb_data[TLB_ENTRIES];
   reg_t tlb_insn_tag[TLB_ENTRIES];
   reg_t tlb_load_tag[TLB_ENTRIES];

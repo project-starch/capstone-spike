@@ -216,7 +216,7 @@ size_t dtm_t::chunk_align()
   return xlen / 8;
 }
 
-void dtm_t::read_chunk(uint64_t taddr, size_t len, void* dst)
+void dtm_t::read_chunk(reg_t taddr, size_t len, void* dst)
 {
   uint32_t prog[ram_words];
   uint32_t data[data_words];
@@ -269,7 +269,7 @@ void dtm_t::read_chunk(uint64_t taddr, size_t len, void* dst)
 
 }
 
-void dtm_t::write_chunk(uint64_t taddr, size_t len, const void* src)
+void dtm_t::write_chunk(reg_t taddr, size_t len, const void* src)
 {  
   uint32_t prog[ram_words];
   uint32_t data[data_words];
@@ -364,7 +364,7 @@ void dtm_t::die(uint32_t cmderr)
 
 }
 
-void dtm_t::clear_chunk(uint64_t taddr, size_t len)
+void dtm_t::clear_chunk(reg_t taddr, size_t len)
 {
   uint32_t prog[ram_words];
   uint32_t data[data_words];

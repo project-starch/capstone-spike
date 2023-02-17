@@ -49,7 +49,7 @@ struct insn_desc_t
 };
 
 // regnum, data
-typedef std::unordered_map<reg_t, freg_t> commit_log_reg_t;
+typedef std::unordered_map<uint64_t, freg_t> commit_log_reg_t;
 
 // addr, value, size
 typedef std::vector<std::tuple<reg_t, uint64_t, uint8_t>> commit_log_mem_t;
@@ -167,7 +167,7 @@ struct state_t
   regfile_t<freg_t, NFPR, false> FPR;
 
   // control and status registers
-  std::unordered_map<reg_t, csr_t_p> csrmap;
+  std::unordered_map<uint64_t, csr_t_p> csrmap;
   reg_t prv;    // TODO: Can this be an enum instead?
   bool v;
   misa_csr_t_p misa;
@@ -227,6 +227,11 @@ struct state_t
       STEP_STEPPING,
       STEP_STEPPED
   } single_step;
+  
+  enum {
+      WORLD_NORMAL,
+      WORLD_SECURE
+  } world;
 
 #ifdef RISCV_ENABLE_COMMITLOG
   commit_log_reg_t log_reg_write;
@@ -621,7 +626,7 @@ public:
       reg_t get_slen() { return VLEN; }
 
       VRM get_vround_mode() {
-        return (VRM)(vxrm->read());
+        return (VRM)(static_cast<uint64_t>(vxrm->read()));
       }
   };
 

@@ -47,8 +47,8 @@ inline int64_t mulhsu(int64_t a, uint64_t b)
 template<typename T, typename UT>
 static inline T sat_add(T x, T y, bool &sat)
 {
-  UT ux = x;
-  UT uy = y;
+  UT ux = static_cast<UT>(x);
+  UT uy = static_cast<UT>(y);
   UT res = ux + uy;
   sat = false;
   int sh = sizeof(T) * 8 - 1;
@@ -62,7 +62,7 @@ static inline T sat_add(T x, T y, bool &sat)
     sat = true;
   }
 
-  return res;
+  return static_cast<T>(res);
 }
 
 template<typename T, typename UT>
@@ -89,8 +89,8 @@ static inline T sat_add(T x, T y, T z, bool &sat)
 template<typename T, typename UT>
 static inline T sat_sub(T x, T y, bool &sat)
 {
-  UT ux = x;
-  UT uy = y;
+  UT ux = static_cast<UT>(x);
+  UT uy = static_cast<UT>(y);
   UT res = ux - uy;
   sat = false;
   int sh = sizeof(T) * 8 - 1;
@@ -104,7 +104,7 @@ static inline T sat_sub(T x, T y, bool &sat)
     sat = true;
   }
 
-  return res;
+  return static_cast<T>(res);
 }
 
 template<typename T>

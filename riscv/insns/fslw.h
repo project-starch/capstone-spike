@@ -7,4 +7,4 @@ if (shamt >= 32) {
 	shamt -= 32;
 }
 int rshamt = -shamt & 31;
-WRITE_RD(sext32(shamt ? (a << shamt) | (zext32(b) >> rshamt) : a));
+WRITE_RD(sext32(shamt ? reg_t((a << shamt) | (zext32(b) >> rshamt)) : a));

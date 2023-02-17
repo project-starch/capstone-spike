@@ -549,6 +549,7 @@ void state_t::reset(processor_t* const proc, reg_t max_isa)
   csrmap[CSR_TDATA3] = std::make_shared<const_csr_t>(proc, CSR_TDATA3, 0);
   debug_mode = false;
   single_step = STEP_NONE;
+  world = WORLD_NORMAL;
 
   for (int i=0; i < max_pmp; ++i) {
     csrmap[CSR_PMPADDR0 + i] = pmpaddr[i] = std::make_shared<pmpaddr_csr_t>(proc, CSR_PMPADDR0 + i);
@@ -904,18 +905,18 @@ void processor_t::take_trap(trap_t& t, reg_t epc)
   bool curr_virt = state.v;
   bool interrupt = (bit & ((reg_t)1 << (max_xlen-1))) != 0;
   if (interrupt) {
-    vsdeleg = (curr_virt && state.prv <= PRV_S) ? state.hideleg->read() : 0;
-    hsdeleg = (state.prv <= PRV_S) ? state.mideleg->read() : 0;
+    vsdeleg = (curr_virt && state.prv <= PRV_S) ? state.hideleg->read() : reg_t(0);
+    hsdeleg = (state.prv <= PRV_S) ? state.mideleg->read() : reg_t(0);
     bit &= ~((reg_t)1 << (max_xlen-1));
   } else {
     vsdeleg = (curr_virt && state.prv <= PRV_S) ? (state.medeleg->read() & state.hedeleg->read()) : 0;
-    hsdeleg = (state.prv <= PRV_S) ? state.medeleg->read() : 0;
+    hsdeleg = (state.prv <= PRV_S) ? state.medeleg->read() : reg_t(0);
   }
   if (state.prv <= PRV_S && bit < max_xlen && ((vsdeleg >> bit) & 1)) {
     // Handle the trap in VS-mode
     reg_t vector = (state.vstvec->read() & 1) && interrupt ? 4*bit : 0;
     state.pc = (state.vstvec->read() & ~(reg_t)1) + vector;
-    state.vscause->write((interrupt) ? (t.cause() - 1) : t.cause());
+    state.vscause->write((interrupt) ? reg_t(t.cause() - 1) : t.cause());
     state.vsepc->write(epc);
     state.vstval->write(t.get_tval());
 

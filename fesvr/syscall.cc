@@ -214,7 +214,7 @@ reg_t syscall_t::sys_exit(reg_t code, reg_t a1, reg_t a2, reg_t a3, reg_t a4, re
 
 static reg_t sysret_errno(sreg_t ret)
 {
-  return ret == -1 ? -errno : ret;
+  return ret == -1 ? reg_t(-errno) : static_cast<reg_t>(ret);
 }
 
 reg_t syscall_t::sys_read(reg_t fd, reg_t pbuf, reg_t len, reg_t a3, reg_t a4, reg_t a5, reg_t a6)

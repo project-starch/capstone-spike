@@ -202,6 +202,11 @@ void htif_t::clear_chunk(addr_t taddr, size_t len)
     write_chunk(taddr + pos, std::min(len - pos, chunk_max_size()), zeros);
 }
 
+/**
+ * 
+ * FIXME: here we might need to write 128-bit chunks instead
+ * 
+*/
 int htif_t::run()
 {
   start();
@@ -229,7 +234,7 @@ int htif_t::run()
     device_list.tick();
 
     if (!fromhost_queue.empty() && !mem.read_uint64(fromhost_addr)) {
-      mem.write_uint64(fromhost_addr, to_target(fromhost_queue.front()));
+      mem.write_uint64(fromhost_addr, to_target(static_cast<uint64_t>(fromhost_queue.front())));
       fromhost_queue.pop();
     }
   }
