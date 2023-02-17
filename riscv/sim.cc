@@ -64,7 +64,8 @@ sim_t::sim_t(const char* isa, const char* priv, const char* varch,
     histogram_enabled(false),
     log(false),
     remote_bitbang(NULL),
-    debug_module(this, dm_config)
+    debug_module(this, dm_config),
+    rev_tree(1024*1024) // TODO: parameterise the revocation tree size
 {
   signal(SIGINT, &handle_signal);
 

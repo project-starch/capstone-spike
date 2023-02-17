@@ -25,6 +25,7 @@
 #include <sys/types.h>
 
 #include "tag_controller.h"
+#include "revocation_tree.h"
 
 class mmu_t;
 class remote_bitbang_t;
@@ -90,6 +91,7 @@ private:
   log_file_t log_file;
   
   TagController tag_controller;
+  RevTree rev_tree;
 
   FILE *cmd_file; // pointer to debug command input file
 
