@@ -24,6 +24,8 @@
 #include <memory>
 #include <sys/types.h>
 
+#include "tag_controller.h"
+
 class mmu_t;
 class remote_bitbang_t;
 
@@ -86,6 +88,8 @@ private:
   std::unique_ptr<clint_t> clint;
   bus_t bus;
   log_file_t log_file;
+  
+  TagController tag_controller;
 
   FILE *cmd_file; // pointer to debug command input file
 
@@ -145,6 +149,9 @@ private:
   freg_t get_freg(const std::vector<std::string>& args);
   reg_t get_mem(const std::vector<std::string>& args);
   reg_t get_pc(const std::vector<std::string>& args);
+  TagController& get_tag_controller() {
+    return tag_controller;
+  }
 
   friend class processor_t;
   friend class mmu_t;
