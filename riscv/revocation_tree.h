@@ -3,7 +3,8 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include<stack>
+#include <cstdint>
+#include <stack>
 
 typedef uint64_t rev_node_id_t;
 

@@ -1,3 +1,4 @@
+#include <cassert>
 #include "revocation_tree.h"
 
 bool
@@ -12,7 +13,7 @@ RevTree::allocate(rev_node_id_t parent_id) {
   new_node->children = nullptr;
 
   if(parent_node) {
-    assert(paretn_node->state == REV_NODE_VALID); // must be in a valid tree
+    assert(parent_node->state == REV_NODE_VALID); // must be in a valid tree
     new_node->next = parent_node->children;
     parent_node->children = new_node;
   } else{
@@ -84,8 +85,8 @@ RevTree::getNewNode() {
 
 RevNode*
 RevTree::getNode(rev_node_id_t node_id) {
-  if(rev_node_id == REV_NODE_ID_INVALID ||
-    rev_node_id >= size) {
+  if(node_id == REV_NODE_ID_INVALID ||
+    node_id >= size) {
     return nullptr;
   }
   return nodes + node_id;
