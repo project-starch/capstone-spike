@@ -11,6 +11,7 @@ RevTree::allocate(rev_node_id_t parent_id) {
 
   new_node->state = REV_NODE_VALID;
   new_node->children = nullptr;
+  new_node->ref_count = 1;
 
   if(parent_node) {
     assert(parent_node->state == REV_NODE_VALID); // must be in a valid tree

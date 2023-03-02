@@ -76,9 +76,38 @@ struct cap64_t
     // TODO
   }
 
-  bool is_linear() const
-  {
+  inline bool is_linear() const {
     return type != CAP_TYPE_NONLINEAR;
+  }
+
+  inline bool inbound() const {
+    return cursor >= base && cursor < end;
+  }
+
+  inline bool accessible() const {
+    return type == CAP_TYPE_NONLINEAR || type == CAP_TYPE_LINEAR || type == CAP_TYPE_UNINITIALIZED;
+  }
+
+  inline bool readable() const {
+    return (perm == CAP_PERM_RO || perm == CAP_PERM_RX || perm == CAP_PERM_RWX) && type != CAP_TYPE_UNINITIALIZED;
+  }
+
+  inline bool writable() const {
+    return perm == CAP_PERM_RW || perm == CAP_PERM_RWX;
+  }
+
+  inline bool executable() const {
+    return (perm == CAP_PERM_RX || perm == CAP_PERM_RWX) && type != CAP_TYPE_UNINITIALIZED;
+  }
+
+  void tighten_perm(cap_perm_t new_perm) {
+    if (perm >= new_perm) {
+      perm = new_perm;
+    }
+  }
+
+  void increment_cursor() {
+    cursor++;
   }
 };
 

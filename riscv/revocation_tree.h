@@ -53,6 +53,10 @@ public:
     return size;
   }
 
+  bool is_valid(rev_node_id_t node_id) const {
+    RevNode* node = getNode(node_id);
+    return node && node->state == REV_NODE_VALID;
+  }
 };
 
 #endif
