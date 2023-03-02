@@ -157,7 +157,12 @@ public:
     if (!zero_reg || i != 0)
       data[i] = value;
   }
-  const T& operator [] (size_t i) const
+  void write_cap(size_t i, _uint256_t &c)
+  {
+    if (!zero_reg || i != 0)
+      data[i].write_cap(c);
+  }
+  const Reg& operator [] (size_t i) const
   {
     return data[i];
   }
@@ -167,10 +172,11 @@ public:
   }
   void reset()
   {
-    memset(data, 0, sizeof(data));
+    for (size_t i = 0; i < N; i++)
+      data[i] = 0;
   }
 private:
-  T data[N];
+  Reg<T> data[N];
 };
 
 // helpful macros, etc

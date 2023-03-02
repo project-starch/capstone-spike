@@ -27,7 +27,8 @@ enum cap_perm_t {
   CAP_PERM_NA = 0,
   CAP_PERM_RO = 1,
   CAP_PERM_RW = 2,
-  CAP_PERM_RWX = 3
+  CAP_PERM_RX = 3,
+  CAP_PERM_RWX = 4
 };
 
 /**
@@ -74,6 +75,11 @@ struct cap64_t
   void form128(const _uint128_t& v) {
     // TODO
   }
+
+  bool is_linear() const
+  {
+    return type != CAP_TYPE_NONLINEAR;
+  }
 };
 
 typedef enum
@@ -88,7 +94,7 @@ struct Reg
   union
   {
     T data;
-    _uint256_t cap;
+    cap64_t cap;
   } content;
   word_tag_t tag;
 
@@ -105,6 +111,15 @@ struct Reg
     tag = WORD_TAG_DATA;
     content.data = v;
     return *this;
+  }
+
+  void write_cap(_uint256_t &c)
+  {
+    tag = WORD_TAG_CAP;
+    content.cap.from256(c);
+    if(content.cap.is_linear()){
+      memset(&c, 0, sizeof(c));
+    }
   }
 
   operator T() const
