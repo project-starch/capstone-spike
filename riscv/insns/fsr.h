@@ -6,4 +6,4 @@ if (shamt >= xlen) {
 	shamt -= xlen;
 }
 int rshamt = -shamt & (xlen-1);
-WRITE_RD(sext_xlen(shamt ? reg_t((b << rshamt) | (zext_xlen(a) >> shamt)) : a));
+WRITE_RD(sext_xlen(shamt ? (b << rshamt) | (zext_xlen(a) >> shamt) : a));

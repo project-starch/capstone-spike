@@ -117,145 +117,22 @@ typedef enum
   WORD_TAG_CAP
 } word_tag_t;
 
-template <typename T>
-struct Reg
+struct cap_reg_t
 {
-  union
-  {
-    T data;
-    cap64_t cap;
-  } content;
   word_tag_t tag;
+  _uint256_t cap;
 
-  Reg() : tag(WORD_TAG_CAP) {}
+  cap_reg_t() : tag(WORD_TAG_CAP) {}
 
-  Reg(T v)
-  {
-    content.data = v;
-    tag = WORD_TAG_DATA;
-  }
-
-  Reg &operator=(T v)
-  {
-    tag = WORD_TAG_DATA;
-    content.data = v;
-    return *this;
-  }
-
-  void write_cap(_uint256_t &c)
-  {
+  void set_cap(_uint256_t& v) {
     tag = WORD_TAG_CAP;
-    content.cap.from256(c);
-    if(content.cap.is_linear()){
-      memset(&c, 0, sizeof(c));
-    }
+    cap = v;
   }
 
-  operator T() const
-  {
-    return content.data;
-  }
-
-  Reg &operator+=(T v)
-  {
-    assert(tag == WORD_TAG_DATA);
-    content.data += v;
-    return *this;
-  }
-
-  Reg &operator-=(T v)
-  {
-    assert(tag == WORD_TAG_DATA);
-    content.data -= v;
-    return *this;
-  }
-
-  Reg &operator++()
-  {
-    assert(tag == WORD_TAG_DATA);
-    ++content.data;
-    return *this;
-  }
-
-  Reg &operator--()
-  {
-    assert(tag == WORD_TAG_DATA);
-    --content.data;
-    return *this;
-  }
-
-  Reg operator++(int)
-  {
-    assert(tag == WORD_TAG_DATA);
-    Reg old = *this;
-    ++content.data;
-    return old;
-  }
-
-  Reg operator--(int)
-  {
-    assert(tag == WORD_TAG_DATA);
-    Reg old = *this;
-    --content.data;
-    return old;
-  }
-
-  Reg &operator>>=(T v)
-  {
-    assert(tag == WORD_TAG_DATA);
-    content.data >>= v;
-    return *this;
-  }
-
-  Reg &operator<<=(T v)
-  {
-    assert(tag == WORD_TAG_DATA);
-    content.data <<= v;
-    return *this;
-  }
-
-  Reg &operator&=(T v)
-  {
-    assert(tag == WORD_TAG_DATA);
-    content.data &= v;
-    return *this;
-  }
-
-  Reg &operator|=(T v)
-  {
-    assert(tag == WORD_TAG_DATA);
-    content.data |= v;
-    return *this;
-  }
-
-  Reg &operator^=(T v)
-  {
-    assert(tag == WORD_TAG_DATA);
-    content.data ^= v;
-    return *this;
+  void reset() {
+    tag = WORD_TAG_CAP;
+    memset(&cap, 0, sizeof(cap));
   }
 };
-
-inline Reg<uint64_t> to_unsigned_reg(const Reg<int64_t> &s)
-{
-  Reg<uint64_t> res;
-  static_assert(sizeof(s.content) == sizeof(res.content));
-  memcpy(&res.content, &s.content, sizeof(s.content));
-  res.tag = s.tag;
-  return res;
-}
-
-inline Reg<int64_t> to_signed_reg(const Reg<uint64_t> &s)
-{
-  Reg<int64_t> res;
-  memcpy(&res.content, &s.content, sizeof(s.content));
-  res.tag = s.tag;
-  return res;
-}
-
-inline Reg<uint64_t> to_unsigned_reg(const Reg<uint64_t> &s)
-{
-  return s;
-}
 
 #endif

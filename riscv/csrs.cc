@@ -29,7 +29,7 @@ void csr_t::verify_permissions(insn_t insn, bool write) const {
   // Check permissions. Raise virtual-instruction exception if V=1,
   // privileges are insufficient, and the CSR belongs to supervisor or
   // hypervisor. Raise illegal-instruction exception otherwise.
-  unsigned priv = state->prv == PRV_S && !state->v ? PRV_HS : static_cast<int>(state->prv);
+  unsigned priv = state->prv == PRV_S && !state->v ? PRV_HS : state->prv;
 
   if ((csr_priv == PRV_S && !proc->extension_enabled('S')) ||
       (csr_priv == PRV_HS && !proc->extension_enabled('H')))
@@ -739,7 +739,7 @@ bool medeleg_csr_t::unlogged_write(const reg_t val) noexcept {
     | (1 << CAUSE_FETCH_PAGE_FAULT)
     | (1 << CAUSE_LOAD_PAGE_FAULT)
     | (1 << CAUSE_STORE_PAGE_FAULT)
-    | (proc->extension_enabled('H') ? hypervisor_exceptions : reg_t(0))
+    | (proc->extension_enabled('H') ? hypervisor_exceptions : 0)
     ;
   return basic_csr_t::unlogged_write((read() & ~mask) | (val & mask));
 }
@@ -763,7 +763,7 @@ base_atp_csr_t::base_atp_csr_t(processor_t* const proc, const reg_t addr):
 
 
 bool base_atp_csr_t::unlogged_write(const reg_t val) noexcept {
-  const reg_t newval = proc->supports_impl(IMPL_MMU) ? compute_new_satp(val) : reg_t(0);
+  const reg_t newval = proc->supports_impl(IMPL_MMU) ? compute_new_satp(val) : 0;
   if (newval != read())
     proc->get_mmu()->flush_tlb();
   return basic_csr_t::unlogged_write(newval);
@@ -791,8 +791,8 @@ reg_t base_atp_csr_t::compute_new_satp(reg_t val) const noexcept {
 
   reg_t mode_mask = proc->get_xlen() == 32 ? SATP32_MODE : SATP64_MODE;
   reg_t ppn_mask = proc->get_xlen() == 32 ? SATP32_PPN : SATP64_PPN & rv64_ppn_mask;
-  reg_t new_mask = (satp_valid(val) ? mode_mask : reg_t(0)) | ppn_mask;
-  reg_t old_mask = satp_valid(val) ? reg_t(0) : mode_mask;
+  reg_t new_mask = (satp_valid(val) ? mode_mask : 0) | ppn_mask;
+  reg_t old_mask = satp_valid(val) ? 0 : mode_mask;
 
   return (new_mask & val) | (old_mask & read());
 }

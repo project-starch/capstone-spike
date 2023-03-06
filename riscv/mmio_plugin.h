@@ -5,14 +5,12 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "cap.h"
-
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-typedef Reg<uint64_t> reg_t;
+typedef uint64_t reg_t;
 
 typedef struct {
   // Allocate user data for an instance of the plugin. The parameter is a simple

@@ -20,8 +20,8 @@
 
 #include "cap.h"
 
-typedef Reg<int64_t> sreg_t;
-typedef Reg<uint64_t> reg_t;
+typedef int64_t sreg_t;
+typedef uint64_t reg_t;
 
 #ifdef __SIZEOF_INT128__
 typedef __int128 int128_t;
@@ -159,12 +159,22 @@ public:
   }
   void write_cap(size_t i, _uint256_t &c)
   {
-    if (!zero_reg || i != 0)
-      data[i].write_cap(c);
+    if (!zero_reg || i != 0){
+      memset(data + i, 0, sizeof(data[i]));
+      cap_data[i].set_cap(c);
+    }
   }
-  const Reg& operator [] (size_t i) const
+  void clear_cap(size_t i)
+  {
+    cap_data[i].reset();
+  }
+  const T& operator [] (size_t i) const
   {
     return data[i];
+  }
+  const _uint256_t& read_cap(size_t i) const
+  {
+    return cap_data[i].cap;
   }
   regfile_t()
   {
@@ -172,11 +182,14 @@ public:
   }
   void reset()
   {
-    for (size_t i = 0; i < N; i++)
-      data[i] = 0;
+    memset(data, 0, sizeof(data));
+    for (size_t i = 0; i < N; i++) {
+      clear_cap(i);
+    }
   }
 private:
-  Reg<T> data[N];
+  T data[N];
+  cap_reg_t cap_data[N];
 };
 
 // helpful macros, etc
@@ -184,7 +197,7 @@ private:
 #define STATE (*p->get_state())
 #define FLEN (p->get_flen())
 #define CHECK_REG(reg) ((void) 0)
-#define READ_REG(reg) ({ CHECK_REG(reg); static_cast<reg_t>(STATE.XPR[reg]); })
+#define READ_REG(reg) ({ CHECK_REG(reg); STATE.XPR[reg]; })
 #define READ_FREG(reg) STATE.FPR[reg]
 #define RD READ_REG(insn.rd())
 #define RS1 READ_REG(insn.rs1())
@@ -193,7 +206,7 @@ private:
 #define WRITE_RD(value) WRITE_REG(insn.rd(), value)
 
 #ifndef RISCV_ENABLE_COMMITLOG
-# define WRITE_REG(reg, value) ({ CHECK_REG(reg); STATE.XPR.write(reg, static_cast<reg_t>(value)); })
+# define WRITE_REG(reg, value) ({ CHECK_REG(reg); STATE.XPR.write(reg, value); })
 # define WRITE_FREG(reg, value) DO_WRITE_FREG(reg, freg(value))
 # define WRITE_VSTATUS {}
 #else
@@ -292,8 +305,8 @@ private:
                              } \
                              softfloat_exceptionFlags = 0; })
 
-#define sext32(x) (sreg_t((int32_t)(x)))
-#define zext32(x) (reg_t((uint32_t)(x)))
+#define sext32(x) ((sreg_t)(int32_t)(x))
+#define zext32(x) ((reg_t)(uint32_t)(x))
 #define sext_xlen(x) (((sreg_t)(x) << (64-xlen)) >> (64-xlen))
 #define zext(x, pos) (((reg_t)(x) << (64-(pos))) >> (64-(pos)))
 #define zext_xlen(x) zext(x, xlen)
@@ -1634,8 +1647,8 @@ VI_VX_ULOOP({ \
   reg_t vreg_inx = inx;
 
 #define VI_DUPLICATE_VREG(reg_num, idx_sew) \
-reg_t index[static_cast<uint64_t>(P.VU.vlmax)]; \
- for (uint64_t i = 0; i < P.VU.vlmax && P.VU.vl->read() != 0; ++i) {       \
+reg_t index[P.VU.vlmax]; \
+ for (reg_t i = 0; i < P.VU.vlmax && P.VU.vl->read() != 0; ++i) {       \
   switch(idx_sew) { \
     case e8: \
       index[i] = P.VU.elt<uint8_t>(reg_num, i); \
@@ -1654,7 +1667,7 @@ reg_t index[static_cast<uint64_t>(P.VU.vlmax)]; \
 
 #define VI_LD(stride, offset, elt_width, is_mask_ldst) \
   const reg_t nf = insn.v_nf() + 1; \
-  const reg_t vl = is_mask_ldst ? reg_t((P.VU.vl->read() + 7) / 8) : P.VU.vl->read(); \
+  const reg_t vl = is_mask_ldst ? ((P.VU.vl->read() + 7) / 8) : P.VU.vl->read(); \
   const reg_t baseAddr = RS1; \
   const reg_t vd = insn.rd(); \
   VI_CHECK_LOAD(elt_width, is_mask_ldst); \
@@ -1708,7 +1721,7 @@ reg_t index[static_cast<uint64_t>(P.VU.vlmax)]; \
 
 #define VI_ST(stride, offset, elt_width, is_mask_ldst) \
   const reg_t nf = insn.v_nf() + 1; \
-  const reg_t vl = is_mask_ldst ? reg_t((P.VU.vl->read() + 7) / 8) : P.VU.vl->read(); \
+  const reg_t vl = is_mask_ldst ? ((P.VU.vl->read() + 7) / 8) : P.VU.vl->read(); \
   const reg_t baseAddr = RS1; \
   const reg_t vs3 = insn.rd(); \
   VI_CHECK_STORE(elt_width, is_mask_ldst); \
@@ -2565,7 +2578,7 @@ reg_t index[static_cast<uint64_t>(P.VU.vlmax)]; \
 #define READ_REG_PAIR(reg) ({ \
   require((reg) % 2 == 0); \
   (reg) == 0 ? reg_t(0) : \
-  reg_t((READ_REG((reg) + 1) << 32) + zext32(READ_REG(reg))); })
+  (READ_REG((reg) + 1) << 32) + zext32(READ_REG(reg)); })
 
 #define RS1_PAIR READ_REG_PAIR(insn.rs1())
 #define RS2_PAIR READ_REG_PAIR(insn.rs2())
@@ -3000,11 +3013,11 @@ reg_t index[static_cast<uint64_t>(P.VU.vlmax)]; \
   if (xlen == 32) { \
     rs1 = INPUT_PAIR ? RS1_PAIR : RS1; \
     rs2 = INPUT_PAIR ? RS2_PAIR : RS2; \
-    rd = USE_RD ? RD_PAIR : reg_t(0); \
+    rd = USE_RD ? RD_PAIR : 0; \
   } else { \
     rs1 = RS1; \
     rs2 = RS2; \
-    rd = USE_RD ? RD : reg_t(0); \
+    rd = USE_RD ? RD : 0; \
   }
 
 #define P_64_PROFILE(BODY) \

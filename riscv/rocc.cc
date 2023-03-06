@@ -10,8 +10,8 @@
     rocc_t* rocc = static_cast<rocc_t*>(p->get_extension()); \
     rocc_insn_union_t u; \
     u.i = insn; \
-    reg_t xs1 = u.r.xs1 ? RS1 : reg_t(-1); \
-    reg_t xs2 = u.r.xs2 ? RS2 : reg_t(-1); \
+    reg_t xs1 = u.r.xs1 ? RS1 : -1; \
+    reg_t xs2 = u.r.xs2 ? RS2 : -1; \
     reg_t xd = rocc->custom##n(u.r, xs1, xs2); \
     if (u.r.xd) \
       WRITE_RD(xd); \

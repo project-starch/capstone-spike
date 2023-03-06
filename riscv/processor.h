@@ -626,7 +626,7 @@ public:
       reg_t get_slen() { return VLEN; }
 
       VRM get_vround_mode() {
-        return (VRM)(static_cast<uint64_t>(vxrm->read()));
+        return (VRM)(vxrm->read());
       }
   };
 
