@@ -163,6 +163,7 @@ struct state_t
   static const int num_triggers = 4;
 
   reg_t pc;
+  cap64_t cap_pc;
   regfile_t<reg_t, NXPR, true> XPR;
   regfile_t<freg_t, NFPR, false> FPR;
 
@@ -497,6 +498,10 @@ public:
   void set_mmu_capability(int cap);
 
   const char* get_symbol(uint64_t addr);
+
+  inline bool valid_cap(const cap64_t& cap) const {
+    return sim->get_rev_tree().is_valid(cap.node_id);
+  }
 
 private:
   simif_t* sim;

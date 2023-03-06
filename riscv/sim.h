@@ -154,6 +154,9 @@ private:
   TagController& get_tag_controller() {
     return tag_controller;
   }
+  RevTree& get_rev_tree() {
+    return rev_tree;
+  }
 
   friend class processor_t;
   friend class mmu_t;
