@@ -102,6 +102,8 @@ struct cap64_t
 
   void tighten_perm(cap_perm_t new_perm) {
     if (perm >= new_perm) {
+      if (perm == CAP_PERM_RX && new_perm == CAP_PERM_RW)
+        return;
       perm = new_perm;
     }
   }
