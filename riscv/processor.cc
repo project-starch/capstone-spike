@@ -379,6 +379,7 @@ void state_t::reset(processor_t* const proc, reg_t max_isa)
   pc = DEFAULT_RSTVEC;
   XPR.reset();
   FPR.reset();
+  normal_world_cap = false;
 
   // This assumes xlen is always max_xlen, which is true today (see
   // mstatus_csr_t::unlogged_write()):

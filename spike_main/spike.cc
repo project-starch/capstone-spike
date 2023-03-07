@@ -217,6 +217,8 @@ int main(int argc, char** argv)
   bool dump_dts = false;
   bool dtb_enabled = true;
   bool real_time_clint = false;
+  bool cap_mem_enabled = false;
+  uint64_t mem_partition_addr;
   size_t nprocs = 1;
   const char* kernel = NULL;
   reg_t kernel_offset, kernel_size;
@@ -319,6 +321,7 @@ int main(int argc, char** argv)
 #endif
   parser.option('p', 0, 1, [&](const char* s){nprocs = atoul_nonzero_safe(s);});
   parser.option('m', 0, 1, [&](const char* s){mems = make_mems(s);});
+  parser.option(0, "normal-mem-until", 1, [&](const char* s){cap_mem_enabled = true; mem_partition_addr = atoul_safe(s);});
   // I wanted to use --halted, but for some reason that doesn't work.
   parser.option('H', 0, 0, [&](const char* s){halted = true;});
   parser.option(0, "rbb-port", 1, [&](const char* s){use_rbb = true; rbb_port = atoul_safe(s);});
@@ -381,6 +384,8 @@ int main(int argc, char** argv)
   std::vector<std::string> htif_args(argv1, (const char*const*)argv + argc);
   if (mems.empty())
     mems = make_mems("2048");
+  if (!cap_mem_enabled)
+    mem_partition_addr = (uint64_t)(-1LL);
 
   if (!*argv1)
     help();
@@ -440,7 +445,7 @@ int main(int argc, char** argv)
 #ifdef HAVE_BOOST_ASIO
       io_service_ptr, acceptor_ptr,
 #endif
-      cmd_file);
+      cmd_file, mem_partition_addr);
   std::unique_ptr<remote_bitbang_t> remote_bitbang((remote_bitbang_t *) NULL);
   std::unique_ptr<jtag_dtm_t> jtag_dtm(
       new jtag_dtm_t(&s.debug_module, dmi_rti));

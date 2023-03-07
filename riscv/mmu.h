@@ -13,6 +13,7 @@
 #include "byteorder.h"
 #include <stdlib.h>
 #include <vector>
+#include <assert.h>
 
 // virtual memory configuration
 #define PGSHIFT 12

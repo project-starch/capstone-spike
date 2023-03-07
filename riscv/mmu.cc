@@ -52,6 +52,11 @@ reg_t mmu_t::translate(reg_t addr, reg_t len, access_type type, uint32_t xlate_f
 {
   if (!proc)
     return addr;
+  if (proc->get_state()->world == WORLD_SECURE || proc->get_state()->normal_world_cap) {
+    assert(addr > sim->get_mem_partition_addr());
+    proc->get_state()->normal_world_cap = false;
+    return addr;
+  }
 
   bool virt = proc->state.v;
   bool hlvx = xlate_flags & RISCV_XLATE_VIRT_HLVX;
@@ -71,6 +76,8 @@ reg_t mmu_t::translate(reg_t addr, reg_t len, access_type type, uint32_t xlate_f
   reg_t paddr = walk(addr, type, mode, virt, hlvx) | (addr & (PGSIZE-1));
   if (!pmp_ok(paddr, len, type, mode))
     throw_access_exception(virt, addr, type);
+
+  assert(paddr <= sim->get_mem_partition_addr());
   return paddr;
 }
 

@@ -166,6 +166,7 @@ struct state_t
   cap64_t cap_pc;
   regfile_t<reg_t, NXPR, true> XPR;
   regfile_t<freg_t, NFPR, false> FPR;
+  bool normal_world_cap;
 
   // control and status registers
   std::unordered_map<uint64_t, csr_t_p> csrmap;
