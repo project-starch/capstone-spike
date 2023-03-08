@@ -107,10 +107,6 @@ struct cap64_t
       perm = new_perm;
     }
   }
-
-  void increment_cursor() {
-    cursor++;
-  }
 };
 
 typedef enum
@@ -122,13 +118,17 @@ typedef enum
 struct cap_reg_t
 {
   word_tag_t tag;
-  _uint256_t cap;
+  cap64_t cap;
 
-  cap_reg_t() : tag(WORD_TAG_CAP) {}
+  cap_reg_t() { reset(); }
 
   void set_cap(_uint256_t& v) {
     tag = WORD_TAG_CAP;
-    cap = v;
+    cap.from256(v);
+
+    if (cap.is_linear()) {
+      memset(&v, 0, sizeof(v));
+    }
   }
 
   void reset() {

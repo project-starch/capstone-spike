@@ -172,9 +172,17 @@ public:
   {
     return data[i];
   }
-  const _uint256_t& read_cap(size_t i) const
+  cap64_t& read_cap(size_t i) const
   {
     return cap_data[i].cap;
+  }
+  bool is_cap(size_t i) const
+  {
+    return cap_data[i].tag == WORD_TAG_CAP;
+  }
+  bool is_data(size_t i) const
+  {
+    return cap_data[i].tag == WORD_TAG_DATA;
   }
   regfile_t()
   {
@@ -196,7 +204,7 @@ private:
 #define MMU (*p->get_mmu())
 #define STATE (*p->get_state())
 #define FLEN (p->get_flen())
-#define CHECK_REG(reg) ((void) 0)
+#define CHECK_REG(reg) (assert(STATE.XPR.is_data(reg)))
 #define READ_REG(reg) ({ CHECK_REG(reg); STATE.XPR[reg]; })
 #define READ_FREG(reg) STATE.FPR[reg]
 #define RD READ_REG(insn.rd())
@@ -229,6 +237,9 @@ private:
   })
 # define WRITE_VSTATUS STATE.log_reg_write[3] = {0, 0};
 #endif
+
+// Capability macros
+
 
 // RVC macros
 #define WRITE_RVC_RS1S(value) WRITE_REG(insn.rvc_rs1s(), value)

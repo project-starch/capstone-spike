@@ -54,7 +54,6 @@ reg_t mmu_t::translate(reg_t addr, reg_t len, access_type type, uint32_t xlate_f
     return addr;
   if (proc->get_state()->world == WORLD_SECURE || proc->get_state()->normal_world_cap) {
     assert(addr > sim->get_mem_partition_addr());
-    proc->get_state()->normal_world_cap = false;
     return addr;
   }
 
@@ -152,10 +151,12 @@ void mmu_t::load_slow_path(reg_t addr, reg_t len, uint8_t* bytes, uint32_t xlate
 
   if (auto host_addr = sim->addr_to_mem(paddr)) {
     memcpy(bytes, host_addr, len);
-    if (tracer.interested_in_range(paddr, paddr + PGSIZE, LOAD))
-      tracer.trace(paddr, len, LOAD);
-    else if (xlate_flags == 0)
-      refill_tlb(addr, paddr, host_addr, LOAD);
+    if (proc->get_state()->world == WORLD_NORMAL && proc->get_state()->normal_world_cap == false) {
+      if (tracer.interested_in_range(paddr, paddr + PGSIZE, LOAD))
+        tracer.trace(paddr, len, LOAD);
+      else if (xlate_flags == 0)
+        refill_tlb(addr, paddr, host_addr, LOAD);
+    }
   } else if (!mmio_load(paddr, len, bytes)) {
     throw trap_load_access_fault((proc) ? proc->state.v : false, addr, 0, 0);
   }
@@ -181,10 +182,12 @@ void mmu_t::store_slow_path(reg_t addr, reg_t len, const uint8_t* bytes, uint32_
 
   if (auto host_addr = sim->addr_to_mem(paddr)) {
     memcpy(host_addr, bytes, len);
-    if (tracer.interested_in_range(paddr, paddr + PGSIZE, STORE))
-      tracer.trace(paddr, len, STORE);
-    else if (xlate_flags == 0)
-      refill_tlb(addr, paddr, host_addr, STORE);
+    if (proc->get_state()->world == WORLD_NORMAL && proc->get_state()->normal_world_cap == false) {
+      if (tracer.interested_in_range(paddr, paddr + PGSIZE, STORE))
+        tracer.trace(paddr, len, STORE);
+      else if (xlate_flags == 0)
+        refill_tlb(addr, paddr, host_addr, STORE);
+    }
   } else if (!mmio_store(paddr, len, bytes)) {
     throw trap_store_access_fault((proc) ? proc->state.v : false, addr, 0, 0);
   }

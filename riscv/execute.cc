@@ -284,16 +284,26 @@ void processor_t::step(size_t n)
       else while (instret < n)
       {
         // Main simulation loop, fast path.
-        for (auto ic_entry = _mmu->access_icache(pc); ; ) {
-          auto fetch = ic_entry->data;
+        if (get_state()->world == WORLD_NORMAL && get_state()->normal_world_cap == false) {
+          assert(addr > sim->get_mem_partition_addr());
+          insn_bits_t insn = sim->addr_to_mem(pc);
+          insn_fetch_t fetch = {decode_insn(insn), insn};
           pc = execute_insn(this, pc, fetch);
-          ic_entry = ic_entry->next;
-          if (unlikely(ic_entry->tag != pc))
-            break;
-          if (unlikely(instret + 1 == n))
-            break;
           instret++;
           state.pc = pc;
+        }
+        else {
+          for (auto ic_entry = _mmu->access_icache(pc); ; ) {
+            auto fetch = ic_entry->data;
+            pc = execute_insn(this, pc, fetch);
+            ic_entry = ic_entry->next;
+            if (unlikely(ic_entry->tag != pc))
+              break;
+            if (unlikely(instret + 1 == n))
+              break;
+            instret++;
+            state.pc = pc;
+          }
         }
 
         advance_pc();
