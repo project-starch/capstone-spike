@@ -507,6 +507,10 @@ public:
     return sim->get_rev_tree().is_valid(cap.node_id);
   }
 
+  inline bool is_normal_access() const {
+    return state.world == WORLD_NORMAL && state.normal_world_cap == false;
+  }
+
 private:
   simif_t* sim;
   mmu_t* mmu; // main memory is always accessed via the mmu
