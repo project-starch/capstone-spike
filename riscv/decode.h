@@ -19,6 +19,8 @@
 #include <cinttypes>
 
 #include "cap.h"
+#include "tag_controller.h"
+#include "revocation_tree.h"
 
 typedef int64_t sreg_t;
 typedef uint64_t reg_t;

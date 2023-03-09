@@ -54,6 +54,7 @@ sim_t::sim_t(const char* isa, const char* priv, const char* varch,
     log_file(log_path),
     cmd_file(cmd_file),
     mem_partition_addr(mem_partition_addr),
+    rev_tree(1024*1024), // TODO: parameterise the revocation tree size
 #ifdef HAVE_BOOST_ASIO
     io_service_ptr(io_service_ptr), // socket interface
     acceptor_ptr(acceptor_ptr),
@@ -65,8 +66,7 @@ sim_t::sim_t(const char* isa, const char* priv, const char* varch,
     histogram_enabled(false),
     log(false),
     remote_bitbang(NULL),
-    debug_module(this, dm_config),
-    rev_tree(1024*1024) // TODO: parameterise the revocation tree size
+    debug_module(this, dm_config)
 {
   signal(SIGINT, &handle_signal);
 

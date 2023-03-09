@@ -285,8 +285,10 @@ void processor_t::step(size_t n)
       {
         // Main simulation loop, fast path.
         if (get_state()->world == WORLD_NORMAL && get_state()->normal_world_cap == false) {
-          assert(addr > sim->get_mem_partition_addr());
-          insn_bits_t insn = sim->addr_to_mem(pc);
+          assert(pc > sim->get_mem_partition_addr());
+          char* host_mem = sim->addr_to_mem(pc);
+          insn_bits_t insn;
+          memcpy(&insn, host_mem, sizeof(insn_bits_t));
           insn_fetch_t fetch = {decode_insn(insn), insn};
           pc = execute_insn(this, pc, fetch);
           instret++;

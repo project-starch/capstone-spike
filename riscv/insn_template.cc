@@ -6,7 +6,7 @@
 #define check_pc() \
   if (p->get_state()->world == WORLD_SECURE) { \
     p->get_state()->cap_pc.cursor = npc; \
-    cap_pc = p->get_state()->cap_pc; \
+    cap64_t cap_pc = p->get_state()->cap_pc; \
     assert(cap_pc.inbound() && p->valid_cap(cap_pc)); \
   }
 

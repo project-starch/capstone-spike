@@ -19,6 +19,9 @@ public:
 
   virtual const char* get_symbol(uint64_t addr) = 0;
 
+  virtual TagController& get_tag_controller() = 0;
+  virtual RevTree& get_rev_tree() = 0;
+  virtual uint64_t get_mem_partition_addr() = 0;
 };
 
 #endif

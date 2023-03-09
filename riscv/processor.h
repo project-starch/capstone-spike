@@ -14,11 +14,17 @@
 #include "debug_rom_defines.h"
 #include "entropy_source.h"
 #include "csrs.h"
+#include "simif.h"
+
+typedef enum
+{
+  WORLD_NORMAL,
+  WORLD_SECURE
+} world_type_t;
 
 class processor_t;
 class mmu_t;
 typedef reg_t (*insn_func_t)(processor_t*, insn_t, reg_t);
-class simif_t;
 class trap_t;
 class extension_t;
 class disassembler_t;
@@ -229,11 +235,8 @@ struct state_t
       STEP_STEPPING,
       STEP_STEPPED
   } single_step;
-  
-  enum {
-      WORLD_NORMAL,
-      WORLD_SECURE
-  } world;
+
+  world_type_t world;
 
 #ifdef RISCV_ENABLE_COMMITLOG
   commit_log_reg_t log_reg_write;

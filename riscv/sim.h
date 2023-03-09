@@ -24,9 +24,6 @@
 #include <memory>
 #include <sys/types.h>
 
-#include "tag_controller.h"
-#include "revocation_tree.h"
-
 class mmu_t;
 class remote_bitbang_t;
 
@@ -89,12 +86,11 @@ private:
   std::unique_ptr<clint_t> clint;
   bus_t bus;
   log_file_t log_file;
-  
-  TagController tag_controller;
-  RevTree rev_tree;
 
   FILE *cmd_file; // pointer to debug command input file
   uint64_t mem_partition_addr;
+  TagController tag_controller;
+  RevTree rev_tree;
 
 #ifdef HAVE_BOOST_ASIO
   // the following are needed for command socket interface
