@@ -33,7 +33,7 @@ reg_t rv64i_NAME(processor_t* p, insn_t insn, reg_t pc)
 }
 
 #undef CHECK_REG
-#define CHECK_REG(reg) require((reg) < 16 && STATE.XPR.is_data(reg))
+#define CHECK_REG(reg) require((reg) < 16)
 
 reg_t rv32e_NAME(processor_t* p, insn_t insn, reg_t pc)
 {

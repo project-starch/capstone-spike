@@ -76,6 +76,15 @@ struct cap64_t
     // TODO
   }
 
+  void reset() {
+    cursor = 0;
+    base = 0;
+    end = 0;
+    node_id = 0;
+    perm = CAP_PERM_NA;
+    type = CAP_TYPE_NONLINEAR;
+  }
+
   inline bool is_linear() const {
     return type != CAP_TYPE_NONLINEAR;
   }
@@ -131,9 +140,13 @@ struct cap_reg_t
     }
   }
 
+  void set_data() {
+    tag = WORD_TAG_DATA;
+  }
+
   void reset() {
-    tag = WORD_TAG_CAP;
-    memset(&cap, 0, sizeof(cap));
+    tag = WORD_TAG_DATA;
+    cap.reset();
   }
 };
 

@@ -156,8 +156,10 @@ class regfile_t
 public:
   void write(size_t i, T value)
   {
-    if (!zero_reg || i != 0)
+    if (!zero_reg || i != 0){
       data[i] = value;
+      cap_data[i].set_data();
+    }
   }
   void write_cap(size_t i, _uint256_t &c)
   {
@@ -172,19 +174,13 @@ public:
   }
   const T& operator [] (size_t i) const
   {
+    assert(cap_data[i].tag == WORD_TAG_DATA);
     return data[i];
   }
   cap64_t& read_cap(size_t i) const
   {
+    assert(cap_data[i].tag == WORD_TAG_CAP);
     return cap_data[i].cap;
-  }
-  bool is_cap(size_t i) const
-  {
-    return cap_data[i].tag == WORD_TAG_CAP;
-  }
-  bool is_data(size_t i) const
-  {
-    return cap_data[i].tag == WORD_TAG_DATA;
   }
   regfile_t()
   {
@@ -206,7 +202,7 @@ private:
 #define MMU (*p->get_mmu())
 #define STATE (*p->get_state())
 #define FLEN (p->get_flen())
-#define CHECK_REG(reg) (assert(STATE.XPR.is_data(reg)))
+#define CHECK_REG(reg) ((void) 0)
 #define READ_REG(reg) ({ CHECK_REG(reg); STATE.XPR[reg]; })
 #define READ_FREG(reg) STATE.FPR[reg]
 #define RD READ_REG(insn.rd())

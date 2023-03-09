@@ -284,7 +284,7 @@ void processor_t::step(size_t n)
       else while (instret < n)
       {
         // Main simulation loop, fast path.
-        if (get_state()->world == WORLD_NORMAL && get_state()->normal_world_cap == false) {
+        if (get_state()->world == WORLD_SECURE || get_state()->normal_world_cap) {
           assert(pc > sim->get_mem_partition_addr());
           char* host_mem = sim->addr_to_mem(pc);
           insn_bits_t insn;
