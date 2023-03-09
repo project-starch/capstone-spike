@@ -42,7 +42,7 @@ public:
 #ifdef HAVE_BOOST_ASIO
         boost::asio::io_service *io_service_ptr_ctor, boost::asio::ip::tcp::acceptor *acceptor_ptr_ctor,  // option -s
 #endif
-        FILE *cmd_file, const uint64_t mem_partition_addr); // needed for command line option --cmd
+        FILE *cmd_file, uint64_t mem_partition_addr); // needed for command line option --cmd
   ~sim_t();
 
   // run the simulation to completion

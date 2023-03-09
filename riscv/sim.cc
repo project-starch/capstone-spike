@@ -40,7 +40,7 @@ sim_t::sim_t(const char* isa, const char* priv, const char* varch,
 #ifdef HAVE_BOOST_ASIO
              boost::asio::io_service *io_service_ptr, boost::asio::ip::tcp::acceptor *acceptor_ptr, // option -s
 #endif
-             FILE *cmd_file, const uint64_t mem_partition_addr) // needed for command line option --cmd
+             FILE *cmd_file, uint64_t mem_partition_addr) // needed for command line option --cmd
   : htif_t(args),
     mems(mems),
     plugin_devices(plugin_devices),

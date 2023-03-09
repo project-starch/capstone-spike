@@ -87,7 +87,7 @@ RevTree::getNewNode() {
 RevNode*
 RevTree::getNode(rev_node_id_t node_id) {
   if(node_id == REV_NODE_ID_INVALID ||
-    node_id >= size) {
+    node_id >= static_cast<uint64_t>(size)) {
     return nullptr;
   }
   return nodes + node_id;
