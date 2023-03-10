@@ -31,6 +31,14 @@ enum cap_perm_t {
   CAP_PERM_RWX = 4
 };
 
+cap_perm_t decode_perm(uint64_t x) {
+  if (x == 0) return CAP_PERM_RO;
+  if (x == 1) return CAP_PERM_RW;
+  if (x == 2) return CAP_PERM_RX;
+  if (x == 3) return CAP_PERM_RWX;
+  return CAP_PERM_NA;
+}
+
 /**
  * 
  *  Capability type.
@@ -109,12 +117,22 @@ struct cap64_t
     return (perm == CAP_PERM_RX || perm == CAP_PERM_RWX) && type != CAP_TYPE_UNINITIALIZED;
   }
 
-  void tighten_perm(cap_perm_t new_perm) {
-    if (perm >= new_perm) {
-      if (perm == CAP_PERM_RX && new_perm == CAP_PERM_RW)
-        return;
+  void tighten_perm(uint64_t x) {
+    cap_perm_t new_perm = decode_perm(x);
+    
+    if (perm >= new_perm && !(perm == CAP_PERM_RX && new_perm == CAP_PERM_RW)) {
       perm = new_perm;
     }
+    else {
+      perm = CAP_PERM_NA;
+    }
+  }
+
+  void shrink(uint64_t new_base, uint64_t new_end) {
+    assert(type == CAP_TYPE_NONLINEAR || type == CAP_TYPE_LINEAR);
+    assert(new_base < new_end && new_end <= end && new_base >= base);
+    base = new_base;
+    end = new_end;
   }
 };
 
@@ -142,6 +160,7 @@ struct cap_reg_t
 
   void set_data() {
     tag = WORD_TAG_DATA;
+    cap.reset();
   }
 
   void reset() {

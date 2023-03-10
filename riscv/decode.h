@@ -155,32 +155,52 @@ template <class T, size_t N, bool zero_reg>
 class regfile_t
 {
 public:
+  inline bool is_data(size_t i) const
+  {
+    return cap_data[i].tag == WORD_TAG_DATA;
+  }
+  inline bool is_cap(size_t i) const
+  {
+    return cap_data[i].tag == WORD_TAG_CAP;
+  }
   void write(size_t i, T value)
   {
     if (!zero_reg || i != 0){
       data[i] = value;
-      cap_data[i].set_data();
+      if (is_cap(i)) cap_data[i].set_data();
     }
   }
   void write_cap(size_t i, _uint256_t &c)
   {
     if (!zero_reg || i != 0){
-      memset(data + i, 0, sizeof(data[i]));
+      if (is_data(i)) memset(data + i, 0, sizeof(data[i]));
       cap_data[i].set_cap(c);
     }
   }
-  void clear_cap(size_t i)
+  void move(size_t to, size_t from)
   {
-    cap_data[i].reset();
+    if (!zero_reg || to != 0) {
+      if (is_data(from)) {
+        data[to] = data[from];
+        if (is_cap(to)) cap_data[to].set_data();
+      }
+      else {
+        if (is_data(to)) memset(data + to, 0, sizeof(data[to]));
+        cap_data[to] = cap_data[from];
+        if (cap_data[from].cap.is_linear()) {
+          cap_data[from].reset();
+        }
+      }
+    }
   }
   const T& operator [] (size_t i) const
   {
-    assert(cap_data[i].tag == WORD_TAG_DATA);
+    assert(is_data(i));
     return data[i];
   }
   cap64_t& read_cap(size_t i) const
   {
-    assert(cap_data[i].tag == WORD_TAG_CAP);
+    assert(is_cap(i));
     return cap_data[i].cap;
   }
   regfile_t()
@@ -191,7 +211,7 @@ public:
   {
     memset(data, 0, sizeof(data));
     for (size_t i = 0; i < N; i++) {
-      clear_cap(i);
+      cap_data[i].reset();
     }
   }
 private:
@@ -238,6 +258,14 @@ private:
 #endif
 
 // Capability macros
+#define Rs1 insn.rs1()
+#define Rs2 insn.rs2()
+#define Rd insn.rd()
+#define READ_CAP(reg) STATE.XPR.read_cap(reg)
+#define VALID_CAP(reg) assert(p->valid_cap(READ_CAP(reg)))
+#define MOVE(to, from) STATE.XPR.move(to, from)
+#define TIGHTEN_PERM(reg, x) READ_CAP(reg).tighten_perm(x)
+#define SHRINK(reg, base, end) READ_CAP(reg).shrink(base, end)
 
 
 // RVC macros

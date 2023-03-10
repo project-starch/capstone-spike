@@ -1,0 +1,2 @@
+VALID_CAP(Rd);
+TIGHTEN_PERM(Rd, RS1);

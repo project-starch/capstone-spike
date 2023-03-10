@@ -1,0 +1,2 @@
+VALID_CAP(Rd);
+SHRINK(Rd, RS1, RS2);
