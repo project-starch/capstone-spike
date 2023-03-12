@@ -1,12 +1,12 @@
 #include <cassert>
 #include "revocation_tree.h"
 
-bool
+rev_node_id_t
 RevTree::allocate(rev_node_id_t parent_id) {
   RevNode* parent_node = getNode(parent_id);
   RevNode* new_node = getNewNode();
   if(!new_node) {
-    return false; // unable to allocate new node
+    return REV_NODE_ID_INVALID; // unable to allocate new node
   }
 
   new_node->state = REV_NODE_VALID;
@@ -22,7 +22,29 @@ RevTree::allocate(rev_node_id_t parent_id) {
     new_node->next = nullptr;
   }
   
-  return true;
+  rev_node_id_t new_node_id = new_node - nodes;
+  return new_node_id;
+}
+
+rev_node_id_t
+RevTree::split(rev_node_id_t node_id) {
+  // This function assumes that the node is a linear cap
+  RevNode* node = getNode(node_id);
+  if(!node || node->state != REV_NODE_VALID) {
+    return REV_NODE_ID_INVALID;
+  }
+  RevNode* new_node = getNewNode();
+  if(!new_node) {
+    return REV_NODE_ID_INVALID; // unable to allocate new node
+  }
+  new_node->state = REV_NODE_VALID;
+  new_node->children = nullptr;
+  new_node->ref_count = 1;
+  new_node->next = node->next;
+  node->next = new_node;
+
+  rev_node_id_t new_node_id = new_node - nodes;
+  return new_node_id;
 }
 
 void

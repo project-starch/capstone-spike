@@ -149,13 +149,16 @@ struct cap_reg_t
 
   cap_reg_t() { reset(); }
 
-  void set_cap(_uint256_t& v) {
+  bool set_cap(_uint256_t& v) {
     tag = WORD_TAG_CAP;
     cap.from256(v);
 
     if (cap.is_linear()) {
       memset(&v, 0, sizeof(v));
+      return true;
     }
+
+    return false;
   }
 
   void set_data() {

@@ -507,6 +507,14 @@ public:
     return sim->get_rev_tree().is_valid(cap.node_id);
   }
 
+  inline void updateRC(const cap64_t& cap, int delta) {
+    sim->get_rev_tree().updateRC(cap.node_id, delta);
+  }
+
+  inline rev_node_id_t split_rt(const cap64_t& cap) {
+    return sim->get_rev_tree().split(cap.node_id);
+  }
+
   inline bool is_normal_access() const {
     return state.world == WORLD_NORMAL && state.normal_world_cap == false;
   }

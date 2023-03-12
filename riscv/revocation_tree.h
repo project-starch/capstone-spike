@@ -45,7 +45,8 @@ public:
   
 
   void updateRC(rev_node_id_t node_id, int delta);
-  bool allocate(rev_node_id_t parent_id); // allocate a new revocation node and attach to parent
+  rev_node_id_t allocate(rev_node_id_t parent_id); // allocate a new revocation node and attach to parent
+  rev_node_id_t split(rev_node_id_t node_id); // split a node (for a linear cap) into two
   void revoke(rev_node_id_t node_id); // revoke subtree rooted at node
   RevNode* getNode(rev_node_id_t node_id);
   

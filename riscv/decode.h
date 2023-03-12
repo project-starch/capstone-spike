@@ -163,6 +163,10 @@ public:
   {
     return cap_data[i].tag == WORD_TAG_CAP;
   }
+  inline bool zero_reg_required() const
+  {
+    return zero_reg;
+  }
   void write(size_t i, T value)
   {
     if (!zero_reg || i != 0){
@@ -170,28 +174,41 @@ public:
       if (is_cap(i)) cap_data[i].set_data();
     }
   }
-  void write_cap(size_t i, _uint256_t &c)
+  bool write_cap(size_t i, _uint256_t &c)
   {
     if (!zero_reg || i != 0){
       if (is_data(i)) memset(data + i, 0, sizeof(data[i]));
-      cap_data[i].set_cap(c);
+      return cap_data[i].set_cap(c);
     }
+    return true;
   }
-  void move(size_t to, size_t from)
+  bool move(size_t to, size_t from)
   {
     if (!zero_reg || to != 0) {
       if (is_data(from)) {
         data[to] = data[from];
         if (is_cap(to)) cap_data[to].set_data();
+        return true;
       }
       else {
         if (is_data(to)) memset(data + to, 0, sizeof(data[to]));
         cap_data[to] = cap_data[from];
         if (cap_data[from].cap.is_linear()) {
           cap_data[from].reset();
+          return true;
         }
+        return false;
       }
     }
+    return true;
+  }
+  void split_cap(size_t reg, size_t split_reg, reg_t pv, rev_node_id_t split_node_id) {
+    assert(split_node_id != REV_NODE_ID_INVALID);
+    if (is_data(split_reg)) memset(data + split_reg, 0, sizeof(data[split_reg]));
+    cap_data[split_reg] = cap_data[reg];
+    cap_data[split_reg].cap.node_id = split_node_id;
+    cap_data[reg].cap.end = pv;
+    cap_data[split_reg].cap.base = pv;
   }
   const T& operator [] (size_t i) const
   {
@@ -263,10 +280,29 @@ private:
 #define Rd insn.rd()
 #define READ_CAP(reg) STATE.XPR.read_cap(reg)
 #define VALID_CAP(reg) assert(p->valid_cap(READ_CAP(reg)))
-#define MOVE(to, from) STATE.XPR.move(to, from)
+#define REQUIRE_ZERO_REG STATE.XPR.zero_reg_required()
+#define UPDATE_RC_UP(reg) p->updateRC(READ_CAP(reg), 1)
+#define UPDATE_RC_DOWN(reg) p->updateRC(READ_CAP(reg), -1)
+#define CAP_STRICT_LINEAR(reg) assert(READ_CAP(reg).type == CAP_TYPE_LINEAR)
+#define MOVE(to, from) \
+  do { \
+    if (!STATE.XPR.move(to, from)) { \
+      UPDATE_RC_UP(to); \
+    } \
+  } while (0)
 #define TIGHTEN_PERM(reg, x) READ_CAP(reg).tighten_perm(x)
-#define SHRINK(reg, base, end) READ_CAP(reg).shrink(base, end)
-
+#define SHRINK_CAP(reg, base, end) READ_CAP(reg).shrink(base, end)
+#define SPLIT_CAP(reg, split_reg, pv_reg) \
+  do { \
+    if (!REQUIRE_ZERO_REG || split_reg != 0) { \
+      CAP_STRICT_LINEAR(reg); \
+      VALID_CAP(reg); \
+      reg_t pv = READ_REG(pv_reg); \
+      assert(pv > READ_CAP(reg).base && pv < READ_CAP(reg).end); \
+      rev_node_id_t split_node_id = p->split_rt(READ_CAP(reg)); \
+      STATE.XPR.split_cap(reg, split_reg, pv, split_node_id); \
+    } \
+  } while (0)
 
 // RVC macros
 #define WRITE_RVC_RS1S(value) WRITE_REG(insn.rvc_rs1s(), value)
