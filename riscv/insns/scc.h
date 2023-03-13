@@ -1,0 +1,1 @@
+SCC_CAP(Rd, RS1);

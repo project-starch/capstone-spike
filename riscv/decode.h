@@ -303,6 +303,9 @@ private:
       STATE.XPR.split_cap(reg, split_reg, pv, split_node_id); \
     } \
   } while (0)
+#define DELIN_CAP(reg) READ_CAP(reg).delinearize()
+#define SCC_CAP(reg, value) READ_CAP(reg).set_current_cursor(value)
+#define LCC_CAP(reg, cap_reg) WRITE_REG(reg, READ_CAP(cap_reg).cursor)
 
 // RVC macros
 #define WRITE_RVC_RS1S(value) WRITE_REG(insn.rvc_rs1s(), value)
