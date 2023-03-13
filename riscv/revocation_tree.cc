@@ -10,6 +10,7 @@ RevTree::allocate(rev_node_id_t parent_id) {
   }
 
   new_node->state = REV_NODE_VALID;
+  new_node->type = REV_NODE_LINEAR;
   new_node->children = nullptr;
   new_node->ref_count = 1;
 
@@ -38,6 +39,7 @@ RevTree::split(rev_node_id_t node_id) {
     return REV_NODE_ID_INVALID; // unable to allocate new node
   }
   new_node->state = REV_NODE_VALID;
+  new_node->type = REV_NODE_LINEAR;
   new_node->children = nullptr;
   new_node->ref_count = 1;
   new_node->next = node->next;
@@ -55,6 +57,12 @@ RevTree::updateRC(rev_node_id_t node_id, int delta){
 }
 
 void
+RevTree::set_nonlinear(rev_node_id_t node_id) {
+  RevNode* node = getNode(node_id);
+  node->type = REV_NODE_NONLINEAR;
+}
+
+void
 RevTree::tryFreeing(RevNode* node) {
   if(node->state == REV_NODE_INVALID && node->ref_count == 0) {
     // add to free list
@@ -64,8 +72,10 @@ RevTree::tryFreeing(RevNode* node) {
   }
 }
 
-void
+bool
 RevTree::revoke(rev_node_id_t node_id) {
+  bool all_nonlinear = true;
+
   RevNode* root_node = getNode(node_id);
   if(!root_node)
     return;
@@ -77,6 +87,7 @@ RevTree::revoke(rev_node_id_t node_id) {
     traverse_stack.pop();
     assert(node->state == REV_NODE_VALID);
     node->state = REV_NODE_INVALID;
+    if(all_nonlinear && node->type == REV_NODE_LINEAR) all_nonlinear = false;
 
     for(RevNode* child = node->children; child; child = child->next) {
       traverse_stack.push(child);
@@ -87,6 +98,8 @@ RevTree::revoke(rev_node_id_t node_id) {
   
   // remove the children
   root_node->children = nullptr;
+
+  return all_nonlinear;
 }
 
 

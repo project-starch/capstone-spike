@@ -221,6 +221,18 @@ public:
     cap_data[reg].cap.end = pv;
     cap_data[split_reg].cap.base = pv;
   }
+  void delin(size_t reg) {
+    assert(cap_data[reg].cap.type == CAP_TYPE_LINEAR);
+    cap_data[reg].cap.type = CAP_TYPE_NONLINEAR;
+    p->set_nonlinear(cap_data[reg].cap);
+  }
+  void mrev(size_t reg, size_t cap_reg, rev_node_id_t new_node_id) {
+    assert(new_node_id != REV_NODE_ID_INVALID);
+    if (is_cap(reg)) p->updateRC(cap_data[reg].cap, -1);
+    cap_data[reg] = cap_data[cap_reg];
+    cap_data[cap_reg].cap.node_id = new_node_id;
+    cap_data[reg].cap.type = CAP_TYPE_REVOCATION;
+  }
   const T& operator [] (size_t i) const
   {
     assert(is_data(i));
@@ -310,9 +322,30 @@ private:
       STATE.XPR.split_cap(reg, split_reg, pv, split_node_id); \
     } \
   } while (0)
-#define DELIN_CAP(reg) READ_CAP(reg).delinearize()
+#define DELIN_CAP(reg) STATE.XPR.delin(reg)
 #define SCC_CAP(reg, value) READ_CAP(reg).set_current_cursor(value)
 #define LCC_CAP(reg, cap_reg) WRITE_REG(reg, READ_CAP(cap_reg).cursor)
+#define REVOKE_CAP(reg) \
+  do { \
+    VALID_CAP(reg); \
+    assert(READ_CAP(reg).type == CAP_TYPE_REVOCATION); \
+    bool all_nonlinear = p->revoke(READ_CAP(reg)); \
+    if (all_nonlinear || !(READ_CAP(reg).writable())) { \
+      READ_CAP(reg).type = CAP_TYPE_LINEAR; \
+    } \
+    else { \
+      READ_CAP(reg).type = CAP_TYPE_UNINITIALIZED; \
+    } \
+  } while (0)
+#define MREV_CAP(reg, cap_reg) \
+  do { \
+    if (!REQUIRE_ZERO_REG || reg != 0) { \
+      CAP_STRICT_LINEAR(cap_reg); \
+      VALID_CAP(cap_reg); \
+      rev_node_id_t new_node_id = p->allocate(READ_CAP(cap_reg)); \
+      STATE.XPR.mrev(reg, cap_reg, new_node_id); \
+    } \
+  } while (0)
 
 // RVC macros
 #define WRITE_RVC_RS1S(value) WRITE_REG(insn.rvc_rs1s(), value)

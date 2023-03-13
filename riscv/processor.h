@@ -515,6 +515,18 @@ public:
     return sim->get_rev_tree().split(cap.node_id);
   }
 
+  inline bool revoke(const cap64_t& cap) {
+    return sim->get_rev_tree().revoke(cap.node_id);
+  }
+
+  inline rev_node_id_t allocate(const cap64_t& cap) {
+    return sim->get_rev_tree().allocate(cap.node_id);
+  }
+
+  inline void set_nonlinear(const cap64_t& cap) {
+    sim->get_rev_tree().set_nonlinear(cap.node_id);
+  }
+
   inline bool is_normal_access() const {
     return state.world == WORLD_NORMAL && state.normal_world_cap == false;
   }

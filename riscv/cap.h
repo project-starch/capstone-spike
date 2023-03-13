@@ -126,11 +126,6 @@ struct cap64_t
     end = new_end;
   }
 
-  void delinearize() {
-    assert(type == CAP_TYPE_LINEAR);
-    type = CAP_TYPE_NONLINEAR;
-  }
-
   void set_current_cursor(uint64_t new_cursor) {
     assert(type != CAP_TYPE_UNINITIALIZED && type != CAP_TYPE_SEALED);
     cursor = new_cursor;

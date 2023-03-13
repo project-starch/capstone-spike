@@ -16,8 +16,14 @@ typedef enum {
   REV_NODE_VALID
 } RevNodeState;
 
+typedef enum {
+  REV_NODE_LINEAR,
+  REV_NODE_NONLINEAR
+} RevNodeType;
+
 struct RevNode {
   RevNodeState state;
+  RevNodeType type;
   uint64_t ref_count;
   RevNode *next, *children;
 };
@@ -47,8 +53,9 @@ public:
   void updateRC(rev_node_id_t node_id, int delta);
   rev_node_id_t allocate(rev_node_id_t parent_id); // allocate a new revocation node and attach to parent
   rev_node_id_t split(rev_node_id_t node_id); // split a node (for a linear cap) into two
-  void revoke(rev_node_id_t node_id); // revoke subtree rooted at node
+  bool revoke(rev_node_id_t node_id); // revoke subtree rooted at node
   RevNode* getNode(rev_node_id_t node_id);
+  void set_nonlinear(rev_node_id_t node_id);
   
   int getSize() const {
     return size;
