@@ -84,15 +84,6 @@ struct cap64_t
     // TODO
   }
 
-  void reset() {
-    cursor = 0;
-    base = 0;
-    end = 0;
-    node_id = 0;
-    perm = CAP_PERM_NA;
-    type = CAP_TYPE_NONLINEAR;
-  }
-
   inline bool is_linear() const {
     return type != CAP_TYPE_NONLINEAR;
   }
@@ -159,27 +150,12 @@ struct cap_reg_t
 
   cap_reg_t() { reset(); }
 
-  bool set_cap(_uint256_t& v) {
+  void set_cap(const cap64_t& v) {
     tag = WORD_TAG_CAP;
-    cap.from256(v);
-
-    if (cap.is_linear()) {
-      memset(&v, 0, sizeof(v));
-      return true;
-    }
-
-    return false;
+    cap = v;
   }
-
-  void set_data() {
-    tag = WORD_TAG_DATA;
-    cap.reset();
-  }
-
-  void reset() {
-    tag = WORD_TAG_DATA;
-    cap.reset();
-  }
+  inline void set_data() { tag = WORD_TAG_DATA; }
+  inline void reset() { set_data(); }
 };
 
 #endif

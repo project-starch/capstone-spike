@@ -164,7 +164,7 @@ struct type_sew_t<64>
 // architectural state of a RISC-V hart
 struct state_t
 {
-  void reset(processor_t* const proc, reg_t max_isa);
+  void reset(processor_t* proc, reg_t max_isa);
 
   static const int num_triggers = 4;
 

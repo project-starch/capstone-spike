@@ -171,40 +171,51 @@ public:
   {
     if (!zero_reg || i != 0){
       data[i] = value;
-      if (is_cap(i)) cap_data[i].set_data();
+      if (is_cap(i)) {
+        p->updateRC(cap_data[i].cap, -1);
+        cap_data[i].set_data();
+      }
     }
   }
-  bool write_cap(size_t i, _uint256_t &c)
+  bool write_cap(size_t i, const _uint256_t &c)
   {
     if (!zero_reg || i != 0){
-      if (is_data(i)) memset(data + i, 0, sizeof(data[i]));
-      return cap_data[i].set_cap(c);
+      cap64_t cap;
+      cap.from256(c);
+
+      if (is_cap(i)) p->updateRC(cap_data[i].cap, -1);
+      cap_data[i].set_cap(cap);
+      if (!cap.is_linear()) p->updateRC(cap, 1);
+      return cap.is_linear();
     }
-    return true;
+    return false;
   }
-  bool move(size_t to, size_t from)
+  void move(size_t to, size_t from)
   {
     if (!zero_reg || to != 0) {
       if (is_data(from)) {
         data[to] = data[from];
-        if (is_cap(to)) cap_data[to].set_data();
-        return true;
+        if (is_cap(to)) {
+          p->updateRC(cap_data[to].cap, -1);
+          cap_data[to].set_data();
+        }
       }
       else {
-        if (is_data(to)) memset(data + to, 0, sizeof(data[to]));
+        if (is_cap(to)) p->updateRC(cap_data[to].cap, -1);
         cap_data[to] = cap_data[from];
         if (cap_data[from].cap.is_linear()) {
-          cap_data[from].reset();
-          return true;
+          memset(data + from, 0, sizeof(data[from]));
+          cap_data[from].set_data();
         }
-        return false;
+        else {
+          p->updateRC(cap_data[from].cap, 1);
+        }
       }
     }
-    return true;
   }
   void split_cap(size_t reg, size_t split_reg, reg_t pv, rev_node_id_t split_node_id) {
     assert(split_node_id != REV_NODE_ID_INVALID);
-    if (is_data(split_reg)) memset(data + split_reg, 0, sizeof(data[split_reg]));
+    if (is_cap(split_reg)) p->updateRC(cap_data[split_reg].cap, -1);
     cap_data[split_reg] = cap_data[reg];
     cap_data[split_reg].cap.node_id = split_node_id;
     cap_data[reg].cap.end = pv;
@@ -224,7 +235,7 @@ public:
   {
     reset();
   }
-  void reset()
+  void reset(processor_t* proc) : p(proc)
   {
     memset(data, 0, sizeof(data));
     for (size_t i = 0; i < N; i++) {
@@ -232,6 +243,7 @@ public:
     }
   }
 private:
+  processor_t* p;
   T data[N];
   cap_reg_t cap_data[N];
 };
@@ -281,15 +293,10 @@ private:
 #define READ_CAP(reg) STATE.XPR.read_cap(reg)
 #define VALID_CAP(reg) assert(p->valid_cap(READ_CAP(reg)))
 #define REQUIRE_ZERO_REG STATE.XPR.zero_reg_required()
-#define UPDATE_RC_UP(reg) p->updateRC(READ_CAP(reg), 1)
-#define UPDATE_RC_DOWN(reg) p->updateRC(READ_CAP(reg), -1)
+#define UPDATE_RC_UP(cap) p->updateRC(cap, 1)
+#define UPDATE_RC_DOWN(cap) p->updateRC(cap, -1)
 #define CAP_STRICT_LINEAR(reg) assert(READ_CAP(reg).type == CAP_TYPE_LINEAR)
-#define MOVE(to, from) \
-  do { \
-    if (!STATE.XPR.move(to, from)) { \
-      UPDATE_RC_UP(to); \
-    } \
-  } while (0)
+#define MOVE(to, from) STATE.XPR.move(to, from)
 #define TIGHTEN_PERM(reg, x) READ_CAP(reg).tighten_perm(x)
 #define SHRINK_CAP(reg, base, end) READ_CAP(reg).shrink(base, end)
 #define SPLIT_CAP(reg, split_reg, pv_reg) \

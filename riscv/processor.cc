@@ -374,11 +374,11 @@ static int xlen_to_uxl(int xlen)
 
 const int state_t::num_triggers;
 
-void state_t::reset(processor_t* const proc, reg_t max_isa)
+void state_t::reset(processor_t* proc, reg_t max_isa)
 {
   pc = DEFAULT_RSTVEC;
-  XPR.reset();
-  FPR.reset();
+  XPR.reset(proc);
+  FPR.reset(proc);
   normal_world_cap = false;
 
   // This assumes xlen is always max_xlen, which is true today (see
