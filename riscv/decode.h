@@ -204,8 +204,7 @@ public:
         if (is_cap(to)) p->updateRC(cap_data[to].cap, -1);
         cap_data[to] = cap_data[from];
         if (cap_data[from].cap.is_linear()) {
-          memset(data + from, 0, sizeof(data[from]));
-          cap_data[from].set_data();
+          reset_i(from);
         }
         else {
           p->updateRC(cap_data[from].cap, 1);
@@ -246,6 +245,10 @@ public:
   regfile_t()
   {
     reset();
+  }
+  void reset_i(size_t i) {
+    memset(data + i, 0, sizeof(data[i]));
+    cap_data[i].reset();
   }
   void reset(processor_t* proc) : p(proc)
   {
@@ -308,6 +311,8 @@ private:
 #define UPDATE_RC_UP(cap) p->updateRC(cap, 1)
 #define UPDATE_RC_DOWN(cap) p->updateRC(cap, -1)
 #define CAP_STRICT_LINEAR(reg) assert(READ_CAP(reg).type == CAP_TYPE_LINEAR)
+#define CAP_IS_LINEAR(reg) assert(READ_CAP(reg).is_linear())
+#define RESET_REG(reg) STATE.XPR.reset_i(reg)
 #define MOVE(to, from) STATE.XPR.move(to, from)
 #define TIGHTEN_PERM(reg, x) READ_CAP(reg).tighten_perm(x)
 #define SHRINK_CAP(reg, base, end) READ_CAP(reg).shrink(base, end)
@@ -345,6 +350,20 @@ private:
       rev_node_id_t new_node_id = p->allocate(READ_CAP(cap_reg)); \
       STATE.XPR.mrev(reg, cap_reg, new_node_id); \
     } \
+  } while (0)
+#define INIT_CAP(reg) \
+  do { \
+    assert(READ_CAP(reg).type == CAP_TYPE_UNINITIALIZED); \
+    assert(READ_CAP(reg).cursor == READ_CAP(reg).end);
+    VALID_CAP(reg); \
+    READ_CAP(reg).type = CAP_TYPE_LINEAR; \
+  } while (0)
+#define DROP_CAP(reg) \
+  do { \
+    CAP_IS_LINEAR(reg); \
+    VALID_CAP(reg); \
+    p->drop(READ_CAP(reg)); \
+    RESET_REG(reg); \
   } while (0)
 
 // RVC macros

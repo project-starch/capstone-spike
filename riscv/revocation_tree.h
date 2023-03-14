@@ -25,7 +25,7 @@ struct RevNode {
   RevNodeState state;
   RevNodeType type;
   uint64_t ref_count;
-  RevNode *next, *children;
+  RevNode * prev, *next, *children, *parent;
 };
 
 class RevTree {
@@ -54,6 +54,7 @@ public:
   rev_node_id_t allocate(rev_node_id_t parent_id); // allocate a new revocation node and attach to parent
   rev_node_id_t split(rev_node_id_t node_id); // split a node (for a linear cap) into two
   bool revoke(rev_node_id_t node_id); // revoke subtree rooted at node
+  void drop(rev_node_id_t node_id); // drop a node (for a linear cap)
   RevNode* getNode(rev_node_id_t node_id);
   void set_nonlinear(rev_node_id_t node_id);
   

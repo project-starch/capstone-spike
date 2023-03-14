@@ -527,6 +527,10 @@ public:
     sim->get_rev_tree().set_nonlinear(cap.node_id);
   }
 
+  inline void drop(const cap64_t& cap) {
+    sim->get_rev_tree().drop(cap.node_id);
+  }
+
   inline bool is_normal_access() const {
     return state.world == WORLD_NORMAL && state.normal_world_cap == false;
   }
