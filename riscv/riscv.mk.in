@@ -125,6 +125,17 @@ riscv_insn_ext_i = \
 	fence_i \
 	capenter \
 	capexit \
+	mov \
+	tighten \
+	shrink \
+	split \
+	delin \
+	scc \
+	lcc \
+	revoke \
+	mrev \
+	init \
+	drop \
 
 riscv_insn_ext_a = \
 	amoadd_d \
