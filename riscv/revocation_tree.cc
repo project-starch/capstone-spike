@@ -82,8 +82,6 @@ RevTree::revoke(rev_node_id_t node_id) {
   bool all_nonlinear = true;
 
   RevNode* root_node = getNode(node_id);
-  if(!root_node)
-    return;
   for(RevNode* node = root_node->children; node; node = node->next) {
     traverse_stack.push(node);
   }

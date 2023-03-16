@@ -31,14 +31,6 @@ enum cap_perm_t {
   CAP_PERM_RWX = 4
 };
 
-cap_perm_t decode_perm(uint64_t x) {
-  if (x == 0) return CAP_PERM_RO;
-  if (x == 1) return CAP_PERM_RW;
-  if (x == 2) return CAP_PERM_RX;
-  if (x == 3) return CAP_PERM_RWX;
-  return CAP_PERM_NA;
-}
-
 /**
  * 
  *  Capability type.
@@ -109,7 +101,22 @@ struct cap64_t
   }
 
   void tighten_perm(uint64_t x) {
-    cap_perm_t new_perm = decode_perm(x);
+    cap_perm_t new_perm = CAP_PERM_NA;
+    switch (x)
+    {
+    case 0:
+      new_perm = CAP_PERM_RO;
+      break;
+    case 1:
+      new_perm = CAP_PERM_RW;
+      break;
+    case 2:
+      new_perm = CAP_PERM_RX;
+      break;
+    case 3:
+      new_perm = CAP_PERM_RWX;
+      break;
+    }
     
     if (perm >= new_perm && !(perm == CAP_PERM_RX && new_perm == CAP_PERM_RW)) {
       perm = new_perm;

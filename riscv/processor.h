@@ -160,6 +160,48 @@ struct type_sew_t<64>
   using type=int64_t;
 };
 
+template <class T, size_t N, bool zero_reg>
+class regfile_t
+{
+public:
+  inline bool is_data(size_t i) const { return cap_data[i].tag == WORD_TAG_DATA; }
+  inline bool is_cap(size_t i) const { return cap_data[i].tag == WORD_TAG_CAP; }
+  inline bool zero_reg_required() const { return zero_reg; }
+  void write(size_t i, T value);
+  bool write_cap(size_t i, const _uint256_t &c);
+  void move(size_t to, size_t from);
+  void split_cap(size_t reg, size_t split_reg, reg_t pv, rev_node_id_t split_node_id);
+  void delin(size_t reg);
+  void mrev(size_t reg, size_t cap_reg, rev_node_id_t new_node_id);
+
+  const T& operator [] (size_t i) const
+  {
+    assert(is_data(i));
+    return data[i];
+  }
+  cap64_t& read_cap(size_t i)
+  {
+    assert(is_cap(i));
+    return cap_data[i].cap;
+  }
+  regfile_t() {}
+  void reset_i(size_t i) {
+    memset(data + i, 0, sizeof(data[i]));
+    cap_data[i].reset();
+  }
+  void reset(processor_t *proc)
+  {
+    p = proc;
+    memset(data, 0, sizeof(data));
+    for (size_t i = 0; i < N; i++) {
+      cap_data[i].reset();
+    }
+  }
+private:
+  processor_t *p;
+  T data[N];
+  cap_reg_t cap_data[N];
+};
 
 // architectural state of a RISC-V hart
 struct state_t
@@ -503,7 +545,7 @@ public:
 
   const char* get_symbol(uint64_t addr);
 
-  inline bool valid_cap(const cap64_t& cap) const {
+  inline bool valid_cap(const cap64_t& cap) {
     return sim->get_rev_tree().is_valid(cap.node_id);
   }
 
@@ -669,5 +711,88 @@ public:
 
   vectorUnit_t VU;
 };
+
+template <class T, size_t N, bool zero_reg>
+void
+regfile_t<T, N, zero_reg>::write(size_t i, T value)
+{
+  if (!zero_reg || i != 0){
+    data[i] = value;
+    if (is_cap(i)) {
+      p->updateRC(cap_data[i].cap, -1);
+      cap_data[i].set_data();
+    }
+  }
+}
+
+template <class T, size_t N, bool zero_reg>
+bool
+regfile_t<T, N, zero_reg>::write_cap(size_t i, const _uint256_t &c)
+{
+  if (!zero_reg || i != 0){
+    cap64_t cap;
+    cap.from256(c);
+
+    if (is_cap(i)) p->updateRC(cap_data[i].cap, -1);
+    cap_data[i].set_cap(cap);
+    if (!cap.is_linear()) p->updateRC(cap, 1);
+    return cap.is_linear();
+  }
+  return false;
+}
+
+template <class T, size_t N, bool zero_reg>
+void
+regfile_t<T, N, zero_reg>::move(size_t to, size_t from)
+{
+  if (!zero_reg || to != 0) {
+    if (is_data(from)) {
+      data[to] = data[from];
+      if (is_cap(to)) {
+        p->updateRC(cap_data[to].cap, -1);
+        cap_data[to].set_data();
+      }
+    }
+    else {
+      if (is_cap(to)) p->updateRC(cap_data[to].cap, -1);
+      cap_data[to] = cap_data[from];
+      if (cap_data[from].cap.is_linear()) {
+        reset_i(from);
+      }
+      else {
+        p->updateRC(cap_data[from].cap, 1);
+      }
+    }
+  }
+}
+
+template <class T, size_t N, bool zero_reg>
+void
+regfile_t<T, N, zero_reg>::split_cap(size_t reg, size_t split_reg, reg_t pv, rev_node_id_t split_node_id) {
+  assert(split_node_id != REV_NODE_ID_INVALID);
+  if (is_cap(split_reg)) p->updateRC(cap_data[split_reg].cap, -1);
+  cap_data[split_reg] = cap_data[reg];
+  cap_data[split_reg].cap.node_id = split_node_id;
+  cap_data[reg].cap.end = pv;
+  cap_data[split_reg].cap.base = pv;
+}
+
+template <class T, size_t N, bool zero_reg>
+void
+regfile_t<T, N, zero_reg>::delin(size_t reg) {
+  assert(cap_data[reg].cap.type == CAP_TYPE_LINEAR);
+  cap_data[reg].cap.type = CAP_TYPE_NONLINEAR;
+  p->set_nonlinear(cap_data[reg].cap);
+}
+
+template <class T, size_t N, bool zero_reg>
+void
+regfile_t<T, N, zero_reg>::mrev(size_t reg, size_t cap_reg, rev_node_id_t new_node_id) {
+  assert(new_node_id != REV_NODE_ID_INVALID);
+  if (is_cap(reg)) p->updateRC(cap_data[reg].cap, -1);
+  cap_data[reg] = cap_data[cap_reg];
+  cap_data[cap_reg].cap.node_id = new_node_id;
+  cap_data[reg].cap.type = CAP_TYPE_REVOCATION;
+}
 
 #endif
