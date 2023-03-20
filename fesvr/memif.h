@@ -7,8 +7,6 @@
 #include <stddef.h>
 #include "byteorder.h"
 
-#include "cap.h"
-
 typedef uint64_t reg_t;
 typedef int64_t sreg_t;
 typedef reg_t addr_t;

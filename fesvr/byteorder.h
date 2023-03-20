@@ -6,6 +6,14 @@
 #include "config.h"
 #include <stdint.h>
 
+#ifdef __SIZEOF_INT128__
+  #ifndef INT128_DEFINED
+    #define INT128_DEFINED
+    typedef __int128 int128_t;
+    typedef unsigned __int128 uint128_t;
+  #endif
+#endif
+
 static inline uint8_t swap(uint8_t n) { return n; }
 static inline uint16_t swap(uint16_t n) { return (n >> 8) | (n << 8); }
 static inline uint32_t swap(uint32_t n) { return (uint32_t(swap(uint16_t(n))) << 16) | swap(uint16_t(n >> 16)); }

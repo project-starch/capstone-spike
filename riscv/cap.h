@@ -9,7 +9,13 @@ struct _uint256_t {
   uint64_t v[4];
 };
 
-#ifndef __SIZEOF_INT128__
+#ifdef __SIZEOF_INT128__
+  #ifndef INT128_DEFINED
+    #define INT128_DEFINED
+    typedef __int128 int128_t;
+    typedef unsigned __int128 uint128_t;
+  #endif
+#else
   fprintf(stderr, "Capstone extension is not supported on platforms without __int128 type\n");
   abort();
 #endif
@@ -89,7 +95,7 @@ struct cap64_t
     return res;
   }
   
-  void form128(const uint128_t& v) {
+  void from128(const uint128_t& v) {
     cursor = uint32_t(v & ((uint128_t(1) << 64) - 1));
     perm = (cap_perm_t)((v >> 91) & ((uint128_t(1) << 3) - 1));
     type = (cap_type_t)((v >> 94) & ((uint128_t(1) << 3) - 1));
@@ -129,9 +135,9 @@ struct cap64_t
     int ct = correction((A_3 < R), (T_3 < R));
     int cb = correction((A_3 < R), (B_3 < R));
 
-    uint64_t a_top = cursor & !((uint_64_t(1) << (E + 14)) - 1);
-    end = (uint_64_t((uint_16_t(T_13_12) << 12) | (T_11_3 << 3) | T_2_0) << E) | (((a_top >> (E + 14)) + ct) << (E + 14));
-    base = (uint_64_t((uint_16_t(B_13_12) << 12) | (B_11_3 << 3) | B_2_0) << E) | (((a_top >> (E + 14)) + cb) << (E + 14));
+    uint64_t a_top = cursor & !((uint64_t(1) << (E + 14)) - 1);
+    end = (uint64_t((uint16_t(T_13_12) << 12) | (T_11_3 << 3) | T_2_0) << E) | (((a_top >> (E + 14)) + ct) << (E + 14));
+    base = (uint64_t((uint16_t(B_13_12) << 12) | (B_11_3 << 3) | B_2_0) << E) | (((a_top >> (E + 14)) + cb) << (E + 14));
   }
 
   inline bool is_linear() const {
@@ -159,8 +165,8 @@ struct cap64_t
   }
 
   void tighten_perm(uint64_t x) {
-    cap_perm_t new_perm = x;
-    
+    cap_perm_t new_perm = static_cast<cap_perm_t>(x);
+  
     if (perm >= new_perm && !(perm == CAP_PERM_RW && new_perm == CAP_PERM_RX)) {
       perm = new_perm;
     }

@@ -22,8 +22,11 @@ typedef int64_t sreg_t;
 typedef uint64_t reg_t;
 
 #ifdef __SIZEOF_INT128__
-typedef __int128 int128_t;
-typedef unsigned __int128 uint128_t;
+  #ifndef INT128_DEFINED
+    #define INT128_DEFINED
+    typedef __int128 int128_t;
+    typedef unsigned __int128 uint128_t;
+  #endif
 #endif
 
 #include "cap.h"
