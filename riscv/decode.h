@@ -18,10 +18,6 @@
 #include "specialize.h"
 #include <cinttypes>
 
-#include "cap.h"
-#include "tag_controller.h"
-#include "revocation_tree.h"
-
 typedef int64_t sreg_t;
 typedef uint64_t reg_t;
 
@@ -29,6 +25,10 @@ typedef uint64_t reg_t;
 typedef __int128 int128_t;
 typedef unsigned __int128 uint128_t;
 #endif
+
+#include "cap.h"
+#include "tag_controller.h"
+#include "revocation_tree.h"
 
 const int NXPR = 32;
 const int NFPR = 32;

@@ -168,7 +168,7 @@ public:
   inline bool is_cap(size_t i) const { return cap_data[i].tag == WORD_TAG_CAP; }
   inline bool zero_reg_required() const { return zero_reg; }
   void write(size_t i, T value);
-  bool write_cap(size_t i, const _uint256_t &c);
+  bool write_cap(size_t i, const uint128_t &c);
   void move(size_t to, size_t from);
   void split_cap(size_t reg, size_t split_reg, reg_t pv, rev_node_id_t split_node_id);
   void delin(size_t reg);
@@ -727,11 +727,11 @@ regfile_t<T, N, zero_reg>::write(size_t i, T value)
 
 template <class T, size_t N, bool zero_reg>
 bool
-regfile_t<T, N, zero_reg>::write_cap(size_t i, const _uint256_t &c)
+regfile_t<T, N, zero_reg>::write_cap(size_t i, const uint128_t &c)
 {
   if (!zero_reg || i != 0){
     cap64_t cap;
-    cap.from256(c);
+    cap.from128(c);
 
     if (is_cap(i)) p->updateRC(cap_data[i].cap, -1);
     cap_data[i].set_cap(cap);

@@ -133,6 +133,7 @@ public:
   load_func(uint16, load, 0)
   load_func(uint32, load, 0)
   load_func(uint64, load, 0)
+  load_func(uint128, load, 0)
 
   // load value from guest memory at aligned address; zero extend to register width
   load_func(uint8, guest_load, RISCV_XLATE_VIRT)
@@ -147,6 +148,7 @@ public:
   load_func(int16, load, 0)
   load_func(int32, load, 0)
   load_func(int64, load, 0)
+  load_func(int128, load, 0)
 
   // load value from guest memory at aligned address; sign extend to register width
   load_func(int8, guest_load, RISCV_XLATE_VIRT)
@@ -243,6 +245,7 @@ public:
   store_func(uint16, store, 0)
   store_func(uint32, store, 0)
   store_func(uint64, store, 0)
+  store_func(uint128, store, 0)
 
   // store value to guest memory at aligned address
   store_func(uint8, guest_store, RISCV_XLATE_VIRT)
