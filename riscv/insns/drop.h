@@ -1,1 +1,1 @@
-DROP_CAP(Rd);
+DROP_CAP(Rs1);

@@ -6,9 +6,9 @@
 #include <cstdint>
 #include <stack>
 
-typedef uint64_t rev_node_id_t;
+typedef uint32_t rev_node_id_t;
 
-const rev_node_id_t REV_NODE_ID_INVALID = (rev_node_id_t)(-1LL);
+const rev_node_id_t REV_NODE_ID_INVALID = ((-1) & ((1 << 31) - 1));
 
 typedef enum {
   REV_NODE_FREE,
