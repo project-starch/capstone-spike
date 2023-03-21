@@ -545,36 +545,40 @@ public:
 
   const char* get_symbol(uint64_t addr);
 
-  inline bool valid_cap(const cap64_t& cap) {
+  inline bool valid_cap(const cap64_t& cap) const {
     return sim->get_rev_tree().is_valid(cap.node_id);
   }
 
-  inline void updateRC(const cap64_t& cap, int delta) {
+  inline void updateRC(const cap64_t& cap, int delta) const {
     sim->get_rev_tree().updateRC(cap.node_id, delta);
   }
 
-  inline rev_node_id_t split_rt(const cap64_t& cap) {
+  inline rev_node_id_t split_rt(const cap64_t& cap) const {
     return sim->get_rev_tree().split(cap.node_id);
   }
 
-  inline bool revoke(const cap64_t& cap) {
+  inline bool revoke(const cap64_t& cap) const {
     return sim->get_rev_tree().revoke(cap.node_id);
   }
 
-  inline rev_node_id_t allocate(const cap64_t& cap) {
+  inline rev_node_id_t allocate(const cap64_t& cap) const {
     return sim->get_rev_tree().allocate(cap.node_id);
   }
 
-  inline void set_nonlinear(const cap64_t& cap) {
+  inline void set_nonlinear(const cap64_t& cap) const {
     sim->get_rev_tree().set_nonlinear(cap.node_id);
   }
 
-  inline void drop(const cap64_t& cap) {
+  inline void drop(const cap64_t& cap) const {
     sim->get_rev_tree().drop(cap.node_id);
   }
 
   inline bool is_normal_access() const {
     return state.world == WORLD_NORMAL && state.normal_world_cap == false;
+  }
+
+  inline bool is_cap_debug_enabled() const {
+    return sim->is_cap_debug_enabled();
   }
 
 private:

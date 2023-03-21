@@ -100,7 +100,7 @@ public:
   #define load_func(type, prefix, xlate_flags) \
     inline type##_t prefix##_##type(reg_t addr, bool require_alignment = false) { \
       if (unlikely(addr & (sizeof(type##_t)-1))) { \
-        if (require_alignment) load_reserved_address_misaligned(addr); \
+        if (require_alignment || (proc && !(proc->is_normal_access()))) load_reserved_address_misaligned(addr); \
         else return misaligned_load(addr, sizeof(type##_t), xlate_flags); \
       } \
       if (!proc || proc->is_normal_access()) { \
@@ -166,8 +166,10 @@ public:
   // template for functions that store an aligned value to memory
   #define store_func(type, prefix, xlate_flags) \
     void prefix##_##type(reg_t addr, type##_t val) { \
-      if (unlikely(addr & (sizeof(type##_t)-1))) \
-        return misaligned_store(addr, val, sizeof(type##_t), xlate_flags); \
+      if (unlikely(addr & (sizeof(type##_t)-1))) { \
+        if (proc && !(proc->is_normal_access())) store_conditional_address_misaligned(addr); \
+        else return misaligned_store(addr, val, sizeof(type##_t), xlate_flags); \
+      } \
       reg_t vpn = addr >> PGSHIFT; \
       size_t size = sizeof(type##_t); \
       if (!proc || proc->is_normal_access()) { \

@@ -218,6 +218,7 @@ int main(int argc, char** argv)
   bool dtb_enabled = true;
   bool real_time_clint = false;
   bool cap_mem_enabled = false;
+  bool cap_debug_enabled = true;
   uint64_t mem_partition_addr;
   size_t nprocs = 1;
   const char* kernel = NULL;
@@ -322,6 +323,7 @@ int main(int argc, char** argv)
   parser.option('p', 0, 1, [&](const char* s){nprocs = atoul_nonzero_safe(s);});
   parser.option('m', 0, 1, [&](const char* s){mems = make_mems(s);});
   parser.option(0, "normal-mem-until", 1, [&](const char* s){cap_mem_enabled = true; mem_partition_addr = atoul_safe(s);});
+  parser.option(0, "cap_debug_disabled", 0, [&](const char* s){cap_debug_enabled = false;});
   // I wanted to use --halted, but for some reason that doesn't work.
   parser.option('H', 0, 0, [&](const char* s){halted = true;});
   parser.option(0, "rbb-port", 1, [&](const char* s){use_rbb = true; rbb_port = atoul_safe(s);});
@@ -445,7 +447,7 @@ int main(int argc, char** argv)
 #ifdef HAVE_BOOST_ASIO
       io_service_ptr, acceptor_ptr,
 #endif
-      cmd_file, mem_partition_addr);
+      cmd_file, mem_partition_addr, cap_debug_enabled);
   std::unique_ptr<remote_bitbang_t> remote_bitbang((remote_bitbang_t *) NULL);
   std::unique_ptr<jtag_dtm_t> jtag_dtm(
       new jtag_dtm_t(&s.debug_module, dmi_rti));

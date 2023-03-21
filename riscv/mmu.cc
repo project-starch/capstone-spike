@@ -73,6 +73,7 @@ reg_t mmu_t::translate(reg_t addr, reg_t len, access_type type, uint32_t xlate_f
   }
 
   reg_t paddr = walk(addr, type, mode, virt, hlvx) | (addr & (PGSIZE-1));
+  // PMP is controlled by previledged software, So we don't need to check it if using capability
   if (!pmp_ok(paddr, len, type, mode))
     throw_access_exception(virt, addr, type);
 
@@ -161,7 +162,7 @@ void mmu_t::load_slow_path(reg_t addr, reg_t len, uint8_t* bytes, uint32_t xlate
     throw trap_load_access_fault((proc) ? proc->state.v : false, addr, 0, 0);
   }
 
-  if (!matched_trigger) {
+  if ((!proc || proc->is_normal_access()) && !matched_trigger) {
     reg_t data = reg_from_bytes(len, bytes);
     matched_trigger = trigger_exception(OPERATION_LOAD, addr, data);
     if (matched_trigger)
@@ -173,7 +174,7 @@ void mmu_t::store_slow_path(reg_t addr, reg_t len, const uint8_t* bytes, uint32_
 {
   reg_t paddr = translate(addr, len, STORE, xlate_flags);
 
-  if (!matched_trigger) {
+  if ((!proc || proc->is_normal_access()) && !matched_trigger) {
     reg_t data = reg_from_bytes(len, bytes);
     matched_trigger = trigger_exception(OPERATION_STORE, addr, data);
     if (matched_trigger)

@@ -193,6 +193,7 @@ private:
 #endif
 
 // Capability macros
+#define require_capstone_debug require(p->is_cap_debug_enabled())
 #define Rs1 insn.rs1()
 #define Rs2 insn.rs2()
 #define Rd insn.rd()

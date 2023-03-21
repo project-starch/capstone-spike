@@ -42,7 +42,7 @@ public:
 #ifdef HAVE_BOOST_ASIO
         boost::asio::io_service *io_service_ptr_ctor, boost::asio::ip::tcp::acceptor *acceptor_ptr_ctor,  // option -s
 #endif
-        FILE *cmd_file, uint64_t mem_partition_addr); // needed for command line option --cmd
+        FILE *cmd_file, uint64_t mem_partition_addr, bool cap_debug_enabled); // needed for command line option --cmd
   ~sim_t();
 
   // run the simulation to completion
@@ -89,6 +89,7 @@ private:
 
   FILE *cmd_file; // pointer to debug command input file
   uint64_t mem_partition_addr;
+  bool cap_debug_enabled;
   TagController tag_controller;
   RevTree rev_tree;
 
@@ -157,6 +158,10 @@ private:
   }
   uint64_t get_mem_partition_addr() {
     return mem_partition_addr;
+  }
+
+  bool is_cap_debug_enabled() {
+    return cap_debug_enabled;
   }
 
   friend class processor_t;
