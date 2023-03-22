@@ -337,7 +337,7 @@ public:
     entry->next = &icache[icache_index(addr + length)];
     entry->data = fetch;
 
-    reg_t paddr = tlb_entry.target_offset + addr;;
+    reg_t paddr = tlb_entry.target_offset + addr;
     if (tracer.interested_in_range(paddr, paddr + 1, FETCH)) {
       entry->tag = -1;
       tracer.trace(paddr, length, FETCH);
@@ -447,6 +447,10 @@ private:
 
   // ITLB lookup
   inline tlb_entry_t translate_insn_addr(reg_t addr) {
+    if (proc && !(proc->is_normal_access())) {
+      return fetch_slow_path(addr);
+    }
+    
     reg_t vpn = addr >> PGSHIFT;
     if (likely(tlb_insn_tag[vpn % TLB_ENTRIES] == vpn))
       return tlb_data[vpn % TLB_ENTRIES];

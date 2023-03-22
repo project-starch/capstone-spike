@@ -196,6 +196,11 @@ void mmu_t::store_slow_path(reg_t addr, reg_t len, const uint8_t* bytes, uint32_
 
 tlb_entry_t mmu_t::refill_tlb(reg_t vaddr, reg_t paddr, char* host_addr, access_type type)
 {
+  if (proc && !(proc->is_normal_access())) {
+    tlb_entry_t entry = {host_addr - vaddr, paddr - vaddr};
+    return entry;
+  }
+  
   reg_t idx = (vaddr >> PGSHIFT) % TLB_ENTRIES;
   reg_t expected_tag = vaddr >> PGSHIFT;
 

@@ -285,11 +285,7 @@ void processor_t::step(size_t n)
       {
         // Main simulation loop, fast path.
         if (!is_normal_access()) {
-          assert(pc > sim->get_mem_partition_addr());
-          char* host_mem = sim->addr_to_mem(pc);
-          insn_bits_t insn;
-          memcpy(&insn, host_mem, sizeof(insn_bits_t));
-          insn_fetch_t fetch = {decode_insn(insn), insn};
+          insn_fetch_t fetch = mmu->load_insn(pc);
           pc = execute_insn(this, pc, fetch);
           instret++;
           state.pc = pc;
