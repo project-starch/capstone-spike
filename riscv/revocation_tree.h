@@ -8,7 +8,7 @@
 
 typedef uint32_t rev_node_id_t;
 
-const rev_node_id_t REV_NODE_ID_INVALID = ((-1) & ((1 << 31) - 1));
+const rev_node_id_t REV_NODE_ID_INVALID = uint32_t((-1) & (((uint32_t)1 << 31) - 1));
 
 typedef enum {
   REV_NODE_FREE,

@@ -198,10 +198,11 @@ private:
 #define Rs2 insn.rs2()
 #define Rd insn.rd()
 #define READ_CAP(reg) STATE.XPR.read_cap(reg)
-#define VALID_CAP(reg) assert(p->valid_cap(READ_CAP(reg)))
+#define READ_CAP_NODE(reg) READ_CAP(reg).node_id
+#define VALID_CAP(reg) assert(p->valid_cap(READ_CAP_NODE(reg)))
 #define REQUIRE_ZERO_REG STATE.XPR.zero_reg_required()
-#define UPDATE_RC_UP(cap) p->updateRC(cap, 1)
-#define UPDATE_RC_DOWN(cap) p->updateRC(cap, -1)
+#define UPDATE_RC_UP(node_id) p->updateRC(node_id, 1)
+#define UPDATE_RC_DOWN(node_id) p->updateRC(node_id, -1)
 #define CAP_STRICT_LINEAR(reg) assert(READ_CAP(reg).type == CAP_TYPE_LINEAR)
 #define CAP_IS_LINEAR(reg) assert(READ_CAP(reg).is_linear())
 #define RESET_REG(reg) STATE.XPR.reset_i(reg)
@@ -215,7 +216,7 @@ private:
       VALID_CAP(reg); \
       reg_t pv = READ_REG(pv_reg); \
       assert(pv > READ_CAP(reg).base && pv < READ_CAP(reg).end); \
-      rev_node_id_t split_node_id = p->split_rt(READ_CAP(reg)); \
+      rev_node_id_t split_node_id = p->split_rt(READ_CAP_NODE(reg)); \
       STATE.XPR.split_cap(reg, split_reg, pv, split_node_id); \
     } \
   } while (0)
@@ -226,7 +227,7 @@ private:
   do { \
     VALID_CAP(reg); \
     assert(READ_CAP(reg).type == CAP_TYPE_REVOCATION); \
-    bool all_nonlinear = p->revoke(READ_CAP(reg)); \
+    bool all_nonlinear = p->revoke(READ_CAP_NODE(reg)); \
     if (all_nonlinear || !(READ_CAP(reg).writable())) { \
       READ_CAP(reg).type = CAP_TYPE_LINEAR; \
     } \
@@ -239,7 +240,7 @@ private:
     if (!REQUIRE_ZERO_REG || reg != 0) { \
       CAP_STRICT_LINEAR(cap_reg); \
       VALID_CAP(cap_reg); \
-      rev_node_id_t new_node_id = p->allocate(READ_CAP(cap_reg)); \
+      rev_node_id_t new_node_id = p->allocate(READ_CAP_NODE(cap_reg)); \
       STATE.XPR.mrev(reg, cap_reg, new_node_id); \
     } \
   } while (0)
@@ -254,7 +255,7 @@ private:
   do { \
     CAP_IS_LINEAR(reg); \
     VALID_CAP(reg); \
-    p->drop(READ_CAP(reg)); \
+    p->drop(READ_CAP_NODE(reg)); \
     RESET_REG(reg); \
   } while (0)
 

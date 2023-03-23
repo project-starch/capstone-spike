@@ -14,8 +14,8 @@
 #define SEAL(reg)               .insn r 0x5B, 0x1, 0xa, reg, x0, x0
 #define ADD2(rd,rs1)            .insn r 0x5B, 0x1, 0xb, rd, rs1, x0
 #define MOVC(rd,rs1)            .insn r 0x5B, 0x1, 0xc, rd, rs1, x0
-#define LDC(rd,rs1)             .insn r 0x5B, 0x1, 0xe, rd, rs1, x0
 #define LCC(rd,rs1)             .insn r 0x5B, 0x1, 0xd, rd, rs1, x0
+#define LDC(rd,rs1)             .insn r 0x5B, 0x1, 0xe, rd, rs1, x0
 #define SDC(rd,rs1)             .insn r 0x5B, 0x1, 0xf, rd, rs1, x0
 #define DROPI(reg)              .insn r 0x5B, 0x1, 0x10, x0, reg, x0
 #define MREV(rd,rs1)            .insn r 0x5B, 0x1, 0x11, rd, rs1, x0
@@ -50,7 +50,7 @@
 #define SD(rs1,rs2)             .insn r 0x43, 0x2, 0x0, x0, rs1, rs2
 
 // Capability-related constants
-#define NODE_ID_INVALID ((-1) & ((1 << 31) - 1))
+#define NODE_ID_INVALID uint32_t((-1) & (((uint32_t)1 << 31) - 1))
 
 
 #define CAP_PERM_NA 0
@@ -66,3 +66,16 @@
 #define CAP_TYPE_UNINIT 3
 #define CAP_TYPE_SEALED 4
 #define CAP_TYPE_SEALEDRET 5
+
+// Registers
+#define RET x1  // or `ra`
+
+#define INIT_RWX_CAP(reg) \
+    CAPCREATE(reg);\
+    li a1, CAP_TYPE_LIN;\
+    CAPTYPE(reg, a1);\
+    li a1, NODE_ID_INVALID;\
+    ALLOC(a2, a1);\
+    CAPNODE(reg, a2);\
+    li a1, CAP_PERM_RWX;\
+    CAPPERM(reg, a1);

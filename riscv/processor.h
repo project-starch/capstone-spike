@@ -166,6 +166,7 @@ class regfile_t
 public:
   inline bool is_data(size_t i) const { return cap_data[i].tag == WORD_TAG_DATA; }
   inline bool is_cap(size_t i) const { return cap_data[i].tag == WORD_TAG_CAP; }
+  inline void debug_set_cap(size_t i) { cap_data[i].tag = WORD_TAG_CAP; }
   inline bool zero_reg_required() const { return zero_reg; }
   void write(size_t i, T value);
   bool write_cap(size_t i, const uint128_t &c);
@@ -545,32 +546,32 @@ public:
 
   const char* get_symbol(uint64_t addr);
 
-  inline bool valid_cap(const cap64_t& cap) const {
-    return sim->get_rev_tree().is_valid(cap.node_id);
+  inline bool valid_cap(rev_node_id_t node_id) const {
+    return sim->get_rev_tree().is_valid(node_id);
   }
 
-  inline void updateRC(const cap64_t& cap, int delta) const {
-    sim->get_rev_tree().updateRC(cap.node_id, delta);
+  inline void updateRC(rev_node_id_t node_id, int delta) const {
+    sim->get_rev_tree().updateRC(node_id, delta);
   }
 
-  inline rev_node_id_t split_rt(const cap64_t& cap) const {
-    return sim->get_rev_tree().split(cap.node_id);
+  inline rev_node_id_t split_rt(rev_node_id_t node_id) const {
+    return sim->get_rev_tree().split(node_id);
   }
 
-  inline bool revoke(const cap64_t& cap) const {
-    return sim->get_rev_tree().revoke(cap.node_id);
+  inline bool revoke(rev_node_id_t node_id) const {
+    return sim->get_rev_tree().revoke(node_id);
   }
 
-  inline rev_node_id_t allocate(const cap64_t& cap) const {
-    return sim->get_rev_tree().allocate(cap.node_id);
+  inline rev_node_id_t allocate(rev_node_id_t parent_id) const {
+    return sim->get_rev_tree().allocate(parent_id);
   }
 
-  inline void set_nonlinear(const cap64_t& cap) const {
-    sim->get_rev_tree().set_nonlinear(cap.node_id);
+  inline void set_nonlinear(rev_node_id_t node_id) const {
+    sim->get_rev_tree().set_nonlinear(node_id);
   }
 
-  inline void drop(const cap64_t& cap) const {
-    sim->get_rev_tree().drop(cap.node_id);
+  inline void drop(rev_node_id_t node_id) const {
+    sim->get_rev_tree().drop(node_id);
   }
 
   inline bool is_normal_access() const {
@@ -723,7 +724,7 @@ regfile_t<T, N, zero_reg>::write(size_t i, T value)
   if (!zero_reg || i != 0){
     data[i] = value;
     if (is_cap(i)) {
-      p->updateRC(cap_data[i].cap, -1);
+      p->updateRC(cap_data[i].cap.node_id, -1);
       cap_data[i].set_data();
     }
   }
@@ -737,9 +738,9 @@ regfile_t<T, N, zero_reg>::write_cap(size_t i, const uint128_t &c)
     cap64_t cap;
     cap.from128(c);
 
-    if (is_cap(i)) p->updateRC(cap_data[i].cap, -1);
+    if (is_cap(i)) p->updateRC(cap_data[i].cap.node_id, -1);
     cap_data[i].set_cap(cap);
-    if (!cap.is_linear()) p->updateRC(cap, 1);
+    if (!cap.is_linear()) p->updateRC(cap.node_id, 1);
     return cap.is_linear();
   }
   return false;
@@ -753,18 +754,18 @@ regfile_t<T, N, zero_reg>::move(size_t to, size_t from)
     if (is_data(from)) {
       data[to] = data[from];
       if (is_cap(to)) {
-        p->updateRC(cap_data[to].cap, -1);
+        p->updateRC(cap_data[to].cap.node_id, -1);
         cap_data[to].set_data();
       }
     }
     else {
-      if (is_cap(to)) p->updateRC(cap_data[to].cap, -1);
+      if (is_cap(to)) p->updateRC(cap_data[to].cap.node_id, -1);
       cap_data[to] = cap_data[from];
       if (cap_data[from].cap.is_linear()) {
         reset_i(from);
       }
       else {
-        p->updateRC(cap_data[from].cap, 1);
+        p->updateRC(cap_data[from].cap.node_id, 1);
       }
     }
   }
@@ -774,7 +775,7 @@ template <class T, size_t N, bool zero_reg>
 void
 regfile_t<T, N, zero_reg>::split_cap(size_t reg, size_t split_reg, reg_t pv, rev_node_id_t split_node_id) {
   assert(split_node_id != REV_NODE_ID_INVALID);
-  if (is_cap(split_reg)) p->updateRC(cap_data[split_reg].cap, -1);
+  if (is_cap(split_reg)) p->updateRC(cap_data[split_reg].cap.node_id, -1);
   cap_data[split_reg] = cap_data[reg];
   cap_data[split_reg].cap.node_id = split_node_id;
   cap_data[reg].cap.end = pv;
@@ -786,14 +787,14 @@ void
 regfile_t<T, N, zero_reg>::delin(size_t reg) {
   assert(cap_data[reg].cap.type == CAP_TYPE_LINEAR);
   cap_data[reg].cap.type = CAP_TYPE_NONLINEAR;
-  p->set_nonlinear(cap_data[reg].cap);
+  p->set_nonlinear(cap_data[reg].cap.node_id);
 }
 
 template <class T, size_t N, bool zero_reg>
 void
 regfile_t<T, N, zero_reg>::mrev(size_t reg, size_t cap_reg, rev_node_id_t new_node_id) {
   assert(new_node_id != REV_NODE_ID_INVALID);
-  if (is_cap(reg)) p->updateRC(cap_data[reg].cap, -1);
+  if (is_cap(reg)) p->updateRC(cap_data[reg].cap.node_id, -1);
   cap_data[reg] = cap_data[cap_reg];
   cap_data[cap_reg].cap.node_id = new_node_id;
   cap_data[reg].cap.type = CAP_TYPE_REVOCATION;

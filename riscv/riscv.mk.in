@@ -123,6 +123,9 @@ riscv_insn_ext_i = \
 	xori \
 	fence \
 	fence_i \
+
+
+riscv_insn_capstone = \
 	capenter \
 	capexit \
 	mov \
@@ -136,6 +139,19 @@ riscv_insn_ext_i = \
 	mrev \
 	init \
 	drop \
+
+riscv_debug_capstone = \
+	debug_print \
+	debug_alloc \
+	debug_rcupdate \
+	debug_revoke \
+	debug_drop \
+	debug_query \
+	debug_capcreate \
+	debug_captype \
+	debug_capnode \
+	debug_capperm \
+	debug_capbound \
 
 riscv_insn_ext_a = \
 	amoadd_d \
@@ -1294,6 +1310,8 @@ riscv_insn_list = \
 	$(riscv_insn_ext_p) \
 	$(riscv_insn_priv) \
 	$(riscv_insn_svinval) \
+	$(riscv_insn_capstone) \
+	$(riscv_debug_capstone) \
 
 riscv_gen_srcs = \
 	$(addsuffix .cc,$(riscv_insn_list))
