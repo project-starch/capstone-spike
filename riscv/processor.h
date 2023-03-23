@@ -177,7 +177,7 @@ public:
 
   const T& operator [] (size_t i) const
   {
-    assert(is_data(i));
+    if (is_cap ()) reset_i(i);
     return data[i];
   }
   cap64_t& read_cap(size_t i)

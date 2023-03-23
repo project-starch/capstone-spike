@@ -124,7 +124,6 @@ riscv_insn_ext_i = \
 	fence \
 	fence_i \
 
-
 riscv_insn_capstone = \
 	capenter \
 	capexit \
@@ -152,6 +151,7 @@ riscv_debug_capstone = \
 	debug_capnode \
 	debug_capperm \
 	debug_capbound \
+
 
 riscv_insn_ext_a = \
 	amoadd_d \

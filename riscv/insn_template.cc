@@ -7,7 +7,7 @@
   if (p->get_state()->world == WORLD_SECURE) { \
     p->get_state()->cap_pc.cursor = npc; \
     cap64_t cap_pc = p->get_state()->cap_pc; \
-    assert(cap_pc.inbound() && p->valid_cap(cap_pc)); \
+    assert(cap_pc.inbound() && p->valid_cap(cap_pc.node_id)); \
   }
 
 reg_t rv32i_NAME(processor_t* p, insn_t insn, reg_t pc)

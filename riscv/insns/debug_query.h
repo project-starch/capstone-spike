@@ -1,2 +1,2 @@
 require_capstone_debug;
-VALID_CAP(Rs1);
+assert(p->valid_cap(RS1));

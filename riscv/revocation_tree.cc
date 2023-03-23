@@ -19,7 +19,7 @@ RevTree::allocate(rev_node_id_t parent_id) {
   if(parent_node) {
     assert(parent_node->state == REV_NODE_VALID); // must be in a valid tree
     new_node->next = parent_node->children;
-    new_node->next->prev = new_node;
+    if(new_node->next) new_node->next->prev = new_node;
     parent_node->children = new_node;
   } else{
     // if the parent is null, the new node becomes a root node
@@ -117,23 +117,28 @@ RevTree::drop(rev_node_id_t node_id) {
   if (child) {
     if (prev) {
       prev->next = child;
+      child->prev = prev;
     }
     else {
       if (parent) parent->children = child;
+      child->prev = nullptr;
     }
 
     RevNode* c = child;
     while (c->next != nullptr) c = c->next;
     c->next = next;
+    if (next) next->prev = c;
     node->state = REV_NODE_INVALID;
     tryFreeing(node);
   }
   else {
     if (prev) {
       prev->next = next;
+      if (next) next->prev = prev;
     }
     else {
       if (parent) parent->children = next;
+      if (next) next->prev = nullptr;
     }
     node->state = REV_NODE_INVALID;
     tryFreeing(node);
@@ -159,7 +164,7 @@ RevTree::getNewNode() {
 RevNode*
 RevTree::getNode(rev_node_id_t node_id) {
   if(node_id == REV_NODE_ID_INVALID ||
-    node_id >= static_cast<uint64_t>(size)) {
+    node_id >= static_cast<uint32_t>(size)) {
     return nullptr;
   }
   return nodes + node_id;

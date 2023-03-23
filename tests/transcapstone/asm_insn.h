@@ -50,7 +50,7 @@
 #define SD(rs1,rs2)             .insn r 0x43, 0x2, 0x0, x0, rs1, rs2
 
 // Capability-related constants
-#define NODE_ID_INVALID uint32_t((-1) & (((uint32_t)1 << 31) - 1))
+#define NODE_ID_INVALID ((-1) & ((1 << 31) - 1))
 
 
 #define CAP_PERM_NA 0
