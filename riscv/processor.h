@@ -177,7 +177,7 @@ public:
 
   const T& operator [] (size_t i) const
   {
-    if (is_cap ()) reset_i(i);
+    if (is_cap()) data[i] = cap_data[i].cap.cursor;
     return data[i];
   }
   cap64_t& read_cap(size_t i)
