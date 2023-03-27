@@ -138,6 +138,10 @@ riscv_insn_capstone = \
 	mrev \
 	init \
 	drop \
+	jmp \
+	jnz \
+	add_aux \
+	lt_aux \
 
 riscv_debug_capstone = \
 	debug_print \
