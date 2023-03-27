@@ -140,8 +140,16 @@ riscv_insn_capstone = \
 	drop \
 	jmp \
 	jnz \
-	add_aux \
-	lt_aux \
+	ldc \
+	stc \
+	lds \
+	lws \
+	lhs \
+	lbs \
+	sds \
+	sws \
+	shs \
+	sbs \
 
 riscv_debug_capstone = \
 	debug_print \
