@@ -86,6 +86,10 @@ tlb_entry_t mmu_t::fetch_slow_path(reg_t vaddr)
   reg_t paddr = translate(vaddr, sizeof(fetch_temp), FETCH, 0);
 
   if (auto host_addr = sim->addr_to_mem(paddr)) {
+    if (proc && proc->is_secure_world()) {
+      tlb_entry_t entry = {host_addr - vaddr, paddr - vaddr};
+      return entry;
+    }
     return refill_tlb(vaddr, paddr, host_addr, FETCH);
   } else {
     if (!mmio_load(paddr, sizeof fetch_temp, (uint8_t*)&fetch_temp))
@@ -195,12 +199,7 @@ void mmu_t::store_slow_path(reg_t addr, reg_t len, const uint8_t* bytes, uint32_
 }
 
 tlb_entry_t mmu_t::refill_tlb(reg_t vaddr, reg_t paddr, char* host_addr, access_type type)
-{
-  if (proc && !(proc->is_normal_access())) {
-    tlb_entry_t entry = {host_addr - vaddr, paddr - vaddr};
-    return entry;
-  }
-  
+{ 
   reg_t idx = (vaddr >> PGSHIFT) % TLB_ENTRIES;
   reg_t expected_tag = vaddr >> PGSHIFT;
 

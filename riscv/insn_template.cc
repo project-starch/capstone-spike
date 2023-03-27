@@ -4,7 +4,7 @@
 #include "insn_macros.h"
 
 #define check_pc() \
-  if (p->get_state()->world == WORLD_SECURE) { \
+  if (p->is_secure_world()) { \
     p->get_state()->cap_pc.cursor = npc; \
     cap64_t cap_pc = p->get_state()->cap_pc; \
     assert(cap_pc.inbound() && p->valid_cap(cap_pc.node_id)); \

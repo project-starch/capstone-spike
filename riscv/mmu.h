@@ -99,6 +99,7 @@ public:
   // template for functions that load an aligned value from memory
   #define load_func(type, prefix, xlate_flags) \
     inline type##_t prefix##_##type(reg_t addr, bool require_alignment = false) { \
+      assert(!(proc->is_secure_world() && proc->is_normal_access()));
       if (unlikely(addr & (sizeof(type##_t)-1))) { \
         if (require_alignment || (proc && !(proc->is_normal_access()))) load_reserved_address_misaligned(addr); \
         else return misaligned_load(addr, sizeof(type##_t), xlate_flags); \
@@ -123,7 +124,7 @@ public:
       } \
       target_endian<type##_t> res; \
       load_slow_path(addr, sizeof(type##_t), (uint8_t*)&res, (xlate_flags)); \
-      if (proc) proc->state.normal_world_cap = false; \
+      if (proc) proc->state.cap_access = false; \
       if (proc) READ_MEM(addr, size); \
       return from_target(res); \
     }
@@ -166,6 +167,7 @@ public:
   // template for functions that store an aligned value to memory
   #define store_func(type, prefix, xlate_flags) \
     void prefix##_##type(reg_t addr, type##_t val) { \
+      assert(!(proc->is_secure_world() && proc->is_normal_access()));
       if (unlikely(addr & (sizeof(type##_t)-1))) { \
         if (proc && !(proc->is_normal_access())) store_conditional_address_misaligned(addr); \
         else return misaligned_store(addr, val, sizeof(type##_t), xlate_flags); \
@@ -195,7 +197,7 @@ public:
       else { \
         target_endian<type##_t> target_val = to_target(val); \
         store_slow_path(addr, sizeof(type##_t), (const uint8_t*)&target_val, (xlate_flags)); \
-        proc->state.normal_world_cap = false; \
+        proc->state.cap_access = false; \
         if (proc) WRITE_MEM(addr, val, size); \
       } \
   }
@@ -447,7 +449,7 @@ private:
 
   // ITLB lookup
   inline tlb_entry_t translate_insn_addr(reg_t addr) {
-    if (proc && !(proc->is_normal_access())) {
+    if (proc && proc->is_secure_world()) {
       return fetch_slow_path(addr);
     }
     

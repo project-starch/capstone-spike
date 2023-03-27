@@ -2864,22 +2864,38 @@
 #define MASK_MOV 0xfe00707f
 #define MATCH_LCC 0x1a00105b
 #define MASK_LCC 0xfe00707f
-// #define MATCH_LDC 0x1c00105b
-// #define MASK_LDC 0xfe00707f
-// #define MATCH_SDC 0x1e00105b
-// #define MASK_SDC 0xfe00707f
+// #define MATCH_LWC 0x1c00105b
+// #define MASK_LWC 0xfe00707f
+// #define MATCH_SWC 0x1e00105b
+// #define MASK_SWC 0xfe00707f
 #define MATCH_DROP 0x2000105b
 #define MASK_DROP 0xfe00707f
 #define MATCH_MREV 0x2200105b
 #define MASK_MREV 0xfe00707f
 #define MATCH_SPLIT 0x2400105b
 #define MASK_SPLIT 0xfe00707f
-// #define MATCH_LDS 0x2600105b
-// #define MASK_LDS 0xfe00707f
+// #define MATCH_LWS 0x2600105b
+// #define MASK_LWS 0xfe00707f
 // #define MATCH_RETURN 0x2800105b
 // #define MASK_RETURN 0xfe00707f
 // #define MATCH_RESEAL 0x2a00105b
 // #define MASK_RESEAL 0xfe00707f
+// #define MATCH_LBS 0x2c00105b
+// #define MASK_LBS 0xfe00707f
+// #define MATCH_LHS 0x2e00105b
+// #define MASK_LHS 0xfe00707f
+// #define MATCH_L16S 0x3000105b
+// #define MASK_L16S 0xfe00707f
+// #define MATCH_L32S 0x3200105b
+// #define MASK_L32S 0xfe00707f
+// #define MATCH_S16C 0x3400105b
+// #define MASK_S16C 0xfe00707f
+// #define MATCH_S32C 0x3600105b
+// #define MASK_S32C 0xfe00707f
+// #define MATCH_SHC 0x3800105b
+// #define MASK_SHC 0xfe00707f
+// #define MATCH_SBC 0x3a00105b
+// #define MASK_SBC 0xfe00707f
 
 // Encodings for capstone debugging
 #define MATCH_DEBUG_QUERY 0x0000005b

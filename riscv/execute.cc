@@ -284,7 +284,7 @@ void processor_t::step(size_t n)
       else while (instret < n)
       {
         // Main simulation loop, fast path.
-        if (!is_normal_access()) {
+        if (is_secure_world()) {
           insn_fetch_t fetch = mmu->load_insn(pc);
           pc = execute_insn(this, pc, fetch);
           instret++;

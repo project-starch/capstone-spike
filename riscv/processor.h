@@ -215,7 +215,7 @@ struct state_t
   cap64_t cap_pc;
   regfile_t<reg_t, NXPR, true> XPR;
   regfile_t<freg_t, NFPR, false> FPR;
-  bool normal_world_cap;
+  bool cap_access;
 
   // control and status registers
   std::unordered_map<uint64_t, csr_t_p> csrmap;
@@ -575,7 +575,11 @@ public:
   }
 
   inline bool is_normal_access() const {
-    return state.world == WORLD_NORMAL && state.normal_world_cap == false;
+    return state.world == WORLD_NORMAL && state.cap_access == false;
+  }
+
+  inline bool is_secure_world() const {
+    return state.world == WORLD_SECURE;
   }
 
   inline bool is_cap_debug_enabled() const {
