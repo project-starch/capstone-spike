@@ -175,9 +175,9 @@ public:
   void delin(size_t reg);
   void mrev(size_t reg, size_t cap_reg, rev_node_id_t new_node_id);
 
-  const T& operator [] (size_t i) const
+  const T& operator [] (size_t i)
   {
-    if (is_cap()) data[i] = cap_data[i].cap.cursor;
+    if (is_cap(i)) memset(data + i, 0, sizeof(data[i]));
     return data[i];
   }
   cap64_t& read_cap(size_t i)

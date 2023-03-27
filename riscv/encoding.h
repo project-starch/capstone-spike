@@ -2888,14 +2888,14 @@
 // #define MASK_L16S 0xfe00707f
 // #define MATCH_L32S 0x3200105b
 // #define MASK_L32S 0xfe00707f
-// #define MATCH_S16C 0x3400105b
-// #define MASK_S16C 0xfe00707f
-// #define MATCH_S32C 0x3600105b
-// #define MASK_S32C 0xfe00707f
-// #define MATCH_SHC 0x3800105b
-// #define MASK_SHC 0xfe00707f
-// #define MATCH_SBC 0x3a00105b
-// #define MASK_SBC 0xfe00707f
+// #define MATCH_S16S 0x3400105b
+// #define MASK_S16S 0xfe00707f
+// #define MATCH_S32S 0x3600105b
+// #define MASK_S32S 0xfe00707f
+// #define MATCH_SHS 0x3800105b
+// #define MASK_SHS 0xfe00707f
+// #define MATCH_SBS 0x3a00105b
+// #define MASK_SBS 0xfe00707f
 
 // Encodings for capstone debugging
 #define MATCH_DEBUG_QUERY 0x0000005b
