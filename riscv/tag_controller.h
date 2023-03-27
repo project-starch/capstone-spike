@@ -12,8 +12,8 @@ private:
     std::unordered_set<uint64_t> taggedAddresses;
 
 public:
-    void setTag(uint64_t addr, word_tag_t tag);
-    word_tag_t getTag(uint64_t addr) const;
+    void setTag(uint64_t addr, bool as_cap);
+    bool getTag(uint64_t addr) const;
 };
 
 #endif

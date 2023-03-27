@@ -574,6 +574,14 @@ public:
     sim->get_rev_tree().drop(node_id);
   }
 
+  inline void setTag(uint64_t addr, bool as_cap) {
+    sim->get_tag_controller().setTag(addr, as_cap);
+  }
+
+  virtual bool getTag(uint64_t addr) {
+    sim->get_tag_controller().getTag(addr);
+  }
+
   inline bool is_normal_access() const {
     return state.world == WORLD_NORMAL && state.cap_access == false;
   }
@@ -734,6 +742,7 @@ regfile_t<T, N, zero_reg>::write(size_t i, T value)
   }
 }
 
+// Return value: cap_is_linear
 template <class T, size_t N, bool zero_reg>
 bool
 regfile_t<T, N, zero_reg>::write_cap(size_t i, const uint128_t &c)
