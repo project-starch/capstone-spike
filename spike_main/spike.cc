@@ -322,7 +322,7 @@ int main(int argc, char** argv)
 #endif
   parser.option('p', 0, 1, [&](const char* s){nprocs = atoul_nonzero_safe(s);});
   parser.option('m', 0, 1, [&](const char* s){mems = make_mems(s);});
-  parser.option(0, "normal-mem-until", 1, [&](const char* s){cap_mem_enabled = true; mem_partition_addr = atoul_safe(s);});
+  parser.option(0, "capmem-from", 1, [&](const char* s){cap_mem_enabled = true; mem_partition_addr = atoul_safe(s); assert((mem_partition_addr & (16 - 1)) == uint64_t(0));});
   parser.option(0, "cap_debug_disabled", 0, [&](const char* s){cap_debug_enabled = false;});
   // I wanted to use --halted, but for some reason that doesn't work.
   parser.option('H', 0, 0, [&](const char* s){halted = true;});

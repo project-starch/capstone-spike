@@ -163,6 +163,8 @@ riscv_debug_capstone = \
 	debug_capnode \
 	debug_capperm \
 	debug_capbound \
+	debug_tagset \
+	debug_tagget \
 
 
 riscv_insn_ext_a = \

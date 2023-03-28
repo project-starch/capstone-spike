@@ -590,6 +590,10 @@ public:
     return state.world == WORLD_SECURE;
   }
 
+  inline void set_cap_access() {
+    state.cap_access = true;
+  }
+
   inline bool is_cap_debug_enabled() const {
     return sim->is_cap_debug_enabled();
   }

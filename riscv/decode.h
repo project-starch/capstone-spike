@@ -192,13 +192,14 @@ private:
 # define WRITE_VSTATUS STATE.log_reg_write[3] = {0, 0};
 #endif
 
-// Capability macros
+// Capstone macros
 #define require_capstone_debug require(p->is_cap_debug_enabled())
 #define Rs1 insn.rs1()
 #define Rs2 insn.rs2()
 #define Rd insn.rd()
 #define READ_CAP(reg) STATE.XPR.read_cap(reg)
 #define WRITE_CAP(reg, value) STATE.XPR.write_cap(reg, value)
+#define SET_CAP_ACCESS() p->set_cap_access()
 #define READ_CAP_NODE(reg) READ_CAP(reg).node_id
 #define VALID_CAP(reg) assert(p->valid_cap(READ_CAP_NODE(reg)))
 #define REQUIRE_ZERO_REG STATE.XPR.zero_reg_required()
@@ -267,6 +268,7 @@ private:
       VALID_CAP(src_reg); \
       cap64_t cap = READ_CAP(src_reg); \
       assert(cap.inbound() && cap.accessible() && cap.readable()); \
+      SET_CAP_ACCESS(); \
       WRITE_RD(MMU.load_##load_type(cap.cursor)); \
     } \
   } while (0)
@@ -277,6 +279,7 @@ private:
       cap64_t cap = READ_CAP(src_reg); \
       assert(cap.inbound() && cap.accessible() && cap.readable()); \
       assert(GET_TAG(cap.cursor)); \
+      SET_CAP_ACCESS(); \
       uint128_t value = MMU.load_uint128(cap.cursor); \
       if (WRITE_CAP(Rd, value)) { \
         assert(cap.writable()); \
@@ -294,11 +297,13 @@ private:
     assert(cap.inbound() && cap.accessible() && cap.writable()); \
     if (GET_TAG(cap.cursor)) { \
       uint64_t masked_addr = cap.cursor & ~(16 - 1); \
+      SET_CAP_ACCESS(); \
       uint128_t value = MMU.load_uint128(masked_addr); \
       cap64_t old_cap; \
-      old_cap.from128(masked_addr); \
+      old_cap.from128(value); \
       UPDATE_RC_DOWN(old_cap.node_id); \
     } \
+    SET_CAP_ACCESS(); \
     MMU.store_##store_type(cap.cursor, READ_REG(src_reg)); \
     SET_TAG(cap.cursor, false); \
     if (cap.type == CAP_TYPE_UNINITIALIZED) { \
@@ -312,19 +317,22 @@ private:
     assert(cap.inbound() && cap.accessible() && cap.writable()); \
     if (GET_TAG(cap.cursor)) { \
       uint64_t masked_addr = cap.cursor & ~(16 - 1); \
+      SET_CAP_ACCESS(); \
       uint128_t value = MMU.load_uint128(masked_addr); \
       cap64_t old_cap; \
-      old_cap.from128(masked_addr); \
+      old_cap.from128(value); \
       UPDATE_RC_DOWN(old_cap.node_id); \
     } \
-    MMU.store_uint128(cap.cursor, READ_CAP(src_reg).to128()); \
+    cap64_t src_cap = READ_CAP(src_reg); \
+    SET_CAP_ACCESS(); \
+    MMU.store_uint128(cap.cursor, src_cap.to128()); \
     SET_TAG(cap.cursor, true); \
-    if (cap.is_linear()){ \
-      STATE.XPR.reset_i(Rd); \
+    if (src_cap.is_linear()){ \
+      STATE.XPR.reset_i(src_reg); \
       if (cap.type == CAP_TYPE_UNINITIALIZED) READ_CAP(Rd).cursor += 16; \
     } \
     else { \
-      UPDATE_RC_UP(cap.node_id); \
+      UPDATE_RC_UP(src_cap.node_id); \
     } \
   } while (0)
 
