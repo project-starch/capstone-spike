@@ -204,8 +204,8 @@ private:
 #define REQUIRE_ZERO_REG STATE.XPR.zero_reg_required()
 #define UPDATE_RC_UP(node_id) p->updateRC(node_id, 1)
 #define UPDATE_RC_DOWN(node_id) p->updateRC(node_id, -1)
-#define GET_TAG(addr) p->get_tag(addr)
-#define SET_TAG(addr, as_cap) p->set_tag(addr, as_cap)
+#define GET_TAG(addr) p->getTag(addr)
+#define SET_TAG(addr, as_cap) p->setTag(addr, as_cap)
 #define CAP_STRICT_LINEAR(reg) assert(READ_CAP(reg).type == CAP_TYPE_LINEAR)
 #define CAP_IS_LINEAR(reg) assert(READ_CAP(reg).is_linear())
 #define RESET_REG(reg) STATE.XPR.reset_i(reg)
@@ -261,13 +261,13 @@ private:
     p->drop(READ_CAP_NODE(reg)); \
     RESET_REG(reg); \
   } while (0)
-#define LOAD_S(type, src_reg) \
+#define LOAD_S(load_type, src_reg) \
   do { \
     if (!REQUIRE_ZERO_REG || Rd != 0) { \
       VALID_CAP(src_reg); \
       cap64_t cap = READ_CAP(src_reg); \
       assert(cap.inbound() && cap.accessible() && cap.readable()); \
-      WRITE_RD(MMU.load_##type(cap.cursor)); \
+      WRITE_RD(MMU.load_##load_type(cap.cursor)); \
     } \
   } while (0)
 #define LOAD_CAP(src_reg) \
@@ -287,7 +287,7 @@ private:
       } \
     } \
   } while (0)
-#define STORE_S(type, src_reg) \
+#define STORE_S(store_type, src_reg) \
   do { \
     VALID_CAP(Rd); \
     cap64_t cap = READ_CAP(Rd); \
@@ -299,10 +299,10 @@ private:
       old_cap.from128(masked_addr); \
       UPDATE_RC_DOWN(old_cap.node_id); \
     } \
-    MMU.store_##type(cap.cursor, READ_REG(src_reg)); \
+    MMU.store_##store_type(cap.cursor, READ_REG(src_reg)); \
     SET_TAG(cap.cursor, false); \
     if (cap.type == CAP_TYPE_UNINITIALIZED) { \
-      READ_CAP(Rd).cursor += sizeof(type); \
+      READ_CAP(Rd).cursor += sizeof(store_type##_t); \
     } \
   } while (0)
 #define STORE_CAP(src_reg) \

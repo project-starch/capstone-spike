@@ -4,7 +4,7 @@
 // Return value: tag_is_cap
 bool
 TagController::getTag(uint64_t addr) const {
-  addr &= &= ~(WORD_SIZE - 1);
+  addr &= ~(WORD_SIZE - 1);
   auto it = taggedAddresses.find(addr);
   return it != taggedAddresses.end();
 }

@@ -579,7 +579,7 @@ public:
   }
 
   virtual bool getTag(uint64_t addr) {
-    sim->get_tag_controller().getTag(addr);
+    return sim->get_tag_controller().getTag(addr);
   }
 
   inline bool is_normal_access() const {
