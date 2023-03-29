@@ -2838,8 +2838,8 @@
 // Encodings for Capstone
 #define MATCH_REVOKE 0x0000105b
 #define MASK_REVOKE 0xfe00707f
-// #define MATCH_CALL 0x0200105b
-// #define MASK_CALL 0xfe00707f
+#define MATCH_CALL 0x0200105b
+#define MASK_CALL 0xfe00707f
 #define MATCH_JMP 0x0400105b
 #define MASK_JMP 0xfe00707f
 #define MATCH_JNZ 0x0600105b
@@ -2854,8 +2854,8 @@
 #define MASK_SCC 0xfe00707f
 #define MATCH_INIT 0x1200105b
 #define MASK_INIT 0xfe00707f
-// #define MATCH_SEAL 0x1400105b
-// #define MASK_SEAL 0xfe00707f
+#define MATCH_SEAL 0x1400105b
+#define MASK_SEAL 0xfe00707f
 #define MATCH_MOV 0x1800105b
 #define MASK_MOV 0xfe00707f
 #define MATCH_LCC 0x1a00105b

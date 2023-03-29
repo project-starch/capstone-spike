@@ -197,6 +197,8 @@ private:
 #define Rs1 insn.rs1()
 #define Rs2 insn.rs2()
 #define Rd insn.rd()
+#define IS_CAP(reg) STATE.XPR.is_cap(reg)
+#define IS_DATA(reg) STATE.XPR.is_data(reg)
 #define READ_CAP(reg) STATE.XPR.read_cap(reg)
 #define WRITE_CAP(reg, value) STATE.XPR.write_cap(reg, value)
 #define SET_CAP_ACCESS() p->set_cap_access()
@@ -335,6 +337,65 @@ private:
       UPDATE_RC_UP(src_cap.node_id); \
     } \
   } while (0)
+#define SEAL(reg) \
+  do { \
+    VALID_CAP(reg); \
+    cap64_t cap = READ_CAP(reg); \
+    assert(cap.type == CAP_TYPE_LINEAR && cap.readable() && cap.writable()); \
+    cap.type = CAP_TYPE_SEALED; \
+  } while (0);
+#define RET_REG 1
+#define ARG_REG 10
+#define CALL(seal_reg, arg_reg) \
+  do { \
+    VALID_CAP(seal_reg); \
+    cap64_t cap = READ_CAP(seal_reg); \
+    RESET_REG(seal_reg); \
+    size_t regfile_size = STATE.XPR.size(); \
+    assert(cap.type == CAP_TYPE_SEALED && cap.end - cap.base >= (STATE.XPR.size() + 1) * 16); \
+    cap.type = CAP_TYPE_SEALEDRET; \
+    cap64_t tmp_cap; \
+    assert(GET_TAG(cap.base)); \
+    tmp_cap.from128(MMU.load_uint128(cap.base)); \
+    assert(tmp_cap.accessible() && tmp_cap.executable()); \
+    npc = tmp.cursor; \
+    MMU.store_uint128(cap.base, p->get_state()->cap_pc.to128()); \
+    p->get_state()->cap_pc = tmp; \
+    assert(!GET_TAG(cap.base + 16)); \
+    uint64_t tmp; \
+    tmp = MMU.load_uint64(cap.base + 16); \
+    MMU.store_uint64(cap.base + 16, p->get_state()->mtvec->read()); \
+    p->set_csr(CSR_MTVEC, tmp); \
+    bool arg_is_cap = IS_CAP(arg_reg); \
+    cap64_t arg_cap; \
+    uint64_t arg; \
+    if (arg_is_cap) { \
+      arg_cap = READ_CAP(arg_reg); \
+      if (arg_cap.type == CAP_TYPE_LINEAR) RESET_REG(arg_reg); \
+    } \
+    else { \
+      arg = READ_REG(arg_reg); \
+    } \
+    for (int i=1; i < STATE.XPR.size(); i++) { \
+      uint64_t cur_addr = cap.base + (i + 1) * 16; \
+      bool is_cap = IS_CAP(i); \
+      if (is_cap) tmp_cap = READ_CAP(i); \
+      else tmp = READ_REG(i); \
+      if (GET_TAG(cur_addr)) WRITE_CAP(i, MMU.load_uint128(cur_addr)); \
+      else WRITE_REG(i, MMU.load_uint64(cur_addr)); \
+      if(is_cap) { \
+        MMU.store_uint128(cur_addr, tmp_cap.to128()); \
+        SET_TAG(cur_addr, true); \
+      } \
+      else { \
+        MMU.store_uint64(cur_addr, tmp); \
+        SET_TAG(cur_addr, false); \
+      } \
+    } \
+    WRITE_CAP(RET_REG, cap); \
+    if (arg_is_cap) WRITE_CAP(ARG_REG, arg_cap); \
+    else WRITE_REG(ARG_REG, arg); \
+  } while(0)
 
 // RVC macros
 #define WRITE_RVC_RS1S(value) WRITE_REG(insn.rvc_rs1s(), value)

@@ -150,6 +150,8 @@ riscv_insn_capstone = \
 	sws \
 	shs \
 	sbs \
+	seal \
+	call \
 
 riscv_debug_capstone = \
 	debug_print \
