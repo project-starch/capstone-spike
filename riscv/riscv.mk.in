@@ -152,6 +152,8 @@ riscv_insn_capstone = \
 	sbs \
 	seal \
 	call \
+	ret \
+	retseal \
 
 riscv_debug_capstone = \
 	debug_print \

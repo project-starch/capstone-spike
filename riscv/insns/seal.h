@@ -1,1 +1,1 @@
-SEAL(Rd);
+SEAL_CAP(Rd);

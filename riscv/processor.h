@@ -179,7 +179,7 @@ public:
 
   const T& operator [] (size_t i)
   {
-    if (is_cap(i)) memset(data + i, 0, sizeof(data[i]));
+    if (is_cap(i) && data[i]) memset(data + i, 0, sizeof(data[i]));
     return data[i];
   }
   cap64_t& read_cap(size_t i)

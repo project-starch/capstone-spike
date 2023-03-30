@@ -1,1 +1,1 @@
-CALL(Rd, Rs1);
+CALL_DOMAIN(Rd, Rs1);
