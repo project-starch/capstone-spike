@@ -169,9 +169,9 @@ public:
   inline void debug_set_cap(size_t i) { cap_data[i].tag = WORD_TAG_CAP; }
   inline bool zero_reg_required() const { return zero_reg; }
   inline size_t size() const { return N; }
-  void write(size_t i, T value);
-  bool write_cap(size_t i, const uint128_t &c);
-  bool write_cap(size_t i, const cap64_t &cap);
+  void write(size_t i, T value, bool rc_update=true);
+  bool write_cap(size_t i, const uint128_t &c, bool rc_update=true);
+  bool write_cap(size_t i, const cap64_t &cap, bool rc_update=true);
   void move(size_t to, size_t from);
   void split_cap(size_t reg, size_t split_reg, reg_t pv, rev_node_id_t split_node_id);
   void delin(size_t reg);
@@ -737,12 +737,12 @@ public:
 
 template <class T, size_t N, bool zero_reg>
 void
-regfile_t<T, N, zero_reg>::write(size_t i, T value)
+regfile_t<T, N, zero_reg>::write(size_t i, T value, bool rc_update/*=true*/)
 {
   if (!zero_reg || i != 0){
     data[i] = value;
     if (is_cap(i)) {
-      p->updateRC(cap_data[i].cap.node_id, -1);
+      if(rc_update) p->updateRC(cap_data[i].cap.node_id, -1);
       cap_data[i].set_data();
     }
   }
@@ -751,15 +751,15 @@ regfile_t<T, N, zero_reg>::write(size_t i, T value)
 // Return value: cap_is_linear
 template <class T, size_t N, bool zero_reg>
 bool
-regfile_t<T, N, zero_reg>::write_cap(size_t i, const uint128_t &c)
+regfile_t<T, N, zero_reg>::write_cap(size_t i, const uint128_t &c, bool rc_update/*=true*/)
 {
   if (!zero_reg || i != 0){
     cap64_t cap;
     cap.from128(c);
 
-    if (is_cap(i)) p->updateRC(cap_data[i].cap.node_id, -1);
+    if (rc_update && is_cap(i)) p->updateRC(cap_data[i].cap.node_id, -1);
     cap_data[i].set_cap(cap);
-    if (!cap.is_linear()) p->updateRC(cap.node_id, 1);
+    if (rc_update && !cap.is_linear()) p->updateRC(cap.node_id, 1);
     return cap.is_linear();
   }
   return false;
@@ -767,12 +767,12 @@ regfile_t<T, N, zero_reg>::write_cap(size_t i, const uint128_t &c)
 
 template <class T, size_t N, bool zero_reg>
 bool
-regfile_t<T, N, zero_reg>::write_cap(size_t i, const cap64_t &cap)
+regfile_t<T, N, zero_reg>::write_cap(size_t i, const cap64_t &cap, bool rc_update/*=true*/)
 {
   if (!zero_reg || i != 0){
-    if (is_cap(i)) p->updateRC(cap_data[i].cap.node_id, -1);
+    if (rc_update && is_cap(i)) p->updateRC(cap_data[i].cap.node_id, -1);
     cap_data[i].set_cap(cap);
-    if (!cap.is_linear()) p->updateRC(cap.node_id, 1);
+    if (rc_update && !cap.is_linear()) p->updateRC(cap.node_id, 1);
     return cap.is_linear();
   }
   return false;

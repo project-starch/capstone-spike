@@ -201,6 +201,8 @@ private:
 #define IS_DATA(reg) STATE.XPR.is_data(reg)
 #define READ_CAP(reg) STATE.XPR.read_cap(reg)
 #define WRITE_CAP(reg, value) STATE.XPR.write_cap(reg, value)
+#define WRITE_CAP_DUMB(reg, value) STATE.XPR.write_cap(reg, value, false)
+# define WRITE_REG_DUMB(reg, value) STATE.XPR.write(reg, value, false);
 #define SET_CAP_ACCESS() p->set_cap_access()
 #define READ_CAP_NODE(reg) READ_CAP(reg).node_id
 #define VALID_CAP(reg) assert(p->valid_cap(READ_CAP_NODE(reg)))
@@ -352,15 +354,15 @@ private:
     cap64_t cap = READ_CAP(seal_reg); \
     RESET_REG(seal_reg); \
     size_t regfile_size = STATE.XPR.size(); \
-    assert(cap.type == CAP_TYPE_SEALED && cap.end - cap.base >= (STATE.XPR.size() + 1) * 16); \
+    assert(cap.type == CAP_TYPE_SEALED && cap.end - cap.base >= (regfile_size + 1) * 16); \
     cap.type = CAP_TYPE_SEALEDRET; \
     cap64_t tmp_cap; \
     assert(GET_TAG(cap.base)); \
     tmp_cap.from128(MMU.load_uint128(cap.base)); \
     assert(tmp_cap.accessible() && tmp_cap.executable()); \
-    npc = tmp.cursor; \
+    npc = tmp_cap.cursor; \
     MMU.store_uint128(cap.base, p->get_state()->cap_pc.to128()); \
-    p->get_state()->cap_pc = tmp; \
+    p->get_state()->cap_pc = tmp_cap; \
     assert(!GET_TAG(cap.base + 16)); \
     uint64_t tmp; \
     tmp = MMU.load_uint64(cap.base + 16); \
@@ -371,18 +373,18 @@ private:
     uint64_t arg; \
     if (arg_is_cap) { \
       arg_cap = READ_CAP(arg_reg); \
-      if (arg_cap.type == CAP_TYPE_LINEAR) RESET_REG(arg_reg); \
+      if (arg_cap.is_linear()) RESET_REG(arg_reg); \
     } \
     else { \
       arg = READ_REG(arg_reg); \
     } \
-    for (int i=1; i < STATE.XPR.size(); i++) { \
+    for (size_t i=1; i < regfile_size; i++) { \
       uint64_t cur_addr = cap.base + (i + 1) * 16; \
       bool is_cap = IS_CAP(i); \
       if (is_cap) tmp_cap = READ_CAP(i); \
       else tmp = READ_REG(i); \
-      if (GET_TAG(cur_addr)) WRITE_CAP(i, MMU.load_uint128(cur_addr)); \
-      else WRITE_REG(i, MMU.load_uint64(cur_addr)); \
+      if (GET_TAG(cur_addr)) WRITE_CAP_DUMB(i, MMU.load_uint128(cur_addr)); \
+      else WRITE_REG_DUMB(i, MMU.load_uint64(cur_addr)); \
       if(is_cap) { \
         MMU.store_uint128(cur_addr, tmp_cap.to128()); \
         SET_TAG(cur_addr, true); \
