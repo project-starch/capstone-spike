@@ -179,7 +179,9 @@ public:
 
   const T& operator [] (size_t i)
   {
-    if (is_cap(i) && data[i]) memset(data + i, 0, sizeof(data[i]));
+    // float128_t is not a standard type, memset for general purpose
+    // MAYBE: sperate capability-aware regfile_t as another class
+    if (is_cap(i)) memset(data + i, 0, sizeof(data[i]));
     return data[i];
   }
   cap64_t& read_cap(size_t i)

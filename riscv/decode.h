@@ -348,6 +348,10 @@ private:
   } while (0);
 #define RET_REG 1
 #define ARG_REG 10
+union reg_value {
+  cap64_t cap;
+  uint64_t data;
+};
 #define CALL_DOMAIN(seal_reg, arg_reg) \
   do { \
     VALID_CAP(seal_reg); \
@@ -369,14 +373,13 @@ private:
     MMU.store_uint64(cap.base + 16, p->get_state()->mtvec->read()); \
     p->set_csr(CSR_MTVEC, tmp); \
     bool arg_is_cap = IS_CAP(arg_reg); \
-    cap64_t arg_cap; \
-    uint64_t arg; \
+    union reg_value arg_value; \
     if (arg_is_cap) { \
-      arg_cap = READ_CAP(arg_reg); \
-      if (arg_cap.is_linear()) RESET_REG(arg_reg); \
+      arg_value.cap = READ_CAP(arg_reg); \
+      if (arg_value.cap.is_linear()) RESET_REG(arg_reg); \
     } \
     else { \
-      arg = READ_REG(arg_reg); \
+      arg_value.data = READ_REG(arg_reg); \
     } \
     for (size_t i=1; i < regfile_size; i++) { \
       uint64_t cur_addr = cap.base + (i + 1) * 16; \
@@ -395,8 +398,8 @@ private:
       } \
     } \
     WRITE_CAP(RET_REG, cap); \
-    if (arg_is_cap) WRITE_CAP(ARG_REG, arg_cap); \
-    else WRITE_REG(ARG_REG, arg); \
+    if (arg_is_cap) WRITE_CAP(ARG_REG, arg_value.cap); \
+    else WRITE_REG(ARG_REG, arg_value.data); \
   } while(0)
 #define RETURN_DOMAIN(sealret_reg, retval_reg) \
   do { \
@@ -449,7 +452,9 @@ private:
     assert(tmp_cap.accessible() && tmp_cap.executable()); \
     npc = tmp_cap.cursor; \
     cap64_t old_pc = p->get_state()->cap_pc; \
+    assert(IS_DATA(npc_reg)); \
     old_pc.cursor = READ_REG(npc_reg); \
+    RESET_REG(npc_reg); \
     MMU.store_uint128(cap.base, old_pc.to128()); \
     p->get_state()->cap_pc = tmp_cap; \
     assert(!GET_TAG(cap.base + 16)); \
@@ -457,7 +462,6 @@ private:
     tmp = MMU.load_uint64(cap.base + 16); \
     MMU.store_uint64(cap.base + 16, p->get_state()->mtvec->read()); \
     p->set_csr(CSR_MTVEC, tmp); \
-    if (npc_reg.is_linear()) RESET_REG(npc_reg); \
     for (size_t i=1; i < regfile_size; i++) { \
       uint64_t cur_addr = cap.base + (i + 1) * 16; \
       bool is_cap = IS_CAP(i); \
