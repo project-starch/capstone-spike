@@ -35,6 +35,7 @@ public:
         bool halted, bool real_time_clint,
         reg_t initrd_start, reg_t initrd_end, const char* bootargs,
         reg_t start_pc, std::vector<std::pair<reg_t, mem_t*>> mems,
+        std::vector<std::pair<reg_t, mem_t*>> cap_mems,
         std::vector<std::pair<reg_t, abstract_device_t*>> plugin_devices,
         const std::vector<std::string>& args, const std::vector<int> hartids,
         const debug_module_config_t &dm_config, const char *log_path,
@@ -71,6 +72,7 @@ public:
 
 private:
   std::vector<std::pair<reg_t, mem_t*>> mems;
+  std::vector<std::pair<reg_t, mem_t*>> cap_mems;
   std::vector<std::pair<reg_t, abstract_device_t*>> plugin_devices;
   mmu_t* debug_mmu;  // debug port into main memory
   std::vector<processor_t*> procs;

@@ -32,6 +32,8 @@ static void help(int exit_code = 1)
 #endif
   fprintf(stderr, "  -h, --help            Print this help message\n");
   fprintf(stderr, "  -H                    Start halted, allowing a debugger to connect\n");
+  fprintf(stderr, "  -M<a:m,b:n,...>       Specify the starting address of the secure-world memory (with 16 B alignment) [default off]\n");
+  fprintf(stderr, "  -D                    Enable Capstone debug (backdoor) instructions\n");
   fprintf(stderr, "  --log=<name>          File name for option -l\n");
   fprintf(stderr, "  --debug-cmd=<name>    Read commands from file (use with -d)\n");
   fprintf(stderr, "  --isa=<name>          RISC-V ISA string [default %s]\n", DEFAULT_ISA);
@@ -217,8 +219,7 @@ int main(int argc, char** argv)
   bool dump_dts = false;
   bool dtb_enabled = true;
   bool real_time_clint = false;
-  bool cap_mem_enabled = false;
-  bool cap_debug_enabled = true;
+  bool cap_debug_enabled = false;
   uint64_t mem_partition_addr;
   size_t nprocs = 1;
   const char* kernel = NULL;
@@ -228,6 +229,7 @@ int main(int argc, char** argv)
   const char* bootargs = NULL;
   reg_t start_pc = reg_t(-1);
   std::vector<std::pair<reg_t, mem_t*>> mems;
+  std::vector<std::pair<reg_t, mem_t*>> cap_mems;
   std::vector<std::pair<reg_t, abstract_device_t*>> plugin_devices;
   std::unique_ptr<icache_sim_t> ic;
   std::unique_ptr<dcache_sim_t> dc;
@@ -322,10 +324,10 @@ int main(int argc, char** argv)
 #endif
   parser.option('p', 0, 1, [&](const char* s){nprocs = atoul_nonzero_safe(s);});
   parser.option('m', 0, 1, [&](const char* s){mems = make_mems(s);});
-  parser.option(0, "capmem-from", 1, [&](const char* s){cap_mem_enabled = true; mem_partition_addr = atoul_safe(s); assert((mem_partition_addr & (16 - 1)) == uint64_t(0));});
-  parser.option(0, "cap_debug_disabled", 0, [&](const char* s){cap_debug_enabled = false;});
   // I wanted to use --halted, but for some reason that doesn't work.
   parser.option('H', 0, 0, [&](const char* s){halted = true;});
+  parser.option('M', 0, 1, [&](const char* s){cap_mems = make_mems(s); mem_partition_addr = cap_mems[0].first; assert((mem_partition_addr & uint64_t(16 - 1)) == uint64_t(0));});
+  parser.option('D', 0, 0, [&](const char* s){cap_debug_enabled = true;});
   parser.option(0, "rbb-port", 1, [&](const char* s){use_rbb = true; rbb_port = atoul_safe(s);});
   parser.option(0, "pc", 1, [&](const char* s){start_pc = strtoull(s, 0, 0);});
   parser.option(0, "hartids", 1, hartids_parser);
@@ -386,8 +388,8 @@ int main(int argc, char** argv)
   std::vector<std::string> htif_args(argv1, (const char*const*)argv + argc);
   if (mems.empty())
     mems = make_mems("2048");
-  if (!cap_mem_enabled)
-    mem_partition_addr = (uint64_t)(-1LL);
+  if (cap_mems.empty())
+    mem_partition_addr = (uint64_t)(-1LL); // disable capability memory partitioning by default
 
   if (!*argv1)
     help();
@@ -442,7 +444,7 @@ int main(int argc, char** argv)
 #endif
 
   sim_t s(isa, priv, varch, nprocs, halted, real_time_clint,
-      initrd_start, initrd_end, bootargs, start_pc, mems, plugin_devices, htif_args,
+      initrd_start, initrd_end, bootargs, start_pc, mems, cap_mems, plugin_devices, htif_args,
       std::move(hartids), dm_config, log_path, dtb_enabled, dtb_file,
 #ifdef HAVE_BOOST_ASIO
       io_service_ptr, acceptor_ptr,
@@ -481,6 +483,9 @@ int main(int argc, char** argv)
 
   for (auto& mem : mems)
     delete mem.second;
+  
+  for (auto& cap_mem : cap_mems)
+    delete cap_mem.second;
 
   for (auto& plugin_device : plugin_devices)
     delete plugin_device.second;

@@ -53,7 +53,7 @@ reg_t mmu_t::translate(reg_t addr, reg_t len, access_type type, uint32_t xlate_f
   if (!proc)
     return addr;
   if (!(proc->is_normal_access())) {
-    assert(addr > sim->get_mem_partition_addr());
+    assert(addr >= sim->get_mem_partition_addr());
     return addr;
   }
 
@@ -77,7 +77,7 @@ reg_t mmu_t::translate(reg_t addr, reg_t len, access_type type, uint32_t xlate_f
   if (!pmp_ok(paddr, len, type, mode))
     throw_access_exception(virt, addr, type);
 
-  assert(paddr <= sim->get_mem_partition_addr());
+  assert(paddr < sim->get_mem_partition_addr());
   return paddr;
 }
 

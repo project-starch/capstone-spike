@@ -193,7 +193,8 @@ private:
 #endif
 
 // Capstone macros
-#define require_capstone_debug require(p->is_cap_debug_enabled())
+#define require_capstone_debug assert(p->is_cap_debug_enabled())
+#define require_secure_world assert(p->is_secure_world())
 #define Rs1 insn.rs1()
 #define Rs2 insn.rs2()
 #define Rd insn.rd()
@@ -202,7 +203,7 @@ private:
 #define READ_CAP(reg) STATE.XPR.read_cap(reg)
 #define WRITE_CAP(reg, value) STATE.XPR.write_cap(reg, value)
 #define WRITE_CAP_DUMB(reg, value) STATE.XPR.write_cap(reg, value, false)
-# define WRITE_REG_DUMB(reg, value) STATE.XPR.write(reg, value, false);
+#define WRITE_REG_DUMB(reg, value) STATE.XPR.write(reg, value, false)
 #define SET_CAP_ACCESS() p->set_cap_access()
 #define READ_CAP_NODE(reg) READ_CAP(reg).node_id
 #define VALID_CAP(reg) assert(p->valid_cap(READ_CAP_NODE(reg)))
