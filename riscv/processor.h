@@ -598,6 +598,10 @@ public:
     state.cap_access = true;
   }
 
+  inline void switch_world(bool to_secure_world) {
+    state.world = to_secure_world ? WORLD_SECURE : WORLD_NORMAL;
+  }
+
   inline bool is_cap_debug_enabled() const {
     return sim->is_cap_debug_enabled();
   }

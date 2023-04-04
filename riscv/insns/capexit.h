@@ -1,2 +1,2 @@
-printf("capexit executing\n");
-fflush(stdout);
+require_secure_world;
+TO_NORMAL_WORLD();

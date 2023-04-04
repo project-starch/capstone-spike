@@ -1,2 +1,2 @@
-printf("capenter executing\n");
-fflush(stdout);
+require_normal_world;
+TO_SECURE_WORLD();

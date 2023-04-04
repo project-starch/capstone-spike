@@ -202,11 +202,6 @@ void htif_t::clear_chunk(addr_t taddr, size_t len)
     write_chunk(taddr + pos, std::min(len - pos, chunk_max_size()), zeros);
 }
 
-/**
- * 
- * FIXME: here we might need to write 128-bit chunks instead
- * 
-*/
 int htif_t::run()
 {
   start();
