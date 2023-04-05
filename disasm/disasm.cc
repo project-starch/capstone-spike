@@ -844,9 +844,9 @@ void disassembler_t::add_instructions(isa_parser_t* isa)
   DEFINE_R1TYPE(debug_captype);
   DEFINE_R1TYPE(debug_capnode);
   DEFINE_R1TYPE(debug_capperm);
-  DEFINE_R12TYPE(debug_rcupdate);
-  DEFINE_R12TYPE(debug_tagset);
-  DEFINE_R12TYPE(debug_tagget);
+  DEFINE_RS12TYPE(debug_rcupdate);
+  DEFINE_RS12TYPE(debug_tagset);
+  DEFINE_RS12TYPE(debug_tagget);
   DEFINE_RDTYPE(debug_capcreate);
   DEFINE_RS1TYPE(debug_query);
   DEFINE_RS1TYPE(debug_drop);

@@ -179,8 +179,6 @@ public:
 
   const T& operator [] (size_t i)
   {
-    // float128_t is not a standard type, memset for general purpose
-    // MAYBE: sperate capability-aware regfile_t as another class
     if (is_cap(i)) memset(data + i, 0, sizeof(data[i]));
     return data[i];
   }
@@ -189,7 +187,7 @@ public:
     assert(is_cap(i));
     return cap_data[i].cap;
   }
-  regfile_t() {}
+  regfile_cap_t() {}
   void reset_i(size_t i) {
     memset(data + i, 0, sizeof(data[i]));
     cap_data[i].reset();
@@ -747,7 +745,7 @@ public:
 
 template <class T, size_t N, bool zero_reg>
 void
-regfile_t<T, N, zero_reg>::write(size_t i, T value, bool rc_update/*=true*/)
+regfile_cap_t<T, N, zero_reg>::write(size_t i, T value, bool rc_update/*=true*/)
 {
   if (!zero_reg || i != 0){
     data[i] = value;
@@ -761,7 +759,7 @@ regfile_t<T, N, zero_reg>::write(size_t i, T value, bool rc_update/*=true*/)
 // Return value: cap_is_linear
 template <class T, size_t N, bool zero_reg>
 bool
-regfile_t<T, N, zero_reg>::write_cap(size_t i, const uint128_t &c, bool rc_update/*=true*/)
+regfile_cap_t<T, N, zero_reg>::write_cap(size_t i, const uint128_t &c, bool rc_update/*=true*/)
 {
   if (!zero_reg || i != 0){
     cap64_t cap;
@@ -777,7 +775,7 @@ regfile_t<T, N, zero_reg>::write_cap(size_t i, const uint128_t &c, bool rc_updat
 
 template <class T, size_t N, bool zero_reg>
 bool
-regfile_t<T, N, zero_reg>::write_cap(size_t i, const cap64_t &cap, bool rc_update/*=true*/)
+regfile_cap_t<T, N, zero_reg>::write_cap(size_t i, const cap64_t &cap, bool rc_update/*=true*/)
 {
   if (!zero_reg || i != 0){
     if (rc_update && is_cap(i)) p->updateRC(cap_data[i].cap.node_id, -1);
@@ -790,7 +788,7 @@ regfile_t<T, N, zero_reg>::write_cap(size_t i, const cap64_t &cap, bool rc_updat
 
 template <class T, size_t N, bool zero_reg>
 void
-regfile_t<T, N, zero_reg>::move(size_t to, size_t from)
+regfile_cap_t<T, N, zero_reg>::move(size_t to, size_t from)
 {
   if (!zero_reg || to != 0) {
     if (is_data(from)) {
@@ -815,7 +813,7 @@ regfile_t<T, N, zero_reg>::move(size_t to, size_t from)
 
 template <class T, size_t N, bool zero_reg>
 void
-regfile_t<T, N, zero_reg>::split_cap(size_t reg, size_t split_reg, reg_t pv, rev_node_id_t split_node_id) {
+regfile_cap_t<T, N, zero_reg>::split_cap(size_t reg, size_t split_reg, reg_t pv, rev_node_id_t split_node_id) {
   assert(split_node_id != REV_NODE_ID_INVALID);
   if (is_cap(split_reg)) p->updateRC(cap_data[split_reg].cap.node_id, -1);
   cap_data[split_reg] = cap_data[reg];
@@ -826,7 +824,7 @@ regfile_t<T, N, zero_reg>::split_cap(size_t reg, size_t split_reg, reg_t pv, rev
 
 template <class T, size_t N, bool zero_reg>
 void
-regfile_t<T, N, zero_reg>::delin(size_t reg) {
+regfile_cap_t<T, N, zero_reg>::delin(size_t reg) {
   assert(cap_data[reg].cap.type == CAP_TYPE_LINEAR);
   cap_data[reg].cap.type = CAP_TYPE_NONLINEAR;
   p->set_nonlinear(cap_data[reg].cap.node_id);
@@ -834,7 +832,7 @@ regfile_t<T, N, zero_reg>::delin(size_t reg) {
 
 template <class T, size_t N, bool zero_reg>
 void
-regfile_t<T, N, zero_reg>::mrev(size_t reg, size_t cap_reg, rev_node_id_t new_node_id) {
+regfile_cap_t<T, N, zero_reg>::mrev(size_t reg, size_t cap_reg, rev_node_id_t new_node_id) {
   assert(new_node_id != REV_NODE_ID_INVALID);
   if (is_cap(reg)) p->updateRC(cap_data[reg].cap.node_id, -1);
   cap_data[reg] = cap_data[cap_reg];
