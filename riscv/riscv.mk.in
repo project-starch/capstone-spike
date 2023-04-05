@@ -127,6 +127,7 @@ riscv_insn_ext_i = \
 riscv_insn_capstone = \
 	capenter \
 	capexit \
+	capinit \
 	mov \
 	tighten \
 	shrink \

@@ -153,6 +153,30 @@ private:
   uint64_t imm_sign() { return xs(63, 1); }
 };
 
+template <class T, size_t N, bool zero_reg>
+class regfile_t
+{
+public:
+  void write(size_t i, T value)
+  {
+    if (!zero_reg || i != 0)
+      data[i] = value;
+  }
+  const T& operator [] (size_t i) const
+  {
+    return data[i];
+  }
+  regfile_t()
+  {
+    reset();
+  }
+  void reset()
+  {
+    memset(data, 0, sizeof(data));
+  }
+private:
+  T data[N];
+};
 
 // helpful macros, etc
 #define MMU (*p->get_mmu())

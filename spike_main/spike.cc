@@ -230,6 +230,7 @@ int main(int argc, char** argv)
   reg_t start_pc = reg_t(-1);
   std::vector<std::pair<reg_t, mem_t*>> mems;
   std::vector<std::pair<reg_t, mem_t*>> cap_mems;
+  cap_reg_t secure_mem_init_cap;
   std::vector<std::pair<reg_t, abstract_device_t*>> plugin_devices;
   std::unique_ptr<icache_sim_t> ic;
   std::unique_ptr<dcache_sim_t> dc;
@@ -326,7 +327,12 @@ int main(int argc, char** argv)
   parser.option('m', 0, 1, [&](const char* s){mems = make_mems(s);});
   // I wanted to use --halted, but for some reason that doesn't work.
   parser.option('H', 0, 0, [&](const char* s){halted = true;});
-  parser.option('M', 0, 1, [&](const char* s){cap_mems = make_mems(s); mem_partition_addr = cap_mems[0].first; assert((mem_partition_addr & uint64_t(16 - 1)) == uint64_t(0));});
+  parser.option('M', 0, 1, [&](const char* s){
+    cap_mems = make_mems(s);
+    mem_partition_addr = cap_mems[0].first;
+    assert((mem_partition_addr & uint64_t(16 - 1)) == uint64_t(0));
+    secure_mem_init_cap.init_cap();
+  });
   parser.option('D', 0, 0, [&](const char* s){cap_debug_enabled = true;});
   parser.option(0, "rbb-port", 1, [&](const char* s){use_rbb = true; rbb_port = atoul_safe(s);});
   parser.option(0, "pc", 1, [&](const char* s){start_pc = strtoull(s, 0, 0);});
@@ -388,8 +394,10 @@ int main(int argc, char** argv)
   std::vector<std::string> htif_args(argv1, (const char*const*)argv + argc);
   if (mems.empty())
     mems = make_mems("2048");
-  if (cap_mems.empty())
+  if (cap_mems.empty()) {
     mem_partition_addr = (uint64_t)(-1LL); // disable capability memory partitioning by default
+    secure_mem_init_cap.reset();
+  }
 
   if (!*argv1)
     help();
@@ -444,7 +452,8 @@ int main(int argc, char** argv)
 #endif
 
   sim_t s(isa, priv, varch, nprocs, halted, real_time_clint,
-      initrd_start, initrd_end, bootargs, start_pc, mems, cap_mems, plugin_devices, htif_args,
+      initrd_start, initrd_end, bootargs, start_pc, mems, cap_mems,
+      secure_mem_init_cap, plugin_devices, htif_args,
       std::move(hartids), dm_config, log_path, dtb_enabled, dtb_file,
 #ifdef HAVE_BOOST_ASIO
       io_service_ptr, acceptor_ptr,

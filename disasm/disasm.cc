@@ -438,6 +438,21 @@ static void NOINLINE add_rtype_insn(disassembler_t* d, const char* name, uint32_
   d->add_insn(new disasm_insn_t(name, match, mask, {&xrd, &xrs1, &xrs2}));
 }
 
+static void NOINLINE add_rdtype_insn(disassembler_t* d, const char* name, uint32_t match, uint32_t mask)
+{
+  d->add_insn(new disasm_insn_t(name, match, mask, {&xrd}));
+}
+
+static void NOINLINE add_rs1type_insn(disassembler_t* d, const char* name, uint32_t match, uint32_t mask)
+{
+  d->add_insn(new disasm_insn_t(name, match, mask, {&xrs1}));
+}
+
+static void NOINLINE add_rs12type_insn(disassembler_t* d, const char* name, uint32_t match, uint32_t mask)
+{
+  d->add_insn(new disasm_insn_t(name, match, mask, {&xrs1, &xrs2}));
+}
+
 static void NOINLINE add_r1type_insn(disassembler_t* d, const char* name, uint32_t match, uint32_t mask)
 {
   d->add_insn(new disasm_insn_t(name, match, mask, {&xrd, &xrs1}));
@@ -651,6 +666,9 @@ void disassembler_t::add_instructions(isa_parser_t* isa)
     add_insn(new disasm_insn_t(name, match_##code, mask_##code | (extra), __VA_ARGS__));
   #define DEFINE_NOARG(code) add_noarg_insn(this, #code, match_##code, mask_##code);
   #define DEFINE_RTYPE(code) add_rtype_insn(this, #code, match_##code, mask_##code);
+  #define DEFINE_RDTYPE(code) add_rdtype_insn(this, #code, match_##code, mask_##code);
+  #define DEFINE_RS1TYPE(code) add_rs1type_insn(this, #code, match_##code, mask_##code);
+  #define DEFINE_RS12TYPE(code) add_rs12type_insn(this, #code, match_##code, mask_##code);
   #define DEFINE_R1TYPE(code) add_r1type_insn(this, #code, match_##code, mask_##code);
   #define DEFINE_R3TYPE(code) add_r3type_insn(this, #code, match_##code, mask_##code);
   #define DEFINE_ITYPE(code) add_itype_insn(this, #code, match_##code, mask_##code);
@@ -787,6 +805,53 @@ void disassembler_t::add_instructions(isa_parser_t* isa)
   DEFINE_NOARG(wfi);
   add_insn(new disasm_insn_t("fence", match_fence, mask_fence, {&iorw}));
   DEFINE_NOARG(fence_i);
+
+  // (Tans)Capstone Instructions
+  DEFINE_NOARG(capenter);
+  DEFINE_NOARG(capexit);
+  DEFINE_RTYPE(shrink);
+  DEFINE_RTYPE(split);
+  DEFINE_R1TYPE(call);
+  DEFINE_R1TYPE(jnz);
+  DEFINE_R1TYPE(tighten);
+  DEFINE_R1TYPE(scc);
+  DEFINE_R1TYPE(mov);
+  DEFINE_R1TYPE(lcc);
+  DEFINE_R1TYPE(mrev);
+  DEFINE_R1TYPE(ret);
+  DEFINE_R1TYPE(retseal);
+  DEFINE_R1TYPE(ldc);
+  DEFINE_R1TYPE(stc);
+  DEFINE_R1TYPE(lds);
+  DEFINE_R1TYPE(lws);
+  DEFINE_R1TYPE(lhs);
+  DEFINE_R1TYPE(lbs);
+  DEFINE_R1TYPE(sds);
+  DEFINE_R1TYPE(sws);
+  DEFINE_R1TYPE(shs);
+  DEFINE_R1TYPE(sbs);
+  DEFINE_RDTYPE(delin);
+  DEFINE_RDTYPE(init);
+  DEFINE_RDTYPE(seal);
+  DEFINE_RDTYPE(capinit);
+  DEFINE_RS1TYPE(revoke);
+  DEFINE_RS1TYPE(jmp);
+  DEFINE_RS1TYPE(drop);
+  
+  // Capstone Debug Instructions
+  DEFINE_RTYPE(debug_capbound);
+  DEFINE_R1TYPE(debug_alloc);
+  DEFINE_R1TYPE(debug_captype);
+  DEFINE_R1TYPE(debug_capnode);
+  DEFINE_R1TYPE(debug_capperm);
+  DEFINE_R12TYPE(debug_rcupdate);
+  DEFINE_R12TYPE(debug_tagset);
+  DEFINE_R12TYPE(debug_tagget);
+  DEFINE_RDTYPE(debug_capcreate);
+  DEFINE_RS1TYPE(debug_query);
+  DEFINE_RS1TYPE(debug_drop);
+  DEFINE_RS1TYPE(debug_revoke);
+  DEFINE_RS1TYPE(debug_print);
 
   add_insn(new disasm_insn_t("csrr", match_csrrs, mask_csrrs | mask_rs1, {&xrd, &csr}));
   add_insn(new disasm_insn_t("csrw", match_csrrw, mask_csrrw | mask_rd, {&csr, &xrs1}));

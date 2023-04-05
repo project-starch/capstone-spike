@@ -35,7 +35,7 @@ public:
         bool halted, bool real_time_clint,
         reg_t initrd_start, reg_t initrd_end, const char* bootargs,
         reg_t start_pc, std::vector<std::pair<reg_t, mem_t*>> mems,
-        std::vector<std::pair<reg_t, mem_t*>> cap_mems,
+        std::vector<std::pair<reg_t, mem_t*>> cap_mems, cap_reg_t secure_mem_init_cap,
         std::vector<std::pair<reg_t, abstract_device_t*>> plugin_devices,
         const std::vector<std::string>& args, const std::vector<int> hartids,
         const debug_module_config_t &dm_config, const char *log_path,
@@ -160,6 +160,10 @@ private:
   }
   uint64_t get_mem_partition_addr() {
     return mem_partition_addr;
+  }
+
+  cap_reg_t& get_secure_mem_init_cap() {
+    return secure_mem_init_cap;
   }
 
   bool is_cap_debug_enabled() {

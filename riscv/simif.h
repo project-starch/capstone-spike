@@ -22,6 +22,7 @@ public:
   virtual TagController& get_tag_controller() = 0;
   virtual RevTree& get_rev_tree() = 0;
   virtual uint64_t get_mem_partition_addr() = 0;
+  virtual cap_reg_t& get_secure_mem_init_cap() = 0;
   virtual bool is_cap_debug_enabled() = 0;
 };
 

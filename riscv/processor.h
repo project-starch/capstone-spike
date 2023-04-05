@@ -161,11 +161,11 @@ struct type_sew_t<64>
 };
 
 template <class T, size_t N, bool zero_reg>
-class regfile_t
+class regfile_cap_t
 {
 public:
-  inline bool is_data(size_t i) const { return cap_data[i].tag == WORD_TAG_DATA; }
-  inline bool is_cap(size_t i) const { return cap_data[i].tag == WORD_TAG_CAP; }
+  inline bool is_data(size_t i) const { return cap_data[i].is_data(); }
+  inline bool is_cap(size_t i) const { return cap_data[i].is_cap(); }
   inline void debug_set_cap(size_t i) { cap_data[i].tag = WORD_TAG_CAP; }
   inline bool zero_reg_required() const { return zero_reg; }
   inline size_t size() const { return N; }
@@ -217,7 +217,7 @@ struct state_t
 
   reg_t pc;
   cap64_t cap_pc;
-  regfile_t<reg_t, NXPR, true> XPR;
+  regfile_cap_t<reg_t, NXPR, true> XPR;
   regfile_t<freg_t, NFPR, false> FPR;
   bool cap_access;
 
@@ -600,6 +600,10 @@ public:
 
   inline void switch_world(bool to_secure_world) {
     state.world = to_secure_world ? WORLD_SECURE : WORLD_NORMAL;
+  }
+
+  inline cap_reg_t& get_secure_mem_init_cap() {
+    return sim->get_secure_mem_init_cap();
   }
 
   inline bool is_cap_debug_enabled() const {

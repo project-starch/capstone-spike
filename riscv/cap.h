@@ -175,6 +175,14 @@ struct cap64_t
     }
   }
 
+  void init_cap(uint64_t init_base, uint64_t init_end) {
+    base = init_base;
+    end = init_end;
+    cursor = init_base;
+    perm = CAP_PERM_RWX;
+    type = CAP_TYPE_LINEAR;
+  }
+
   void shrink(uint64_t new_base, uint64_t new_end) {
     assert(type == CAP_TYPE_NONLINEAR || type == CAP_TYPE_LINEAR);
     assert(new_base < new_end && new_end <= end && new_base >= base);
@@ -201,9 +209,15 @@ struct cap_reg_t
 
   cap_reg_t() { reset(); }
 
+  inline bool is_cap() const { return tag == WORD_TAG_CAP; }
+  inline bool is_data() const { return tag == WORD_TAG_DATA; }
   void set_cap(const cap64_t& v) {
     tag = WORD_TAG_CAP;
     cap = v;
+  }
+  void init_cap(uint64_t init_base, uint64_t init_end) {
+    tag = WORD_TAG_CAP;
+    cap.init_cap(init_base, init_end);
   }
   inline void set_data() { tag = WORD_TAG_DATA; }
   inline void reset() { set_data(); }
