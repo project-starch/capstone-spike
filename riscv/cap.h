@@ -77,13 +77,17 @@ struct cap64_t
     assert(end >= base);
     uint128_t res;
     uint64_t length = end - base;
-    uint8_t E = uint8_t(51 - __builtin_clzll(length));
+    uint8_t E = uint8_t(64 - __builtin_clzll(length >> 13));
     uint8_t Ie = (E == 0 && (length >> 12) == 0)? 0 : 1;
     uint32_t bound;
     if (Ie) {
-      uint16_t B = uint16_t((base >> (E + 3)) & ((1 << 11) - 1));
-      uint16_t T = uint16_t((end >> (E + 3)) & ((1 << 9) - 1));
-      bound = (uint32_t(B) << 3) | (uint32_t(T) << 17) | (uint32_t(1) << 26);
+      assert((base & ((1 << (E + 3)) - 1)) == 0);
+      assert((end & ((1 << (E + 3)) - 1)) == 0);
+      uint8_t E_2_0 = uint8_t(E & ((1 << 3) - 1));
+      uint8_t E_5_3 = uint8_t((E >> 3) & ((1 << 3) - 1));
+      uint16_t B_13_3 = uint16_t((base >> (E + 3)) & ((1 << 11) - 1));
+      uint16_t T_11_3 = uint16_t((end >> (E + 3)) & ((1 << 9) - 1));
+      bound = uint32_t(E_2_0) | (uint32_t(B_13_3) << 3) | (uint32_t(E_5_3) << 14) | (uint32_t(T_11_3) << 17) | (uint32_t(1) << 26);
     }
     else {
       uint16_t B = uint16_t(base & ((1 << 14) - 1));
@@ -96,7 +100,7 @@ struct cap64_t
   }
   
   void from128(const uint128_t& v) {
-    cursor = uint32_t(v & ((uint128_t(1) << 64) - 1));
+    cursor = uint64_t(v & ((uint128_t(1) << 64) - 1));
     perm = (cap_perm_t)((v >> 91) & ((uint128_t(1) << 3) - 1));
     type = (cap_type_t)((v >> 94) & ((uint128_t(1) << 3) - 1));
     node_id = uint32_t((v >> 97) & ((uint128_t(1) << 31) - 1));
@@ -135,7 +139,7 @@ struct cap64_t
     int ct = correction((A_3 < R), (T_3 < R));
     int cb = correction((A_3 < R), (B_3 < R));
 
-    uint64_t a_top = cursor & !((uint64_t(1) << (E + 14)) - 1);
+    uint64_t a_top = cursor & ~((uint64_t(1) << (E + 14)) - 1);
     end = (uint64_t((uint16_t(T_13_12) << 12) | (T_11_3 << 3) | T_2_0) << E) | (((a_top >> (E + 14)) + ct) << (E + 14));
     base = (uint64_t((uint16_t(B_13_12) << 12) | (B_11_3 << 3) | B_2_0) << E) | (((a_top >> (E + 14)) + cb) << (E + 14));
   }
@@ -175,9 +179,9 @@ struct cap64_t
     }
   }
 
-  void init_cap(uint64_t init_base, uint64_t init_end) {
+  void init_cap(uint64_t init_base, uint64_t init_size) {
     base = init_base;
-    end = init_end;
+    end = init_base + init_size;
     cursor = init_base;
     perm = CAP_PERM_RWX;
     type = CAP_TYPE_LINEAR;
@@ -215,9 +219,9 @@ struct cap_reg_t
     tag = WORD_TAG_CAP;
     cap = v;
   }
-  void init_cap(uint64_t init_base, uint64_t init_end) {
+  void init_cap(uint64_t init_base, uint64_t init_size) {
     tag = WORD_TAG_CAP;
-    cap.init_cap(init_base, init_end);
+    cap.init_cap(init_base, init_size);
   }
   inline void set_data() { tag = WORD_TAG_DATA; }
   inline void reset() { set_data(); }

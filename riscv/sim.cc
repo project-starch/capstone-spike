@@ -81,8 +81,6 @@ sim_t::sim_t(const char* isa, const char* priv, const char* varch,
   
   for (auto& x : cap_mems)
     bus.add_device(x.first, x.second);
-  
-  secure_mem_init_cap.cap.node_id = rev_tree.allocate(REV_NODE_ID_INVALID);
 
   for (auto& x : plugin_devices)
     bus.add_device(x.first, x.second);
