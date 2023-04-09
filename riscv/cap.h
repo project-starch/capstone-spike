@@ -77,7 +77,10 @@ struct cap64_t
     assert(end >= base);
     uint128_t res;
     uint64_t length = end - base;
-    uint8_t E = uint8_t(64 - __builtin_clzll(length >> 13));
+    uint8_t E;
+    // __builtin_clzll's argument must be nonzero (otherwise, the result is undefined)
+    if (length >> 13 == uint64_t(0)) E = uint8_t(0);
+    else E = uint8_t(64 - __builtin_clzll(length >> 13)); 
     uint8_t Ie = (E == 0 && (length >> 12) == 0)? 0 : 1;
     uint32_t bound;
     if (Ie) {
@@ -157,7 +160,7 @@ struct cap64_t
   }
 
   inline bool readable() const {
-    return (perm == CAP_PERM_RO || perm == CAP_PERM_RX || perm == CAP_PERM_RWX) && type != CAP_TYPE_UNINITIALIZED;
+    return (perm == CAP_PERM_RO || perm == CAP_PERM_RX || perm == CAP_PERM_RW || perm == CAP_PERM_RWX) && type != CAP_TYPE_UNINITIALIZED;
   }
 
   inline bool writable() const {

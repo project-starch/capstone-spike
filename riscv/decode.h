@@ -372,7 +372,7 @@ private:
     VALID_CAP(reg); \
     cap64_t cap = READ_CAP(reg); \
     assert(cap.type == CAP_TYPE_LINEAR && cap.readable() && cap.writable()); \
-    cap.type = CAP_TYPE_SEALED; \
+    READ_CAP(reg).type = CAP_TYPE_SEALED; \
   } while (0);
 #define RET_REG 1
 #define ARG_REG 10
@@ -380,134 +380,6 @@ union reg_value {
   cap64_t cap;
   uint64_t data;
 };
-#define CALL_DOMAIN(seal_reg, arg_reg) \
-  do { \
-    VALID_CAP(seal_reg); \
-    cap64_t cap = READ_CAP(seal_reg); \
-    RESET_REG(seal_reg); \
-    size_t regfile_size = STATE.XPR.size(); \
-    assert(cap.type == CAP_TYPE_SEALED && cap.end - cap.base >= (regfile_size + 1) * 16); \
-    cap.type = CAP_TYPE_SEALEDRET; \
-    cap64_t tmp_cap; \
-    assert(GET_TAG(cap.base)); \
-    tmp_cap.from128(MMU.load_uint128(cap.base)); \
-    assert(tmp_cap.accessible() && tmp_cap.executable()); \
-    npc = tmp_cap.cursor; \
-    MMU.store_uint128(cap.base, p->get_state()->cap_pc.to128()); \
-    p->get_state()->cap_pc = tmp_cap; \
-    assert(!GET_TAG(cap.base + 16)); \
-    uint64_t tmp; \
-    tmp = MMU.load_uint64(cap.base + 16); \
-    MMU.store_uint64(cap.base + 16, p->get_state()->mtvec->read()); \
-    p->set_csr(CSR_MTVEC, tmp); \
-    bool arg_is_cap = IS_CAP(arg_reg); \
-    union reg_value arg_value; \
-    if (arg_is_cap) { \
-      arg_value.cap = READ_CAP(arg_reg); \
-      if (arg_value.cap.is_linear()) RESET_REG(arg_reg); \
-    } \
-    else { \
-      arg_value.data = READ_REG(arg_reg); \
-    } \
-    for (size_t i=1; i < regfile_size; i++) { \
-      uint64_t cur_addr = cap.base + (i + 1) * 16; \
-      bool is_cap = IS_CAP(i); \
-      if (is_cap) tmp_cap = READ_CAP(i); \
-      else tmp = READ_REG(i); \
-      if (GET_TAG(cur_addr)) WRITE_CAP_DUMB(i, MMU.load_uint128(cur_addr)); \
-      else WRITE_REG_DUMB(i, MMU.load_uint64(cur_addr)); \
-      if(is_cap) { \
-        MMU.store_uint128(cur_addr, tmp_cap.to128()); \
-        SET_TAG(cur_addr, true); \
-      } \
-      else { \
-        MMU.store_uint64(cur_addr, tmp); \
-        SET_TAG(cur_addr, false); \
-      } \
-    } \
-    WRITE_CAP(RET_REG, cap); \
-    if (arg_is_cap) WRITE_CAP(ARG_REG, arg_value.cap); \
-    else WRITE_REG(ARG_REG, arg_value.data); \
-  } while(0)
-#define RETURN_DOMAIN(sealret_reg, retval_reg) \
-  do { \
-    VALID_CAP(sealret_reg); \
-    cap64_t cap = READ_CAP(sealret_reg); \
-    MOVE(sealret_reg, retval_reg); \
-    size_t regfile_size = STATE.XPR.size(); \
-    assert(cap.type == CAP_TYPE_SEALEDRET && cap.end - cap.base >= (regfile_size + 1) * 16); \
-    cap64_t tmp_cap; \
-    assert(GET_TAG(cap.base)); \
-    tmp_cap.from128(MMU.load_uint128(cap.base)); \
-    assert(tmp_cap.accessible() && tmp_cap.executable()); \
-    npc = tmp_cap.cursor; \
-    UPDATE_RC_DOWN(p->get_state()->cap_pc.node_id); \
-    p->get_state()->cap_pc = tmp_cap; \
-    assert(!GET_TAG(cap.base + 16)); \
-    uint64_t tmp; \
-    tmp = MMU.load_uint64(cap.base + 16); \
-    p->set_csr(CSR_MTVEC, tmp); \
-    for (size_t i=1; i < regfile_size; i++) { \
-      uint64_t cur_addr = cap.base + (i + 1) * 16; \
-      if (GET_TAG(cur_addr)) { \
-        tmp_cap.from128(MMU.load_uint128(cur_addr)); \
-        if (i != sealret_reg) { \
-          WRITE_CAP(i, tmp_cap); \
-          if (!(tmp_cap.is_linear())) UPDATE_RC_DOWN(tmp_cap.node_id); \
-        } \
-        else { \
-          UPDATE_RC_DOWN(tmp_cap.node_id); \
-        } \
-        SET_TAG(cur_addr, false); \
-      } \
-      else { \
-        WRITE_REG(i, MMU.load_uint64(cur_addr)); \
-      } \
-      MMU.store_uint128(cur_addr, uint128_t(0)); \
-    } \
-  } while(0)
-#define RETSEAL_DOMAIN(sealret_reg, npc_reg) \
-  do { \
-    VALID_CAP(sealret_reg); \
-    cap64_t cap = READ_CAP(sealret_reg); \
-    RESET_REG(sealret_reg); \
-    size_t regfile_size = STATE.XPR.size(); \
-    assert(cap.type == CAP_TYPE_SEALEDRET && cap.end - cap.base >= (regfile_size + 1) * 16); \
-    cap.type = CAP_TYPE_SEALED; \
-    cap64_t tmp_cap; \
-    assert(GET_TAG(cap.base)); \
-    tmp_cap.from128(MMU.load_uint128(cap.base)); \
-    assert(tmp_cap.accessible() && tmp_cap.executable()); \
-    npc = tmp_cap.cursor; \
-    cap64_t old_pc = p->get_state()->cap_pc; \
-    assert(IS_DATA(npc_reg)); \
-    old_pc.cursor = READ_REG(npc_reg); \
-    RESET_REG(npc_reg); \
-    MMU.store_uint128(cap.base, old_pc.to128()); \
-    p->get_state()->cap_pc = tmp_cap; \
-    assert(!GET_TAG(cap.base + 16)); \
-    uint64_t tmp; \
-    tmp = MMU.load_uint64(cap.base + 16); \
-    MMU.store_uint64(cap.base + 16, p->get_state()->mtvec->read()); \
-    p->set_csr(CSR_MTVEC, tmp); \
-    for (size_t i=1; i < regfile_size; i++) { \
-      uint64_t cur_addr = cap.base + (i + 1) * 16; \
-      bool is_cap = IS_CAP(i); \
-      if (is_cap) tmp_cap = READ_CAP(i); \
-      else tmp = READ_REG(i); \
-      if (GET_TAG(cur_addr)) WRITE_CAP_DUMB(i, MMU.load_uint128(cur_addr)); \
-      else WRITE_REG_DUMB(i, MMU.load_uint64(cur_addr)); \
-      if(is_cap) { \
-        MMU.store_uint128(cur_addr, tmp_cap.to128()); \
-        SET_TAG(cur_addr, true); \
-      } \
-      else { \
-        MMU.store_uint64(cur_addr, tmp); \
-        SET_TAG(cur_addr, false); \
-      } \
-    } \
-    WRITE_CAP(sealret_reg, cap); \
-  } while(0)
 
 // RVC macros
 #define WRITE_RVC_RS1S(value) WRITE_REG(insn.rvc_rs1s(), value)
