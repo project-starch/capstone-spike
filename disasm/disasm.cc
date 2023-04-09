@@ -809,6 +809,9 @@ void disassembler_t::add_instructions(isa_parser_t* isa)
   // (Tans)Capstone Instructions
   DEFINE_NOARG(capenter);
   DEFINE_NOARG(capexit);
+  DEFINE_RDTYPE(capget);
+  DEFINE_RS1TYPE(capret);
+
   DEFINE_RTYPE(shrink);
   DEFINE_RTYPE(split);
   DEFINE_R1TYPE(call);
@@ -833,12 +836,13 @@ void disassembler_t::add_instructions(isa_parser_t* isa)
   DEFINE_RDTYPE(delin);
   DEFINE_RDTYPE(init);
   DEFINE_RDTYPE(seal);
-  DEFINE_RDTYPE(capinit);
   DEFINE_RS1TYPE(revoke);
   DEFINE_RS1TYPE(jmp);
   DEFINE_RS1TYPE(drop);
   
   // Capstone Debug Instructions
+  DEFINE_NOARG(debug_tosecure);
+  DEFINE_NOARG(debug_tonormal);
   DEFINE_RTYPE(debug_capbound);
   DEFINE_R1TYPE(debug_alloc);
   DEFINE_R1TYPE(debug_captype);

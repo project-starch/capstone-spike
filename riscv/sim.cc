@@ -31,7 +31,7 @@ sim_t::sim_t(const char* isa, const char* priv, const char* varch,
              size_t nprocs, bool halted, bool real_time_clint,
              reg_t initrd_start, reg_t initrd_end, const char* bootargs,
              reg_t start_pc, std::vector<std::pair<reg_t, mem_t*>> mems,
-             std::vector<std::pair<reg_t, mem_t*>> cap_mems, cap_reg_t secure_mem_init_cap,
+             std::vector<std::pair<reg_t, mem_t*>> cap_mems, cap_reg_t secure_mem_init_cap_temp,
              std::vector<std::pair<reg_t, abstract_device_t*>> plugin_devices,
              const std::vector<std::string>& args,
              std::vector<int> const hartids,
@@ -45,7 +45,6 @@ sim_t::sim_t(const char* isa, const char* priv, const char* varch,
   : htif_t(args),
     mems(mems),
     cap_mems(cap_mems),
-    secure_mem_init_cap(secure_mem_init_cap),
     plugin_devices(plugin_devices),
     procs(std::max(nprocs, size_t(1))),
     initrd_start(initrd_start),
@@ -79,6 +78,8 @@ sim_t::sim_t(const char* isa, const char* priv, const char* varch,
   for (auto& x : mems)
     bus.add_device(x.first, x.second);
   
+  secure_mem_init_cap = secure_mem_init_cap_temp;
+  secure_mem_init_cap.cap.node_id = rev_tree.allocate(REV_NODE_ID_INVALID);
   for (auto& x : cap_mems)
     bus.add_device(x.first, x.second);
 

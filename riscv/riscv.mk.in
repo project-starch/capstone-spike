@@ -127,7 +127,8 @@ riscv_insn_ext_i = \
 riscv_insn_capstone = \
 	capenter \
 	capexit \
-	capinit \
+	capget \
+	capret \
 	mov \
 	tighten \
 	shrink \
@@ -170,6 +171,8 @@ riscv_debug_capstone = \
 	debug_capbound \
 	debug_tagset \
 	debug_tagget \
+	debug_tosecure \
+	debug_tonormal \
 
 
 riscv_insn_ext_a = \
