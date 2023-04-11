@@ -11,12 +11,13 @@ assert(cap.type == CAP_TYPE_SEALEDRET && cap.end - cap.base >= (regfile_size + 1
 cap.type = CAP_TYPE_SEALED;
 
 cap64_t tmp_cap;
+uint64_t tmp;
 if (p->is_cap_debug_enabled() == false) {
 	assert(GET_TAG(cap.base));
 	SET_CAP_ACCESS();
 	tmp_cap.from128(MMU.load_uint128(cap.base));
 	assert(tmp_cap.accessible() && tmp_cap.executable());
-	npc = tmp_cap.cursor;
+	set_pc(tmp_cap.cursor);
 	cap64_t old_pc = p->get_state()->cap_pc;
 	assert(IS_DATA(Rs1));
 	old_pc.cursor = READ_REG(Rs1);
@@ -27,13 +28,13 @@ if (p->is_cap_debug_enabled() == false) {
 }
 else{
 	SET_CAP_ACCESS();
-	npc = MMU.load_uint64(cap.base);
+	tmp = MMU.load_uint64(cap.base);
+	set_pc(tmp);
 	SET_CAP_ACCESS();
 	MMU.store_uint64(cap.base, READ_REG(Rs1));
 }
 
 assert(!GET_TAG(cap.base + 16));
-uint64_t tmp;
 SET_CAP_ACCESS();
 tmp = MMU.load_uint64(cap.base + 16);
 SET_CAP_ACCESS();

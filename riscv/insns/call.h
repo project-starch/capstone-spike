@@ -17,7 +17,7 @@ if (p->is_cap_debug_enabled() == false) {
 	SET_CAP_ACCESS();
 	tmp_cap.from128(MMU.load_uint128(cap.base));
 	assert(tmp_cap.accessible() && tmp_cap.executable());
-	npc = tmp_cap.cursor;
+	set_pc(tmp_cap.cursor);
 	SET_CAP_ACCESS();
 	MMU.store_uint128(cap.base, p->get_state()->cap_pc.to128());
 	p->get_state()->cap_pc = tmp_cap;
@@ -27,7 +27,7 @@ else {
 	tmp = MMU.load_uint64(cap.base);
 	SET_CAP_ACCESS();
 	MMU.store_uint64(cap.base, npc);
-	npc = tmp;
+	set_pc(tmp);
 }
 
 assert(!GET_TAG(cap.base + 16));

@@ -1,2 +1,3 @@
 require_capstone_debug;
-WRITE_RD(GET_TAG(RS1));
+if (GET_TAG(RS2)) WRITE_RD(1);
+else WRITE_RD(0);

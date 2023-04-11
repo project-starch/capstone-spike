@@ -1,2 +1,3 @@
 require_capstone_debug;
-SET_TAG(RS1, RS2);
+if (RS2 == 0) SET_TAG(RS1, false);
+else SET_TAG(RS1, true);

@@ -269,6 +269,7 @@ private:
     } \
     else { \
       READ_CAP(reg).type = CAP_TYPE_UNINITIALIZED; \
+      READ_CAP(reg).cursor = READ_CAP(reg).base; \
     } \
   } while (0)
 #define MREV_CAP(reg, cap_reg) \
@@ -291,7 +292,9 @@ private:
   do { \
     CAP_IS_LINEAR(reg); \
     VALID_CAP(reg); \
-    p->drop(READ_CAP_NODE(reg)); \
+    uint32_t drop_node_id = READ_CAP_NODE(reg); \
+    p->drop(drop_node_id); \
+    UPDATE_RC_DOWN(drop_node_id); \
     RESET_REG(reg); \
   } while (0)
 #define LOAD_S(load_type, src_reg) \
@@ -360,7 +363,7 @@ private:
     MMU.store_uint128(cap.cursor, src_cap.to128()); \
     SET_TAG(cap.cursor, true); \
     if (src_cap.is_linear()){ \
-      STATE.XPR.reset_i(src_reg); \
+      RESET_REG(src_reg); \
       if (cap.type == CAP_TYPE_UNINITIALIZED) READ_CAP(Rd).cursor += 16; \
     } \
     else { \

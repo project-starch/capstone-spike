@@ -10,12 +10,13 @@ size_t regfile_size = STATE.XPR.size();
 assert(cap.type == CAP_TYPE_SEALEDRET && cap.end - cap.base >= (regfile_size + 1) * 16);
 
 cap64_t tmp_cap;
+uint64_t tmp;
 if (p->is_cap_debug_enabled() == false) {
 	assert(GET_TAG(cap.base));
 	SET_CAP_ACCESS();
 	tmp_cap.from128(MMU.load_uint128(cap.base));
 	assert(tmp_cap.accessible() && tmp_cap.executable());
-	npc = tmp_cap.cursor;
+	set_pc(tmp_cap.cursor);
 	UPDATE_RC_DOWN(p->get_state()->cap_pc.node_id);
 	p->get_state()->cap_pc = tmp_cap;
 	SET_TAG(cap.base, false);
@@ -24,13 +25,13 @@ if (p->is_cap_debug_enabled() == false) {
 }
 else {
 	SET_CAP_ACCESS();
-	npc = MMU.load_uint64(cap.base);
+	tmp = MMU.load_uint64(cap.base);
+	set_pc(tmp);
 	SET_CAP_ACCESS();
 	MMU.store_uint128(cap.base, uint128_t(0));
 }
 
 assert(!GET_TAG(cap.base + 16));
-uint64_t tmp;
 SET_CAP_ACCESS();
 tmp = MMU.load_uint64(cap.base + 16);
 p->set_csr(CSR_MTVEC, tmp);
