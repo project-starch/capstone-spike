@@ -219,6 +219,7 @@ private:
 // Capstone macros
 #define require_capstone_debug assert(p->is_cap_debug_enabled())
 #define require_secure_world assert(p->is_secure_world())
+#define require_transcapstone assert(p->is_pure_capstone())
 #define require_normal_world assert(!(p->is_secure_world()))
 #define Rs1 insn.rs1()
 #define Rs2 insn.rs2()

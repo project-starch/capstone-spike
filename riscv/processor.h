@@ -608,6 +608,10 @@ public:
     return sim->is_cap_debug_enabled();
   }
 
+  inline bool is_pure_capstone() const {
+    return sim->is_pure_capstone();
+  }
+
 private:
   simif_t* sim;
   mmu_t* mmu; // main memory is always accessed via the mmu

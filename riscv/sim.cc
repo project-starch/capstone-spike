@@ -41,7 +41,7 @@ sim_t::sim_t(const char* isa, const char* priv, const char* varch,
 #ifdef HAVE_BOOST_ASIO
              boost::asio::io_service *io_service_ptr, boost::asio::ip::tcp::acceptor *acceptor_ptr, // option -s
 #endif
-             FILE *cmd_file, uint64_t mem_partition_addr, bool cap_debug_enabled) // needed for command line option --cmd
+             FILE *cmd_file, uint64_t mem_partition_addr, bool cap_debug_enabled, bool pure_capstone) // needed for command line option --cmd
   : htif_t(args),
     mems(mems),
     cap_mems(cap_mems),
@@ -57,6 +57,7 @@ sim_t::sim_t(const char* isa, const char* priv, const char* varch,
     cmd_file(cmd_file),
     mem_partition_addr(mem_partition_addr),
     cap_debug_enabled(cap_debug_enabled),
+    pure_capstone(pure_capstone),
     rev_tree(1024*1024), // TODO: parameterise the revocation tree size
 #ifdef HAVE_BOOST_ASIO
     io_service_ptr(io_service_ptr), // socket interface

@@ -24,6 +24,7 @@ public:
   virtual uint64_t get_mem_partition_addr() = 0;
   virtual cap_reg_t& get_secure_mem_init_cap() = 0;
   virtual bool is_cap_debug_enabled() = 0;
+  virtual bool is_pure_capstone() = 0;
 };
 
 #endif

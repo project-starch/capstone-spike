@@ -34,6 +34,7 @@ static void help(int exit_code = 1)
   fprintf(stderr, "  -H                    Start halted, allowing a debugger to connect\n");
   fprintf(stderr, "  -M<a:m,b:n,...>       Specify the starting address of the secure-world memory (with 16 B alignment) [default off]\n");
   fprintf(stderr, "  -D                    Enable Capstone debug (backdoor) instructions\n");
+  fprintf(stderr, "  -C                    Pure Capstone Mode\n");
   fprintf(stderr, "  --log=<name>          File name for option -l\n");
   fprintf(stderr, "  --debug-cmd=<name>    Read commands from file (use with -d)\n");
   fprintf(stderr, "  --isa=<name>          RISC-V ISA string [default %s]\n", DEFAULT_ISA);
@@ -220,6 +221,7 @@ int main(int argc, char** argv)
   bool dtb_enabled = true;
   bool real_time_clint = false;
   bool cap_debug_enabled = false;
+  bool pure_capstone = false;
   uint64_t mem_partition_addr;
   size_t nprocs = 1;
   const char* kernel = NULL;
@@ -334,6 +336,7 @@ int main(int argc, char** argv)
     secure_mem_init_cap.init_cap(mem_partition_addr, cap_mems[0].second->size());
   });
   parser.option('D', 0, 0, [&](const char* s){cap_debug_enabled = true;});
+  parser.option('C', 0, 0, [&](const char* s){pure_capstone = true;});
   parser.option(0, "rbb-port", 1, [&](const char* s){use_rbb = true; rbb_port = atoul_safe(s);});
   parser.option(0, "pc", 1, [&](const char* s){start_pc = strtoull(s, 0, 0);});
   parser.option(0, "hartids", 1, hartids_parser);
@@ -394,6 +397,9 @@ int main(int argc, char** argv)
   std::vector<std::string> htif_args(argv1, (const char*const*)argv + argc);
   if (mems.empty())
     mems = make_mems("2048");
+  if (pure_capstone) {
+    mem_partition_addr = uint64_t(0);
+  }
   if (cap_mems.empty()) {
     mem_partition_addr = (uint64_t)(-1LL); // disable capability memory partitioning by default
     secure_mem_init_cap.reset();
@@ -458,7 +464,7 @@ int main(int argc, char** argv)
 #ifdef HAVE_BOOST_ASIO
       io_service_ptr, acceptor_ptr,
 #endif
-      cmd_file, mem_partition_addr, cap_debug_enabled);
+      cmd_file, mem_partition_addr, cap_debug_enabled, pure_capstone);
   std::unique_ptr<remote_bitbang_t> remote_bitbang((remote_bitbang_t *) NULL);
   std::unique_ptr<jtag_dtm_t> jtag_dtm(
       new jtag_dtm_t(&s.debug_module, dmi_rti));

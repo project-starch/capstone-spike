@@ -550,7 +550,9 @@ void state_t::reset(processor_t* proc, reg_t max_isa)
   csrmap[CSR_TDATA3] = std::make_shared<const_csr_t>(proc, CSR_TDATA3, 0);
   debug_mode = false;
   single_step = STEP_NONE;
-  world = WORLD_NORMAL;
+  
+  if (proc->is_pure_capstone()) world = WORLD_SECURE;
+  else world = WORLD_NORMAL;
 
   for (int i=0; i < max_pmp; ++i) {
     csrmap[CSR_PMPADDR0 + i] = pmpaddr[i] = std::make_shared<pmpaddr_csr_t>(proc, CSR_PMPADDR0 + i);
