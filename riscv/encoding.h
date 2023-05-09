@@ -2834,6 +2834,8 @@
 #define MASK_CAPENTER  0xffffffff
 #define MATCH_CAPEXIT  0x0010000b
 #define MASK_CAPEXIT  0xffffffff
+// #define MATCH_CAPEXITSEAL  0x0020000b
+// #define MASK_CAPEXITSEAL  0xffffffff
 #define MATCH_CAPGET  0x3c00105b
 #define MASK_CAPGET  0xfe00707f
 #define MATCH_CAPRET  0x3e00105b
@@ -2895,7 +2897,7 @@
 #define MATCH_SBS 0x3a00105b
 #define MASK_SBS 0xfe00707f
 
-// Encodings for capstone debugging
+// Encodings for Capstone debugging
 #define MATCH_DEBUG_QUERY 0x0000005b
 #define MASK_DEBUG_QUERY 0xfe00707f
 #define MATCH_DEBUG_DROP 0x0200005b

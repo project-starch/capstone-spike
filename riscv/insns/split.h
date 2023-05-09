@@ -1,1 +1,1 @@
-SPLIT_CAP(Rd, Rs1, Rs2);
+SPLIT_CAP(Rs1, Rd, Rs2);
