@@ -91,6 +91,9 @@ private:
   log_file_t log_file;
 
   FILE *cmd_file; // pointer to debug command input file
+  
+  // Capstone-specific variables
+  // Shared by all processors
   uint64_t mem_partition_addr;
   bool cap_debug_enabled;
   bool pure_capstone;
@@ -154,6 +157,7 @@ private:
   reg_t get_mem(const std::vector<std::string>& args);
   reg_t get_pc(const std::vector<std::string>& args);
   
+  // implementation of capstone-specific virtual functions in simif_t
   TagController& get_tag_controller() {
     return tag_controller;
   }
@@ -163,15 +167,12 @@ private:
   uint64_t get_mem_partition_addr() {
     return mem_partition_addr;
   }
-
   cap_reg_t& get_secure_mem_init_cap() {
     return secure_mem_init_cap;
   }
-
   bool is_cap_debug_enabled() {
     return cap_debug_enabled;
   }
-
   bool is_pure_capstone() {
     return pure_capstone;
   }

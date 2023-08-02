@@ -19,6 +19,8 @@ public:
 
   virtual const char* get_symbol(uint64_t addr) = 0;
 
+  // Some of the Data Structures are shard by all the processors
+  // They are defined in sim_t and can be accessed in simif_t by the following interfaces
   virtual TagController& get_tag_controller() = 0;
   virtual RevTree& get_rev_tree() = 0;
   virtual uint64_t get_mem_partition_addr() = 0;

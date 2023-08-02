@@ -32,9 +32,12 @@ static void help(int exit_code = 1)
 #endif
   fprintf(stderr, "  -h, --help            Print this help message\n");
   fprintf(stderr, "  -H                    Start halted, allowing a debugger to connect\n");
-  fprintf(stderr, "  -M<a:m,b:n,...>       Specify the starting address of the secure-world memory (with 16 B alignment) [default off]\n");
-  fprintf(stderr, "  -D                    Enable Capstone debug (backdoor) instructions\n");
-  fprintf(stderr, "  -C                    Pure Capstone Mode\n");
+  // arguments added for capstone
+  fprintf(stderr, "  -M<a:m>               Provide secure memory regions of size m and n bytes\n");
+  fprintf(stderr, "                          at base addresses a and b (with 4 KiB alignment)\n");
+  fprintf(stderr, "  -D                    Enable debug instructions\n");
+  fprintf(stderr, "  -P                    Pure Capstone\n");
+  // end of capstone arguments
   fprintf(stderr, "  --log=<name>          File name for option -l\n");
   fprintf(stderr, "  --debug-cmd=<name>    Read commands from file (use with -d)\n");
   fprintf(stderr, "  --isa=<name>          RISC-V ISA string [default %s]\n", DEFAULT_ISA);
@@ -220,9 +223,11 @@ int main(int argc, char** argv)
   bool dump_dts = false;
   bool dtb_enabled = true;
   bool real_time_clint = false;
+  // control parameters added for capstone
   bool cap_debug_enabled = false;
   bool pure_capstone = false;
   uint64_t mem_partition_addr;
+  // end of capstone control parameters
   size_t nprocs = 1;
   const char* kernel = NULL;
   reg_t kernel_offset, kernel_size;
@@ -231,8 +236,10 @@ int main(int argc, char** argv)
   const char* bootargs = NULL;
   reg_t start_pc = reg_t(-1);
   std::vector<std::pair<reg_t, mem_t*>> mems;
+  // secure memory
   std::vector<std::pair<reg_t, mem_t*>> cap_mems;
   cap_reg_t secure_mem_init_cap;
+  // end of secure memory
   std::vector<std::pair<reg_t, abstract_device_t*>> plugin_devices;
   std::unique_ptr<icache_sim_t> ic;
   std::unique_ptr<dcache_sim_t> dc;
@@ -329,6 +336,7 @@ int main(int argc, char** argv)
   parser.option('m', 0, 1, [&](const char* s){mems = make_mems(s);});
   // I wanted to use --halted, but for some reason that doesn't work.
   parser.option('H', 0, 0, [&](const char* s){halted = true;});
+  // Paring of capstone arguments
   parser.option('M', 0, 1, [&](const char* s){
     cap_mems = make_mems(s);
     mem_partition_addr = cap_mems[0].first;
@@ -336,7 +344,8 @@ int main(int argc, char** argv)
     secure_mem_init_cap.init_cap(mem_partition_addr, cap_mems[0].second->size());
   });
   parser.option('D', 0, 0, [&](const char* s){cap_debug_enabled = true;});
-  parser.option('C', 0, 0, [&](const char* s){pure_capstone = true;});
+  parser.option('P', 0, 0, [&](const char* s){pure_capstone = true;});
+  // End of capstone arguments
   parser.option(0, "rbb-port", 1, [&](const char* s){use_rbb = true; rbb_port = atoul_safe(s);});
   parser.option(0, "pc", 1, [&](const char* s){start_pc = strtoull(s, 0, 0);});
   parser.option(0, "hartids", 1, hartids_parser);
