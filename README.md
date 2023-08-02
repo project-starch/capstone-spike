@@ -6,10 +6,9 @@ The Capstone-RISC-V Spike Simulator is based on the [Spike RISC-V ISA Simulator]
 
 The Capstone-RISC-V Spike Simulator simulates a Capstone-RISC-V processor. The interface of the processor follows the [Capstone-RISC-V ISA](https://capstone.kisp-lab.org/specs/), but there are some implementation-defined specifications.
 
-Therefore, the following documents are provided:
+> **Note: The implementation on this branch follows the interfaces defined in the [USENIX Security '23 paper](https://www.usenix.org/conference/usenixsecurity23/presentation/yu-jason) instead of the latest Capstone-RISC-V ISA.**
 
-TODO
-
+> The encodings of the instructions are different from the ones defined in the *Capstone-RISC-V ISA* as well. This branch is only for archiving the implementation defined in the *USENIX Security '23 paper*, and will not be maintained in the future.
 
 ## Quick Start
 
