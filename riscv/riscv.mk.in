@@ -70,7 +70,6 @@ riscv_test_srcs =
 riscv_gen_hdrs = \
 	insn_list.h \
 
-
 riscv_insn_ext_i = \
 	add \
 	addi \
@@ -123,57 +122,6 @@ riscv_insn_ext_i = \
 	xori \
 	fence \
 	fence_i \
-
-riscv_insn_capstone = \
-	capenter \
-	capexit \
-	capget \
-	capret \
-	mov \
-	tighten \
-	shrink \
-	split \
-	delin \
-	scc \
-	lcc \
-	revoke \
-	mrev \
-	init \
-	drop \
-	jmp \
-	jnz \
-	ldc \
-	stc \
-	lds \
-	lws \
-	lhs \
-	lbs \
-	sds \
-	sws \
-	shs \
-	sbs \
-	seal \
-	call \
-	ret \
-	retseal \
-
-riscv_debug_capstone = \
-	debug_print \
-	debug_alloc \
-	debug_rcupdate \
-	debug_revoke \
-	debug_drop \
-	debug_query \
-	debug_capcreate \
-	debug_captype \
-	debug_capnode \
-	debug_capperm \
-	debug_capbound \
-	debug_tagset \
-	debug_tagget \
-	debug_tosecure \
-	debug_tonormal \
-
 
 riscv_insn_ext_a = \
 	amoadd_d \
@@ -1332,8 +1280,6 @@ riscv_insn_list = \
 	$(riscv_insn_ext_p) \
 	$(riscv_insn_priv) \
 	$(riscv_insn_svinval) \
-	$(riscv_insn_capstone) \
-	$(riscv_debug_capstone) \
 
 riscv_gen_srcs = \
 	$(addsuffix .cc,$(riscv_insn_list))
