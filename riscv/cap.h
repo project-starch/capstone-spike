@@ -5,10 +5,9 @@
 #include <string.h>
 #include <cstdint>
 
-struct _uint256_t {
-  uint64_t v[4];
-};
-
+#define XLENBYTES 8
+#define CLENBYTES 16
+// int128_t and uint128_t definition
 #ifdef __SIZEOF_INT128__
   #ifndef INT128_DEFINED
     #define INT128_DEFINED
@@ -16,62 +15,70 @@ struct _uint256_t {
     typedef unsigned __int128 uint128_t;
   #endif
 #else
-  fprintf(stderr, "Capstone extension is not supported on platforms without __int128 type\n");
+  fprintf(stderr, "The simulation is not supported on platforms without __int128 type\n");
   abort();
 #endif
 
-
+/*capstone type field*/
 enum cap_type_t {
   CAP_TYPE_LINEAR = 0,
   CAP_TYPE_NONLINEAR = 1,
   CAP_TYPE_REVOCATION = 2,
   CAP_TYPE_UNINITIALIZED = 3,
   CAP_TYPE_SEALED = 4,
-  CAP_TYPE_SEALEDRET = 5
+  CAP_TYPE_SEALEDRET = 5,
+  CAP_TYPE_EXIT = 6
 };
 
+/*capstone perms field*/
 enum cap_perm_t {
   CAP_PERM_NA = 0,
-  CAP_PERM_RO = 1,
-  CAP_PERM_RX = 2,
-  CAP_PERM_RW = 3,
-  CAP_PERM_RWX = 4
+  CAP_PERM_X = 1,
+  CAP_PERM_W = 2,
+  CAP_PERM_WX = 3,
+  CAP_PERM_R = 4,
+  CAP_PERM_RX = 5,
+  CAP_PERM_RW = 6,
+  CAP_PERM_RWX = 7
 };
 
-/**
- * 
- *  Capability type.
- *  Currently only supports the naive 256-bit format.
- *  128-bit compressed format support under development.
-*/
+bool cap_perm_lte(cap_perm_t a, cap_perm_t b) {
+  if (a == b) return true;
+  if (a == CAP_PERM_NA) return true;
+  if (b == CAP_PERM_RWX) return true;
+
+  if (a == CAP_PERM_X) {
+    if (b == CAP_PERM_RX || b == CAP_PERM_WX) return true;
+  }
+  if (a == CAP_PERM_W) {
+    if (b == CAP_PERM_RW || b == CAP_PERM_WX) return true;
+  }
+  if (a == CAP_PERM_R) {
+    if (b == CAP_PERM_RW || b == CAP_PERM_RX) return true;
+  }
+  return false;
+}
+
+/*capstone async field*/
+enum cap_async_t {
+  CAP_ASYNC_SYNC = 0,
+  CAP_ASYNC_EXCEPTION = 1,
+  CAP_ASYNC_INTERRUPT = 2,
+};
+
+/*capstone capability definition*/
 struct cap64_t
 {
-  uint64_t cursor;
-  uint64_t base, end; // base and top addresses;
-  uint32_t node_id;
-  cap_perm_t perm;
+  // fields
+  uint32_t node_id; // used in revocation tree, the implementation of valid field
   cap_type_t type;
-  
-  _uint256_t to256() const {
-    _uint256_t res;
-    res.v[0] = cursor;
-    res.v[1] = base;
-    res.v[2] = end;
-    res.v[3] = (uint64_t)perm | 
-      (((uint64_t)type) << 3) |
-      (((uint64_t)node_id) << 6);
-    return res;
-  }
-  
-  void from256(const _uint256_t& v) {
-    cursor = v.v[0];
-    base = v.v[1];
-    end = v.v[2];
-    perm = (cap_perm_t)(v.v[3] & ((1 << 3) - 1));
-    type = (cap_type_t)((v.v[3] >> 3) & ((1 << 3) - 1));
-    node_id = (uint32_t)((v.v[3] >> 6) & ((1ULL << 31) - 1));
-  }
+  uint64_t cursor;
+  uint64_t base, end;
+  cap_perm_t perm;
+  uint8_t reg;
+  cap_async_t async;
 
+  // capability encoding
   uint128_t to128() const
   {
     assert(end >= base);
@@ -102,6 +109,7 @@ struct cap64_t
     return res;
   }
   
+  // capability decoding
   void from128(const uint128_t& v) {
     cursor = uint64_t(v & ((uint128_t(1) << 64) - 1));
     perm = (cap_perm_t)((v >> 91) & ((uint128_t(1) << 3) - 1));
@@ -147,41 +155,31 @@ struct cap64_t
     base = (uint64_t((uint16_t(B_13_12) << 12) | (B_11_3 << 3) | B_2_0) << E) | (((a_top >> (E + 14)) + cb) << (E + 14));
   }
 
-  inline bool is_linear() const {
+  /*type check*/
+  bool is_linear() const {
     return type != CAP_TYPE_NONLINEAR;
   }
-
-  inline bool inbound() const {
-    return cursor >= base && cursor < end;
+  bool load_accessible() const {
+    if (type == CAP_TYPE_LINEAR || type == CAP_TYPE_NONLINEAR  || type == CAP_TYPE_EXIT) return true;
+    if (type == CAP_TYPE_SEALEDRET && async == CAP_ASYNC_SYNC) return true;
+    return false;
   }
-
-  inline bool accessible() const {
-    return type == CAP_TYPE_NONLINEAR || type == CAP_TYPE_LINEAR || type == CAP_TYPE_UNINITIALIZED;
+  bool store_accessible() const {
+    if (type == CAP_TYPE_LINEAR || type == CAP_TYPE_NONLINEAR || type == CAP_TYPE_UNINITIALIZED || type == CAP_TYPE_EXIT) return true;
+    if (type == CAP_TYPE_SEALEDRET && async == CAP_ASYNC_SYNC) return true;
+    return false;
   }
-
-  inline bool readable() const {
-    return (perm == CAP_PERM_RO || perm == CAP_PERM_RX || perm == CAP_PERM_RW || perm == CAP_PERM_RWX) && type != CAP_TYPE_UNINITIALIZED;
-  }
-
-  inline bool writable() const {
-    return perm == CAP_PERM_RW || perm == CAP_PERM_RWX;
-  }
-
-  inline bool executable() const {
-    return (perm == CAP_PERM_RX || perm == CAP_PERM_RWX) && type != CAP_TYPE_UNINITIALIZED;
-  }
-
-  void tighten_perm(uint64_t x) {
-    cap_perm_t new_perm = static_cast<cap_perm_t>(x);
-  
-    if (perm >= new_perm && !(perm == CAP_PERM_RW && new_perm == CAP_PERM_RX)) {
-      perm = new_perm;
+  /*bound check*/
+  bool in_bound(uint64_t size) const {
+    if (type == CAP_TYPE_LINEAR || type == CAP_TYPE_NONLINEAR || type == CAP_TYPE_UNINITIALIZED){
+      return cursor >= base && cursor <= end - size;
     }
-    else {
-      perm = CAP_PERM_NA;
+    if (type == CAP_TYPE_SEALEDRET || type == CAP_TYPE_EXIT) {
+      return cursor >= base + 3 * CLENBYTES && cursor <= base + 33 * CLENBYTES - size;
     }
+    return false;
   }
-
+  /*initial capability create*/
   void init_cap(uint64_t init_base, uint64_t init_size) {
     base = init_base;
     end = init_base + init_size;
@@ -189,45 +187,48 @@ struct cap64_t
     perm = CAP_PERM_RWX;
     type = CAP_TYPE_LINEAR;
   }
-
-  void shrink(uint64_t new_base, uint64_t new_end) {
-    assert(type == CAP_TYPE_NONLINEAR || type == CAP_TYPE_LINEAR);
-    assert(new_base < new_end && new_end <= end && new_base >= base);
-    base = new_base;
-    end = new_end;
-  }
-
-  void set_current_cursor(uint64_t new_cursor) {
-    assert(type != CAP_TYPE_UNINITIALIZED && type != CAP_TYPE_SEALED);
-    cursor = new_cursor;
-  }
 };
 
+// tag of the register
 typedef enum
 {
-  WORD_TAG_DATA, // note: we do not care about the actual value
+  WORD_TAG_DATA,
   WORD_TAG_CAP
 } word_tag_t;
 
+// register
 struct cap_reg_t
 {
   word_tag_t tag;
   cap64_t cap;
 
-  cap_reg_t() { reset(); }
-
-  inline bool is_cap() const { return tag == WORD_TAG_CAP; }
-  inline bool is_data() const { return tag == WORD_TAG_DATA; }
+  cap_reg_t() {
+    tag = WORD_TAG_DATA;
+  }
+  /*tag check*/
+  bool is_cap() const {
+    return tag == WORD_TAG_CAP;
+  }
+  bool is_data() const {
+    return tag == WORD_TAG_DATA;
+  }
+  /*tag manipulation*/
   void set_cap(const cap64_t& v) {
     tag = WORD_TAG_CAP;
     cap = v;
   }
+  void set_data() {
+    tag = WORD_TAG_DATA;
+  }
+  /*initial capability for cinit*/
   void init_cap(uint64_t init_base, uint64_t init_size) {
     tag = WORD_TAG_CAP;
     cap.init_cap(init_base, init_size);
   }
-  inline void set_data() { tag = WORD_TAG_DATA; }
-  inline void reset() { set_data(); }
+  /*reset*/
+  void reset() {
+    tag = WORD_TAG_DATA;
+  }
 };
 
 #endif
