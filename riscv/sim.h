@@ -35,7 +35,7 @@ public:
         bool halted, bool real_time_clint,
         reg_t initrd_start, reg_t initrd_end, const char* bootargs,
         reg_t start_pc, std::vector<std::pair<reg_t, mem_t*>> mems,
-        std::vector<std::pair<reg_t, mem_t*>> cap_mems, cap_reg_t secure_mem_init_cap_temp,
+        std::vector<std::pair<reg_t, mem_t*>> cap_mems, cap_reg_t secure_mem_init_cap,
         std::vector<std::pair<reg_t, abstract_device_t*>> plugin_devices,
         const std::vector<std::string>& args, const std::vector<int> hartids,
         const debug_module_config_t &dm_config, const char *log_path,
@@ -72,8 +72,6 @@ public:
 
 private:
   std::vector<std::pair<reg_t, mem_t*>> mems;
-  std::vector<std::pair<reg_t, mem_t*>> cap_mems;
-  cap_reg_t secure_mem_init_cap;
   std::vector<std::pair<reg_t, abstract_device_t*>> plugin_devices;
   mmu_t* debug_mmu;  // debug port into main memory
   std::vector<processor_t*> procs;
@@ -92,13 +90,15 @@ private:
 
   FILE *cmd_file; // pointer to debug command input file
   
-  // Capstone-specific variables
-  // Shared by all processors
+  /*capstone-specific variables, shared by all processors*/
+  std::vector<std::pair<reg_t, mem_t*>> cap_mems;
   uint64_t mem_partition_addr;
   bool cap_debug_enabled;
   bool pure_capstone;
   TagController tag_controller;
   RevTree rev_tree;
+  /*ccsr list*/
+  cap_reg_t ccsr_cinit;
 
 #ifdef HAVE_BOOST_ASIO
   // the following are needed for command socket interface
@@ -157,7 +157,7 @@ private:
   reg_t get_mem(const std::vector<std::string>& args);
   reg_t get_pc(const std::vector<std::string>& args);
   
-  // implementation of capstone-specific virtual functions in simif_t
+  /*shared structures for capstone*/
   TagController& get_tag_controller() {
     return tag_controller;
   }
@@ -167,15 +167,20 @@ private:
   uint64_t get_mem_partition_addr() {
     return mem_partition_addr;
   }
-  cap_reg_t& get_secure_mem_init_cap() {
-    return secure_mem_init_cap;
-  }
   bool is_cap_debug_enabled() {
     return cap_debug_enabled;
   }
   bool is_pure_capstone() {
     return pure_capstone;
   }
+  // capstone ccsr
+  cap_reg_t& get_ccsr(uint64_t ccsr_num) {
+    switch (ccsr_num) {
+      case 2: return ccsr_cinit;
+      default: abort();
+    }
+  }
+  /*end of shared structures for capstone*/
 
   friend class processor_t;
   friend class mmu_t;

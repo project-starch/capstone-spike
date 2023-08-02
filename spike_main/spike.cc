@@ -336,6 +336,7 @@ int main(int argc, char** argv)
   parser.option('m', 0, 1, [&](const char* s){mems = make_mems(s);});
   // I wanted to use --halted, but for some reason that doesn't work.
   parser.option('H', 0, 0, [&](const char* s){halted = true;});
+  
   // Paring of capstone arguments
   parser.option('M', 0, 1, [&](const char* s){
     cap_mems = make_mems(s);
@@ -346,6 +347,7 @@ int main(int argc, char** argv)
   parser.option('D', 0, 0, [&](const char* s){cap_debug_enabled = true;});
   parser.option('P', 0, 0, [&](const char* s){pure_capstone = true;});
   // End of capstone arguments
+  
   parser.option(0, "rbb-port", 1, [&](const char* s){use_rbb = true; rbb_port = atoul_safe(s);});
   parser.option(0, "pc", 1, [&](const char* s){start_pc = strtoull(s, 0, 0);});
   parser.option(0, "hartids", 1, hartids_parser);
