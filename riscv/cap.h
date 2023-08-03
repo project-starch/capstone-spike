@@ -79,80 +79,123 @@ struct cap64_t
   cap_async_t async;
 
   // capability encoding
-  uint128_t to128() const
+  // adjust bounds if the compression check fails
+  uint128_t to128()
   {
-    assert(end >= base);
     uint128_t res;
-    uint64_t length = end - base;
-    uint8_t E;
-    // __builtin_clzll's argument must be nonzero (otherwise, the result is undefined)
-    if (length >> 13 == uint64_t(0)) E = uint8_t(0);
-    else E = uint8_t(64 - __builtin_clzll(length >> 13)); 
-    uint8_t Ie = (E == 0 && (length >> 12) == 0)? 0 : 1;
-    uint32_t bound;
-    if (Ie) {
-      assert((base & ((1 << (E + 3)) - 1)) == 0);
-      assert((end & ((1 << (E + 3)) - 1)) == 0);
-      uint8_t E_2_0 = uint8_t(E & ((1 << 3) - 1));
-      uint8_t E_5_3 = uint8_t((E >> 3) & ((1 << 3) - 1));
-      uint16_t B_13_3 = uint16_t((base >> (E + 3)) & ((1 << 11) - 1));
-      uint16_t T_11_3 = uint16_t((end >> (E + 3)) & ((1 << 9) - 1));
-      bound = uint32_t(E_2_0) | (uint32_t(B_13_3) << 3) | (uint32_t(E_5_3) << 14) | (uint32_t(T_11_3) << 17) | (uint32_t(1) << 26);
+    
+    if (type == CAP_TYPE_LINEAR || type == CAP_TYPE_NONLINEAR || type == CAP_TYPE_REVOCATION || type == CAP_TYPE_UNINITIALIZED) {
+      uint64_t length = end - base;
+      uint8_t E;
+      // __builtin_clzll's argument must be nonzero (otherwise, the result is undefined)
+      if (length >> 13 == uint64_t(0)) E = uint8_t(0);
+      else E = uint8_t(64 - __builtin_clzll(length >> 13)); 
+      uint8_t Ie = (E == 0 && (length >> 12) == 0)? 0 : 1;
+      uint32_t bound;
+      if (Ie) {
+        if ((base & ((1 << (E + 3)) - 1)) != 0) {
+          base = (base >> (E + 3)) << (E + 3);
+        }
+        if ((end & ((1 << (E + 3)) - 1)) != 0) {
+          end = (end >> (E + 3)) << (E + 3);
+        }
+
+        uint8_t E_2_0 = uint8_t(E & ((1 << 3) - 1));
+        uint8_t E_5_3 = uint8_t((E >> 3) & ((1 << 3) - 1));
+        uint16_t B_13_3 = uint16_t((base >> (E + 3)) & ((1 << 11) - 1));
+        uint16_t T_11_3 = uint16_t((end >> (E + 3)) & ((1 << 9) - 1));
+        bound = uint32_t(E_2_0) | (uint32_t(B_13_3) << 3) | (uint32_t(E_5_3) << 14) | (uint32_t(T_11_3) << 17) | (uint32_t(1) << 26);
+      }
+      else {
+        uint16_t B = uint16_t(base & ((1 << 14) - 1));
+        uint16_t T = uint16_t(end & ((1 << 12) - 1));
+        bound = uint32_t(B) | (uint32_t(T) << 14);
+      }
+
+      res = uint128_t(cursor) | (uint128_t(bound) << 64) | (uint128_t(perm) << 91) | (uint128_t(type) << 94) | (uint128_t(node_id) << 97);
     }
     else {
-      uint16_t B = uint16_t(base & ((1 << 14) - 1));
-      uint16_t T = uint16_t(end & ((1 << 12) - 1));
-      bound = uint32_t(B) | (uint32_t(T) << 14);
-    }
+      if (type == CAP_TYPE_SEALED) {
+        res = uint128_t(base) | (uint128_t(async) << 92) | (uint128_t(type) << 94) | (uint128_t(node_id) << 97);
+      }
+      else{
+        int64_t cursor_offset = cursor - base;
 
-    res = uint128_t(cursor) | (uint128_t(bound) << 64) | (uint128_t(perm) << 91) | (uint128_t(type) << 94) | (uint128_t(node_id) << 97);
+        if (type == CAP_TYPE_SEALEDRET) {
+          res = uint128_t(base) | (uint128_t(cursor_offset) << 64) | (uint128_t(reg) << 87) | (uint128_t(async) << 92) | (uint128_t(type) << 94) | (uint128_t(node_id) << 97);
+        }
+        else{ // exit type capability
+          res = uint128_t(base) | (uint128_t(cursor_offset) << 64) | (uint128_t(type) << 94) | (uint128_t(node_id) << 97);
+        }
+      }
+    }
+    
     return res;
   }
   
   // capability decoding
   void from128(const uint128_t& v) {
-    cursor = uint64_t(v & ((uint128_t(1) << 64) - 1));
-    perm = (cap_perm_t)((v >> 91) & ((uint128_t(1) << 3) - 1));
     type = (cap_type_t)((v >> 94) & ((uint128_t(1) << 3) - 1));
     node_id = uint32_t((v >> 97) & ((uint128_t(1) << 31) - 1));
-    
-    uint32_t bound = uint32_t((v >> 64) & ((uint128_t(1) << 27) - 1));
-    uint8_t Ie = uint8_t((bound >> 26) & 1);
-    uint8_t Be = uint8_t(bound & ((1 << 3) - 1));
-    uint8_t Te = uint8_t((bound >> 14) & ((1 << 3) - 1));
-    uint8_t E, B_2_0, T_2_0, B_13_12, T_13_12;
 
-    uint16_t B_11_3 = uint16_t((bound >> 3) & ((1 << 9) - 1));
-    uint16_t T_11_3 = uint16_t((bound >> 17) & ((1 << 9) - 1));
-    B_13_12 = uint8_t((bound >> 12) & ((1 << 2) - 1));
+    if (type == CAP_TYPE_LINEAR || type == CAP_TYPE_NONLINEAR || type == CAP_TYPE_REVOCATION || type == CAP_TYPE_UNINITIALIZED) {
+      cursor = uint64_t(v & ((uint128_t(1) << 64) - 1));
+      perm = (cap_perm_t)((v >> 91) & ((uint128_t(1) << 3) - 1));
+      
+      uint32_t bound = uint32_t((v >> 64) & ((uint128_t(1) << 27) - 1));
+      uint8_t Ie = uint8_t((bound >> 26) & 1);
+      uint8_t Be = uint8_t(bound & ((1 << 3) - 1));
+      uint8_t Te = uint8_t((bound >> 14) & ((1 << 3) - 1));
+      uint8_t E, B_2_0, T_2_0, B_13_12, T_13_12;
 
-    if (Ie) {
-      E = (Te << 3) | Be;
-      B_2_0 = uint8_t(0);
-      T_2_0 = uint8_t(0);
-      T_13_12 = B_13_12 + uint8_t(T_11_3 < B_11_3) + uint8_t(1);
+      uint16_t B_11_3 = uint16_t((bound >> 3) & ((1 << 9) - 1));
+      uint16_t T_11_3 = uint16_t((bound >> 17) & ((1 << 9) - 1));
+      B_13_12 = uint8_t((bound >> 12) & ((1 << 2) - 1));
+
+      if (Ie) {
+        E = (Te << 3) | Be;
+        B_2_0 = uint8_t(0);
+        T_2_0 = uint8_t(0);
+        T_13_12 = B_13_12 + uint8_t(T_11_3 < B_11_3) + uint8_t(1);
+      }
+      else {
+        E = uint8_t(0);
+        B_2_0 = Be;
+        T_2_0 = Te;
+        uint16_t T_11_0 = (T_11_3 << 3) | T_2_0;
+        uint16_t B_11_0 = (B_11_3 << 3) | B_2_0;
+        T_13_12 = B_13_12 + uint8_t(T_11_0 < B_11_0);
+      }
+
+      uint8_t A_3 = uint8_t((cursor >> (E + 11)) & ((1 << 3) - 1));
+      uint8_t B_3 = uint8_t((B_13_12 << 1) | (B_11_3 >> 8));
+      uint8_t T_3 = uint8_t((T_13_12 << 1) | (T_11_3 >> 8));
+      uint8_t R = uint8_t(B_3 - 1);
+      
+      #define correction(x, y) (x ^ y) ? (x? -1 : 1) : 0
+      int ct = correction((A_3 < R), (T_3 < R));
+      int cb = correction((A_3 < R), (B_3 < R));
+
+      uint64_t a_top = cursor & ~((uint64_t(1) << (E + 14)) - 1);
+      end = (uint64_t((uint16_t(T_13_12) << 12) | (T_11_3 << 3) | T_2_0) << E) | (((a_top >> (E + 14)) + ct) << (E + 14));
+      base = (uint64_t((uint16_t(B_13_12) << 12) | (B_11_3 << 3) | B_2_0) << E) | (((a_top >> (E + 14)) + cb) << (E + 14));
     }
     else {
-      E = uint8_t(0);
-      B_2_0 = Be;
-      T_2_0 = Te;
-      uint16_t T_11_0 = (T_11_3 << 3) | T_2_0;
-      uint16_t B_11_0 = (B_11_3 << 3) | B_2_0;
-      T_13_12 = B_13_12 + uint8_t(T_11_0 < B_11_0);
+      base = uint64_t(v & ((uint128_t(1) << 64) - 1));
+
+      if (type == CAP_TYPE_SEALED) {
+        async = (cap_async_t)((v >> 92) & ((uint128_t(1) << 2) - 1));
+      }
+      else{
+        int64_t cursor_offset = int64_t((v >> 64) & ((uint128_t(1) << 23) - 1));
+        cursor = uint64_t(base + cursor_offset);
+
+        if (type == CAP_TYPE_SEALEDRET) {
+          async = (cap_async_t)((v >> 92) & ((uint128_t(1) << 2) - 1));
+          reg = (cap_reg_t)((v >> 87) & ((uint128_t(1) << 5) - 1));
+        }
+      }
     }
-
-    uint8_t A_3 = uint8_t((cursor >> (E + 11)) & ((1 << 3) - 1));
-    uint8_t B_3 = uint8_t((B_13_12 << 1) | (B_11_3 >> 8));
-    uint8_t T_3 = uint8_t((T_13_12 << 1) | (T_11_3 >> 8));
-    uint8_t R = uint8_t(B_3 - 1);
-    
-    #define correction(x, y) (x ^ y) ? (x? -1 : 1) : 0
-    int ct = correction((A_3 < R), (T_3 < R));
-    int cb = correction((A_3 < R), (B_3 < R));
-
-    uint64_t a_top = cursor & ~((uint64_t(1) << (E + 14)) - 1);
-    end = (uint64_t((uint16_t(T_13_12) << 12) | (T_11_3 << 3) | T_2_0) << E) | (((a_top >> (E + 14)) + ct) << (E + 14));
-    base = (uint64_t((uint16_t(B_13_12) << 12) | (B_11_3 << 3) | B_2_0) << E) | (((a_top >> (E + 14)) + cb) << (E + 14));
   }
 
   /*type check*/
