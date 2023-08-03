@@ -2,7 +2,7 @@
 
 The Capstone-RISC-V Spike Simulator is based on the [Spike RISC-V ISA Simulator](https://github.com/riscv-software-src/riscv-isa-sim).
 
-## Implementation
+## Docs
 
 The Capstone-RISC-V Spike Simulator simulates a Capstone-RISC-V processor.
 
