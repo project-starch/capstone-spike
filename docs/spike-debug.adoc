@@ -1,9 +1,13 @@
 :isa_var_pure: Pure Capstone
 :isa_var_hybrid: TransCapstone
 
-= Debugging Instructions
+= Debugging
 
-== Instruction List
+== Spike Debug Mode
+
+== Debugging with Gdb
+
+== Debugging Instructions
 
 .Debugging instructions
 [%header%autowidth.stretch]
@@ -59,7 +63,7 @@ T:: _{isa_var_hybrid}_
 ****
 ====
 
-== Instruction Details
+== Debugging Instruction Details
 
 [#debug-wrld]
 === World Switching
