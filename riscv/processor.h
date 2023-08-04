@@ -160,6 +160,7 @@ struct type_sew_t<64>
   using type=int64_t;
 };
 
+// capstone capability-extended register file
 template <class T, size_t N, bool zero_reg>
 class regfile_cap_t
 {
@@ -184,18 +185,11 @@ public:
   // basic operations
   inline size_t size() const { return N; }
   void write(size_t i, T value, bool rc_update=true);
-  const T& operator [] (size_t i)
-  {
-    if (is_cap(i)) memset(data + i, 0, sizeof(data[i]));
-    return data[i];
-  }
+  const T& operator [] (size_t i);
+  cap64_t& read_cap(size_t i);
   bool write_cap(size_t i, const uint128_t &c, bool rc_update=true);
   bool write_cap(size_t i, const cap64_t &cap, bool rc_update=true);
-  cap64_t& read_cap(size_t i)
-  {
-    assert(is_cap(i));
-    return cap_data[i].cap;
-  }
+  
   // capability manipulation operations
   void move(size_t to, size_t from);
   void split_cap(size_t reg, size_t split_reg, reg_t pv, rev_node_id_t split_node_id);
@@ -749,6 +743,27 @@ public:
 
 /*regfile_cap_t operations impl*/
 /*rc_update is default to be true*/
+// read an integer
+const T& operator [] (size_t i)
+{
+  if (p->is_secure_world() == false) {
+    assert(is_data(i)); // FIXME: throw exception
+  }
+  else{
+    // delayed zeroing (read before write)
+    if (is_cap(i)) memset(data + i, 0, sizeof(data[i]));
+  }
+  
+  return data[i];
+}
+
+// read a capability
+cap64_t& read_cap(size_t i)
+{
+  assert(is_cap(i)); // FIXME: throw exception
+  return cap_data[i].cap;
+}
+
 // write an integer
 template <class T, size_t N, bool zero_reg>
 void
@@ -800,7 +815,7 @@ void
 regfile_cap_t<T, N, zero_reg>::move(size_t to, size_t from)
 {
   if (from == to) return;
-  assert(is_cap(from));
+  assert(is_cap(from)); // FIXME: throw exception
   if (write_cap(to, cap_data[from].cap)) {
     reset_i(from);
   }
@@ -810,7 +825,7 @@ regfile_cap_t<T, N, zero_reg>::move(size_t to, size_t from)
 template <class T, size_t N, bool zero_reg>
 void
 regfile_cap_t<T, N, zero_reg>::split_cap(size_t reg, size_t split_reg, reg_t pv, rev_node_id_t split_node_id) {
-  assert(split_node_id != REV_NODE_ID_INVALID);
+  assert(split_node_id != REV_NODE_ID_INVALID); // FIXME: throw exception
   if (is_cap(split_reg)) p->updateRC(cap_data[split_reg].cap.node_id, -1);
   cap_data[split_reg] = cap_data[reg];
   cap_data[split_reg].cap.node_id = split_node_id;
@@ -821,7 +836,7 @@ regfile_cap_t<T, N, zero_reg>::split_cap(size_t reg, size_t split_reg, reg_t pv,
 template <class T, size_t N, bool zero_reg>
 void
 regfile_cap_t<T, N, zero_reg>::delin(size_t reg) {
-  assert(cap_data[reg].cap.type == CAP_TYPE_LINEAR);
+  assert(cap_data[reg].cap.type == CAP_TYPE_LINEAR); // FIXME: throw exception
   cap_data[reg].cap.type = CAP_TYPE_NONLINEAR;
   p->set_nonlinear(cap_data[reg].cap.node_id);
 }
@@ -829,7 +844,7 @@ regfile_cap_t<T, N, zero_reg>::delin(size_t reg) {
 template <class T, size_t N, bool zero_reg>
 void
 regfile_cap_t<T, N, zero_reg>::mrev(size_t reg, size_t cap_reg, rev_node_id_t new_node_id) {
-  assert(new_node_id != REV_NODE_ID_INVALID);
+  assert(new_node_id != REV_NODE_ID_INVALID); // FIXME: throw exception
   if (is_cap(reg)) p->updateRC(cap_data[reg].cap.node_id, -1);
   cap_data[reg] = cap_data[cap_reg];
   cap_data[cap_reg].cap.node_id = new_node_id;
