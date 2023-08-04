@@ -85,6 +85,7 @@ struct cap64_t
     uint128_t res;
     
     if (type == CAP_TYPE_LINEAR || type == CAP_TYPE_NONLINEAR || type == CAP_TYPE_REVOCATION || type == CAP_TYPE_UNINITIALIZED) {
+      assert(base < end); // dev check
       uint64_t length = end - base;
       uint8_t E;
       // __builtin_clzll's argument must be nonzero (otherwise, the result is undefined)

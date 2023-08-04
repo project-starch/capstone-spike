@@ -1,12 +1,14 @@
 #include <cassert>
 #include "revocation_tree.h"
 
+// check if the parent node is valid before calling this function
+// return REV_NODE_ID_INVALID if fail to allocate new node
 rev_node_id_t
 RevTree::allocate(rev_node_id_t parent_id) {
   RevNode* parent_node = getNode(parent_id);
   RevNode* new_node = getNewNode();
   if(!new_node) {
-    return REV_NODE_ID_INVALID; // unable to allocate new node
+    return REV_NODE_ID_INVALID;
   }
 
   new_node->state = REV_NODE_VALID;
@@ -17,7 +19,7 @@ RevTree::allocate(rev_node_id_t parent_id) {
   new_node->parent = parent_node;
 
   if(parent_node) {
-    assert(parent_node->state == REV_NODE_VALID); // must be in a valid tree
+    assert(parent_node->state == REV_NODE_VALID); // dev check
     new_node->next = parent_node->children;
     if(new_node->next) new_node->next->prev = new_node;
     parent_node->children = new_node;
@@ -26,21 +28,23 @@ RevTree::allocate(rev_node_id_t parent_id) {
     new_node->next = nullptr;
   }
   
-  rev_node_id_t new_node_id = new_node - nodes;
+  rev_node_id_t new_node_id = new_node - nodes + 1;
   return new_node_id;
 }
 
+// check if the node is a linear cap before calling this function
+// return REV_NODE_ID_INVALID if the node_id does not correspond to a valid node or fail to allocate new node
 rev_node_id_t
 RevTree::split(rev_node_id_t node_id) {
-  // This function assumes that the node is a linear cap
   RevNode* node = getNode(node_id);
   if(!node || node->state != REV_NODE_VALID) {
     return REV_NODE_ID_INVALID;
   }
   RevNode* new_node = getNewNode();
   if(!new_node) {
-    return REV_NODE_ID_INVALID; // unable to allocate new node
+    return REV_NODE_ID_INVALID;
   }
+
   new_node->state = REV_NODE_VALID;
   new_node->type = REV_NODE_LINEAR;
   new_node->children = nullptr;
@@ -50,7 +54,7 @@ RevTree::split(rev_node_id_t node_id) {
   new_node->next = node->next;
   node->next = new_node;
 
-  rev_node_id_t new_node_id = new_node - nodes;
+  rev_node_id_t new_node_id = new_node - nodes + 1;
   return new_node_id;
 }
 
@@ -67,16 +71,7 @@ RevTree::set_nonlinear(rev_node_id_t node_id) {
   node->type = REV_NODE_NONLINEAR;
 }
 
-void
-RevTree::tryFreeing(RevNode* node) {
-  if(node->state == REV_NODE_INVALID && node->ref_count == 0) {
-    // add to free list
-    node->state = REV_NODE_FREE;
-    node->next = free_nodes;
-    free_nodes = node;
-  }
-}
-
+// return true if all the nodes in the subtree are nonlinear
 bool
 RevTree::revoke(rev_node_id_t node_id) {
   bool all_nonlinear = true;
@@ -145,6 +140,7 @@ RevTree::drop(rev_node_id_t node_id) {
   }
 }
 
+/*internal interface impl*/
 RevNode*
 RevTree::getNewNode() {
   if(free_nodes) {
@@ -163,9 +159,19 @@ RevTree::getNewNode() {
 
 RevNode*
 RevTree::getNode(rev_node_id_t node_id) {
-  if(node_id == REV_NODE_ID_INVALID ||
-    node_id >= static_cast<uint32_t>(size)) {
+  if(node_id == 0 || node_id == REV_NODE_ID_INVALID || node_id > static_cast<uint32_t>(size)) {
     return nullptr;
   }
-  return nodes + node_id;
+
+  return nodes + (node_id - 1);
+}
+
+void
+RevTree::tryFreeing(RevNode* node) {
+  if(node->state == REV_NODE_INVALID && node->ref_count == 0) {
+    // add to free list
+    node->state = REV_NODE_FREE;
+    node->next = free_nodes;
+    free_nodes = node;
+  }
 }
