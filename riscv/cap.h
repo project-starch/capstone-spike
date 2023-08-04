@@ -79,8 +79,8 @@ struct cap64_t
   cap_async_t async;
 
   // capability encoding
-  // adjust bounds if the compression check fails
-  uint128_t to128()
+  // use the encoding with the closest legal bounds, if the compression check fails
+  uint128_t to128() const
   {
     uint128_t res;
     
@@ -93,17 +93,20 @@ struct cap64_t
       uint8_t Ie = (E == 0 && (length >> 12) == 0)? 0 : 1;
       uint32_t bound;
       if (Ie) {
+        uint64_t encode_base = base;
+        uint64_t encode_end = end;
+        
         if ((base & ((1 << (E + 3)) - 1)) != 0) {
-          base = (base >> (E + 3)) << (E + 3);
+          encode_base = (base >> (E + 3)) << (E + 3);
         }
         if ((end & ((1 << (E + 3)) - 1)) != 0) {
-          end = (end >> (E + 3)) << (E + 3);
+          encode_end = (end >> (E + 3)) << (E + 3);
         }
 
         uint8_t E_2_0 = uint8_t(E & ((1 << 3) - 1));
         uint8_t E_5_3 = uint8_t((E >> 3) & ((1 << 3) - 1));
-        uint16_t B_13_3 = uint16_t((base >> (E + 3)) & ((1 << 11) - 1));
-        uint16_t T_11_3 = uint16_t((end >> (E + 3)) & ((1 << 9) - 1));
+        uint16_t B_13_3 = uint16_t((encode_base >> (E + 3)) & ((1 << 11) - 1));
+        uint16_t T_11_3 = uint16_t((encode_end >> (E + 3)) & ((1 << 9) - 1));
         bound = uint32_t(E_2_0) | (uint32_t(B_13_3) << 3) | (uint32_t(E_5_3) << 14) | (uint32_t(T_11_3) << 17) | (uint32_t(1) << 26);
       }
       else {

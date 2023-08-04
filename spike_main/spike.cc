@@ -21,6 +21,7 @@ static void help(int exit_code = 1)
   fprintf(stderr, "usage: spike [host options] <target program> [target options]\n");
   fprintf(stderr, "Host Options:\n");
   fprintf(stderr, "  -p<n>                 Simulate <n> processors [default 1]\n");
+  fprintf(stderr, "                          (simulation of capstone only support single core at present)\n");
   fprintf(stderr, "  -m<n>                 Provide <n> MiB of target memory [default 2048]\n");
   fprintf(stderr, "  -m<a:m,b:n,...>       Provide memory regions of size m and n bytes\n");
   fprintf(stderr, "                          at base addresses a and b (with 4 KiB alignment)\n");
@@ -36,7 +37,7 @@ static void help(int exit_code = 1)
   fprintf(stderr, "  -M<a:m>               Provide secure memory regions of size m and n bytes\n");
   fprintf(stderr, "                          at base addresses a and b (with 4 KiB alignment)\n");
   fprintf(stderr, "  -D                    Enable debug instructions\n");
-  fprintf(stderr, "  -P                    Pure Capstone\n");
+  fprintf(stderr, "  -P                    Pure Capstone (currently not supported)\n");
   // end of capstone arguments
   fprintf(stderr, "  --log=<name>          File name for option -l\n");
   fprintf(stderr, "  --debug-cmd=<name>    Read commands from file (use with -d)\n");

@@ -164,30 +164,7 @@ template <class T, size_t N, bool zero_reg>
 class regfile_cap_t
 {
 public:
-  inline bool is_data(size_t i) const { return cap_data[i].is_data(); }
-  inline bool is_cap(size_t i) const { return cap_data[i].is_cap(); }
-  inline void debug_set_cap(size_t i) { cap_data[i].tag = WORD_TAG_CAP; }
-  inline bool zero_reg_required() const { return zero_reg; }
-  inline size_t size() const { return N; }
-  void write(size_t i, T value, bool rc_update=true);
-  bool write_cap(size_t i, const uint128_t &c, bool rc_update=true);
-  bool write_cap(size_t i, const cap64_t &cap, bool rc_update=true);
-  void move(size_t to, size_t from);
-  void split_cap(size_t reg, size_t split_reg, reg_t pv, rev_node_id_t split_node_id);
-  void delin(size_t reg);
-  void mrev(size_t reg, size_t cap_reg, rev_node_id_t new_node_id);
-
-  const T& operator [] (size_t i)
-  {
-    if (is_cap(i)) memset(data + i, 0, sizeof(data[i]));
-    return data[i];
-  }
-  cap64_t& read_cap(size_t i)
-  {
-    assert(is_cap(i));
-    return cap_data[i].cap;
-  }
-  regfile_cap_t() {}
+  // init & reset
   void reset_i(size_t i) {
     memset(data + i, 0, sizeof(data[i]));
     cap_data[i].reset();
@@ -200,6 +177,33 @@ public:
       cap_data[i].reset();
     }
   }
+  // checks
+  inline bool is_data(size_t i) const { return cap_data[i].is_data(); }
+  inline bool is_cap(size_t i) const { return cap_data[i].is_cap(); }
+  inline bool zero_reg_required() const { return zero_reg; }
+  // basic operations
+  inline size_t size() const { return N; }
+  void write(size_t i, T value, bool rc_update=true);
+  const T& operator [] (size_t i)
+  {
+    if (is_cap(i)) memset(data + i, 0, sizeof(data[i]));
+    return data[i];
+  }
+  bool write_cap(size_t i, const uint128_t &c, bool rc_update=true);
+  bool write_cap(size_t i, const cap64_t &cap, bool rc_update=true);
+  cap64_t& read_cap(size_t i)
+  {
+    assert(is_cap(i));
+    return cap_data[i].cap;
+  }
+  // capability manipulation operations
+  void move(size_t to, size_t from);
+  void split_cap(size_t reg, size_t split_reg, reg_t pv, rev_node_id_t split_node_id);
+  void delin(size_t reg);
+  void mrev(size_t reg, size_t cap_reg, rev_node_id_t new_node_id);
+  // debugging
+  inline void debug_set_cap(size_t i) { cap_data[i].tag = WORD_TAG_CAP; }
+
 private:
   processor_t *p;
   T data[N];
@@ -214,10 +218,13 @@ struct state_t
   static const int num_triggers = 4;
 
   reg_t pc;
+  /*capstone defined processor states*/
   cap64_t cap_pc;
+  bool cap_access; // set to true if the memory access is 
+  world_type_t world;
+  /*end of capstone defined processor states*/
   regfile_cap_t<reg_t, NXPR, true> XPR;
   regfile_t<freg_t, NFPR, false> FPR;
-  bool cap_access;
 
   // control and status registers
   std::unordered_map<uint64_t, csr_t_p> csrmap;
@@ -241,6 +248,10 @@ struct state_t
   csr_t_p stvec;
   virtualized_csr_t_p satp;
   csr_t_p scause;
+
+  /*capstone CSRs*/
+  // TODO
+  /*end of capstone CSRs*/
 
   csr_t_p mtval2;
   csr_t_p mtinst;
@@ -280,8 +291,6 @@ struct state_t
       STEP_STEPPING,
       STEP_STEPPED
   } single_step;
-
-  world_type_t world;
 
 #ifdef RISCV_ENABLE_COMMITLOG
   commit_log_reg_t log_reg_write;
@@ -548,66 +557,57 @@ public:
 
   const char* get_symbol(uint64_t addr);
 
+  /*interface defined for capstone*/
+  /*revocation tree interface*/
   inline bool valid_cap(rev_node_id_t node_id) const {
     return sim->get_rev_tree().is_valid(node_id);
   }
-
   inline void updateRC(rev_node_id_t node_id, int delta) const {
     sim->get_rev_tree().updateRC(node_id, delta);
   }
-
   inline rev_node_id_t split_rt(rev_node_id_t node_id) const {
     return sim->get_rev_tree().split(node_id);
   }
-
   inline bool revoke(rev_node_id_t node_id) const {
     return sim->get_rev_tree().revoke(node_id);
   }
-
   inline rev_node_id_t allocate(rev_node_id_t parent_id) const {
     return sim->get_rev_tree().allocate(parent_id);
   }
-
   inline void set_nonlinear(rev_node_id_t node_id) const {
     sim->get_rev_tree().set_nonlinear(node_id);
   }
-
   inline void drop(rev_node_id_t node_id) const {
     sim->get_rev_tree().drop(node_id);
   }
-
+  /*tag controller*/
   inline void setTag(uint64_t addr, bool as_cap) {
     sim->get_tag_controller().setTag(addr, as_cap);
   }
-
   virtual bool getTag(uint64_t addr) {
     return sim->get_tag_controller().getTag(addr);
   }
-
+  /*world related information & operation*/
   inline bool is_normal_access() const {
     return state.world == WORLD_NORMAL && state.cap_access == false;
   }
-
   inline bool is_secure_world() const {
     return state.world == WORLD_SECURE;
   }
-
   inline void set_cap_access() {
     state.cap_access = true;
   }
-
   inline void switch_world(bool to_secure_world) {
     state.world = to_secure_world ? WORLD_SECURE : WORLD_NORMAL;
   }
-
-  inline cap_reg_t& get_secure_mem_init_cap() {
-    return sim->get_secure_mem_init_cap();
+  /*ccsr*/
+  inline cap_reg_t& get_ccsr(uint64_t ccsr_num) {
+    return sim->get_ccsr();
   }
-
+  /*spike parameters*/
   inline bool is_cap_debug_enabled() const {
     return sim->is_cap_debug_enabled();
   }
-
   inline bool is_pure_capstone() const {
     return sim->is_pure_capstone();
   }
@@ -747,6 +747,9 @@ public:
   vectorUnit_t VU;
 };
 
+/*regfile_cap_t operations impl*/
+/*rc_update is default to be true*/
+// write an integer
 template <class T, size_t N, bool zero_reg>
 void
 regfile_cap_t<T, N, zero_reg>::write(size_t i, T value, bool rc_update/*=true*/)
@@ -760,7 +763,8 @@ regfile_cap_t<T, N, zero_reg>::write(size_t i, T value, bool rc_update/*=true*/)
   }
 }
 
-// Return value: cap_is_linear
+// write a capability
+// return value: cap_is_linear; manually remove source if linear after write
 template <class T, size_t N, bool zero_reg>
 bool
 regfile_cap_t<T, N, zero_reg>::write_cap(size_t i, const uint128_t &c, bool rc_update/*=true*/)
@@ -771,7 +775,7 @@ regfile_cap_t<T, N, zero_reg>::write_cap(size_t i, const uint128_t &c, bool rc_u
 
     if (rc_update && is_cap(i)) p->updateRC(cap_data[i].cap.node_id, -1);
     cap_data[i].set_cap(cap);
-    if (rc_update && !cap.is_linear()) p->updateRC(cap.node_id, 1);
+    if (rc_update && cap.is_linear() == false) p->updateRC(cap.node_id, 1);
     return cap.is_linear();
   }
   return false;
@@ -784,37 +788,25 @@ regfile_cap_t<T, N, zero_reg>::write_cap(size_t i, const cap64_t &cap, bool rc_u
   if (!zero_reg || i != 0){
     if (rc_update && is_cap(i)) p->updateRC(cap_data[i].cap.node_id, -1);
     cap_data[i].set_cap(cap);
-    if (rc_update && !cap.is_linear()) p->updateRC(cap.node_id, 1);
+    if (rc_update && cap.is_linear() == false) p->updateRC(cap.node_id, 1);
     return cap.is_linear();
   }
   return false;
 }
 
+// move a capability
 template <class T, size_t N, bool zero_reg>
 void
 regfile_cap_t<T, N, zero_reg>::move(size_t to, size_t from)
 {
-  if (!zero_reg || to != 0) {
-    if (is_data(from)) {
-      data[to] = data[from];
-      if (is_cap(to)) {
-        p->updateRC(cap_data[to].cap.node_id, -1);
-        cap_data[to].set_data();
-      }
-    }
-    else {
-      if (is_cap(to)) p->updateRC(cap_data[to].cap.node_id, -1);
-      cap_data[to] = cap_data[from];
-      if (cap_data[from].cap.is_linear()) {
-        reset_i(from);
-      }
-      else {
-        p->updateRC(cap_data[from].cap.node_id, 1);
-      }
-    }
+  if (from == to) return;
+  assert(is_cap(from));
+  if (write_cap(to, cap_data[from].cap)) {
+    reset_i(from);
   }
 }
 
+// FIXME
 template <class T, size_t N, bool zero_reg>
 void
 regfile_cap_t<T, N, zero_reg>::split_cap(size_t reg, size_t split_reg, reg_t pv, rev_node_id_t split_node_id) {
@@ -825,7 +817,7 @@ regfile_cap_t<T, N, zero_reg>::split_cap(size_t reg, size_t split_reg, reg_t pv,
   cap_data[reg].cap.end = pv;
   cap_data[split_reg].cap.base = pv;
 }
-
+// FIXME
 template <class T, size_t N, bool zero_reg>
 void
 regfile_cap_t<T, N, zero_reg>::delin(size_t reg) {
@@ -833,7 +825,7 @@ regfile_cap_t<T, N, zero_reg>::delin(size_t reg) {
   cap_data[reg].cap.type = CAP_TYPE_NONLINEAR;
   p->set_nonlinear(cap_data[reg].cap.node_id);
 }
-
+// FIXME
 template <class T, size_t N, bool zero_reg>
 void
 regfile_cap_t<T, N, zero_reg>::mrev(size_t reg, size_t cap_reg, rev_node_id_t new_node_id) {

@@ -377,9 +377,12 @@ const int state_t::num_triggers;
 void state_t::reset(processor_t* proc, reg_t max_isa)
 {
   pc = DEFAULT_RSTVEC;
+  cap_pc.reset();
+  cap_access = false;
+  world = WORLD_NORMAL;
+
   XPR.reset(proc);
   FPR.reset();
-  cap_access = false;
 
   // This assumes xlen is always max_xlen, which is true today (see
   // mstatus_csr_t::unlogged_write()):
@@ -550,9 +553,6 @@ void state_t::reset(processor_t* proc, reg_t max_isa)
   csrmap[CSR_TDATA3] = std::make_shared<const_csr_t>(proc, CSR_TDATA3, 0);
   debug_mode = false;
   single_step = STEP_NONE;
-  
-  if (proc->is_pure_capstone()) world = WORLD_SECURE;
-  else world = WORLD_NORMAL;
 
   for (int i=0; i < max_pmp; ++i) {
     csrmap[CSR_PMPADDR0 + i] = pmpaddr[i] = std::make_shared<pmpaddr_csr_t>(proc, CSR_PMPADDR0 + i);
