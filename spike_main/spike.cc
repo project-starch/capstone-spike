@@ -21,6 +21,7 @@ static void help(int exit_code = 1)
   fprintf(stderr, "usage: spike [host options] <target program> [target options]\n");
   fprintf(stderr, "Host Options:\n");
   fprintf(stderr, "  -p<n>                 Simulate <n> processors [default 1]\n");
+  fprintf(stderr, "                          (simulation of capstone only support single core at present)\n");
   fprintf(stderr, "  -m<n>                 Provide <n> MiB of target memory [default 2048]\n");
   fprintf(stderr, "  -m<a:m,b:n,...>       Provide memory regions of size m and n bytes\n");
   fprintf(stderr, "                          at base addresses a and b (with 4 KiB alignment)\n");
@@ -36,7 +37,7 @@ static void help(int exit_code = 1)
   fprintf(stderr, "  -M<a:m>               Provide secure memory regions of size m and n bytes\n");
   fprintf(stderr, "                          at base addresses a and b (with 4 KiB alignment)\n");
   fprintf(stderr, "  -D                    Enable debug instructions\n");
-  fprintf(stderr, "  -P                    Pure Capstone\n");
+  fprintf(stderr, "  -P                    Pure Capstone (currently not supported)\n");
   // end of capstone arguments
   fprintf(stderr, "  --log=<name>          File name for option -l\n");
   fprintf(stderr, "  --debug-cmd=<name>    Read commands from file (use with -d)\n");
@@ -336,16 +337,18 @@ int main(int argc, char** argv)
   parser.option('m', 0, 1, [&](const char* s){mems = make_mems(s);});
   // I wanted to use --halted, but for some reason that doesn't work.
   parser.option('H', 0, 0, [&](const char* s){halted = true;});
+  
   // Paring of capstone arguments
   parser.option('M', 0, 1, [&](const char* s){
     cap_mems = make_mems(s);
     mem_partition_addr = cap_mems[0].first;
-    assert((mem_partition_addr & uint64_t(16 - 1)) == uint64_t(0));
+    assert((mem_partition_addr & uint64_t(16 - 1)) == 0);
     secure_mem_init_cap.init_cap(mem_partition_addr, cap_mems[0].second->size());
   });
   parser.option('D', 0, 0, [&](const char* s){cap_debug_enabled = true;});
   parser.option('P', 0, 0, [&](const char* s){pure_capstone = true;});
   // End of capstone arguments
+  
   parser.option(0, "rbb-port", 1, [&](const char* s){use_rbb = true; rbb_port = atoul_safe(s);});
   parser.option(0, "pc", 1, [&](const char* s){start_pc = strtoull(s, 0, 0);});
   parser.option(0, "hartids", 1, hartids_parser);

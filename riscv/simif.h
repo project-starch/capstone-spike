@@ -19,14 +19,14 @@ public:
 
   virtual const char* get_symbol(uint64_t addr) = 0;
 
-  // Some of the Data Structures are shard by all the processors
-  // They are defined in sim_t and can be accessed in simif_t by the following interfaces
+  // some of the data structures are shard by all the processors
+  // they are defined in sim_t and can be accessed by the following interfaces
   virtual TagController& get_tag_controller() = 0;
   virtual RevTree& get_rev_tree() = 0;
   virtual uint64_t get_mem_partition_addr() = 0;
-  virtual cap_reg_t& get_secure_mem_init_cap() = 0;
   virtual bool is_cap_debug_enabled() = 0;
   virtual bool is_pure_capstone() = 0;
+  virtual cap_reg_t& get_ccsr(uint64_t ccsr_num) = 0;
 };
 
 #endif
