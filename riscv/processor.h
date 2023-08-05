@@ -166,10 +166,12 @@ class regfile_cap_t
 {
 public:
   // init & reset
+  // reset_i is used to clear a linear capability (set to cnull)
   void reset_i(size_t i) {
     memset(data + i, 0, sizeof(data[i]));
-    cap_data[i].reset();
+    cap_data[i].reset_i();
   }
+  // reset is used in system reset
   void reset(processor_t *proc)
   {
     p = proc;

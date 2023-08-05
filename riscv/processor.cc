@@ -758,6 +758,7 @@ void processor_t::set_mmu_capability(int cap)
   }
 }
 
+// FIXME
 void processor_t::take_interrupt(reg_t pending_interrupts)
 {
   // Do nothing if no pending interrupts

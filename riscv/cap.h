@@ -79,6 +79,17 @@ struct cap64_t
   uint8_t reg;
   cap_async_t async;
 
+  /*reset*/
+  void reset()
+  {
+    node_id = uint32_t(0);
+    type = CAP_TYPE_LINEAR;
+    cursor = uint64_t(0);
+    base = uint64_t(0);
+    end = uint64_t(0);
+    perm = CAP_PERM_NA;
+  }
+
   // capability encoding
   // use the encoding with the closest legal bounds, if the compression check fails
   uint128_t to128() const
@@ -276,8 +287,13 @@ struct cap_reg_t
     cap.init_cap(init_base, init_size);
   }
   /*reset*/
+  // reset is used in system reset
   void reset() {
     tag = WORD_TAG_DATA;
+  }
+  // reset_i is used when clear a linear capability
+  void reset_i() {
+    cap.reset();
   }
 };
 
