@@ -342,7 +342,7 @@ int main(int argc, char** argv)
   parser.option('M', 0, 1, [&](const char* s){
     cap_mems = make_mems(s);
     mem_partition_addr = cap_mems[0].first;
-    assert((mem_partition_addr & uint64_t(16 - 1)) == uint64_t(0));
+    assert((mem_partition_addr & uint64_t(16 - 1)) == 0);
     secure_mem_init_cap.init_cap(mem_partition_addr, cap_mems[0].second->size());
   });
   parser.option('D', 0, 0, [&](const char* s){cap_debug_enabled = true;});

@@ -42,6 +42,7 @@ enum cap_perm_t {
   CAP_PERM_RWX = 7
 };
 
+// perm: a <= b
 bool cap_perm_lte(cap_perm_t a, cap_perm_t b) {
   if (a == b) return true;
   if (a == CAP_PERM_NA) return true;
@@ -218,6 +219,7 @@ struct cap64_t
     return false;
   }
   /*bound check*/
+  // size of the load/store need to be provided
   bool in_bound(uint64_t size) const {
     if (type == CAP_TYPE_LINEAR || type == CAP_TYPE_NONLINEAR || type == CAP_TYPE_UNINITIALIZED){
       return cursor >= base && cursor <= end - size;
