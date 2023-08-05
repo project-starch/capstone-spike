@@ -1,0 +1,13 @@
+= Spike Implementation of the Capstone-RISC-V ISA
+
+== Capability Format
+
+* If the `type` field of the capability is `0` (linear), `1` (non-linear), `2` (revocation) or `3` (uninitialized):
+
+.capability format for linear, non-linear, revocation and uninitialized capabilities
+image::figs/insn-type-0123.svg[insn-type-0123]
+
+* If the `type` field of the capability is `4` (sealed), `5` (sealed-return), `6` (exit)
+
+.capability format for sealed, sealed-return and exit capabilities
+image::figs/insn-type-456.svg[insn-type-456]
