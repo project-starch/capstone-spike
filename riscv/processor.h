@@ -189,11 +189,13 @@ public:
     if (i == 0 && zero_reg) return true;
     return cap_data[i].is_data();
   }
-  inline bool is_cap(size_t i) const {
+  bool is_cap(size_t i) const {
     if (i == 0 && zero_reg) return true;
     return cap_data[i].is_cap();
   }
-  inline bool zero_reg_required() const { return zero_reg; }
+  bool zero_reg() const {
+    return zero_reg;
+  }
   // basic operations
   inline size_t size() const { return N; }
   const T& operator [] (size_t i);
