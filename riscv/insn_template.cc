@@ -14,7 +14,7 @@
     assert(pc_valid_type); \
     bool pc_valid_align = ((npc % insn_length(OPCODE)) == 0); \
     assert(pc_valid_align); \
-    bool pc_valid_perm = cap_perm_lte(CAP_PERM_X, cap_pc.perm); \
+    bool pc_valid_perm = cap_pc.cap_perm_cmp(CAP_PERM_X, false); \
     assert(pc_valid_perm); \
     bool pc_in_bounds = cap_pc.in_bound(insn_length(OPCODE)); \
     assert(pc_in_bounds); \

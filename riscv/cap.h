@@ -42,24 +42,6 @@ enum cap_perm_t {
   CAP_PERM_RWX = 7
 };
 
-// perm: a <= b
-bool cap_perm_lte(cap_perm_t a, cap_perm_t b) {
-  if (a == b) return true;
-  if (a == CAP_PERM_NA) return true;
-  if (b == CAP_PERM_RWX) return true;
-
-  if (a == CAP_PERM_X) {
-    if (b == CAP_PERM_RX || b == CAP_PERM_WX) return true;
-  }
-  if (a == CAP_PERM_W) {
-    if (b == CAP_PERM_RW || b == CAP_PERM_WX) return true;
-  }
-  if (a == CAP_PERM_R) {
-    if (b == CAP_PERM_RW || b == CAP_PERM_RX) return true;
-  }
-  return false;
-}
-
 /*capstone async field*/
 enum cap_async_t {
   CAP_ASYNC_SYNC = 0,
@@ -228,6 +210,26 @@ struct cap64_t
   bool store_accessible() const {
     if (type == CAP_TYPE_LINEAR || type == CAP_TYPE_NONLINEAR || type == CAP_TYPE_UNINITIALIZED || type == CAP_TYPE_EXIT) return true;
     if (type == CAP_TYPE_SEALEDRET && async == CAP_ASYNC_SYNC) return true;
+    return false;
+  }
+  // perm check; lte:true, perm <= cmp_perm; lte:false, perm >= cmp_perm
+  bool cap_perm_cmp(cap_perm_t cmp_perm, bool lte) const{
+    cap_perm_t a = lte? perm : cmp_perm;
+    cap_perm_t b = lte? cmp_perm : perm;
+
+    if (a == b) return true;
+    if (a == CAP_PERM_NA) return true;
+    if (b == CAP_PERM_RWX) return true;
+
+    if (a == CAP_PERM_X) {
+      if (b == CAP_PERM_RX || b == CAP_PERM_WX) return true;
+    }
+    if (a == CAP_PERM_W) {
+      if (b == CAP_PERM_RW || b == CAP_PERM_WX) return true;
+    }
+    if (a == CAP_PERM_R) {
+      if (b == CAP_PERM_RW || b == CAP_PERM_RX) return true;
+    }
     return false;
   }
   /*bound check*/
