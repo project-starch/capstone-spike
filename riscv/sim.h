@@ -72,6 +72,8 @@ public:
 
 private:
   std::vector<std::pair<reg_t, mem_t*>> mems;
+  /*secure memory*/
+  std::vector<std::pair<reg_t, mem_t*>> cap_mems;
   std::vector<std::pair<reg_t, abstract_device_t*>> plugin_devices;
   mmu_t* debug_mmu;  // debug port into main memory
   std::vector<processor_t*> procs;
@@ -90,11 +92,11 @@ private:
 
   FILE *cmd_file; // pointer to debug command input file
   
-  /*capstone-specific variables, shared by all processors*/
-  std::vector<std::pair<reg_t, mem_t*>> cap_mems;
+  /*spike boot parameters*/
   uint64_t mem_partition_addr;
   bool cap_debug_enabled;
   bool pure_capstone;
+  /*capstone shared structure by cores*/
   TagController tag_controller;
   RevTree rev_tree;
   /*ccsr list*/
@@ -174,6 +176,7 @@ private:
     return pure_capstone;
   }
   // capstone ccsr
+  // FIXME
   cap_reg_t& get_ccsr(uint64_t ccsr_num) {
     switch (ccsr_num) {
       case 2: return ccsr_cinit;

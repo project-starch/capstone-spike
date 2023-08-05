@@ -137,12 +137,13 @@ struct cap64_t
       else{
         // If the cursor is too large, just use the lower 23 bits
         uint64_t cursor_offset = (cursor - base) & ((1 << 23) - 1);
+        uint8_t reg_5bits = reg & ((1 << 5) - 1);
 
         if (type == CAP_TYPE_SEALEDRET) {
-          res = uint128_t(base) | (uint128_t(cursor_offset) << 64) | (uint128_t(reg) << 87) | (uint128_t(async) << 92) | (uint128_t(type) << 94) | (uint128_t(node_id) << 97);
+          res = uint128_t(base) | (uint128_t(cursor_offset) << 64) | (uint128_t(reg_5bits) << 87) | (uint128_t(async) << 92) | (uint128_t(type) << 94) | (uint128_t(node_id) << 97);
         }
         else{ // exit type capability
-          res = uint128_t(base) | (uint128_t(cursor_offset) << 64) | (uint128_t(type) << 94) | (uint128_t(node_id) << 97);
+          res = uint128_t(base) | (uint128_t(cursor_offset) << 64) | (uint128_t(reg_5bits) << 94) | (uint128_t(node_id) << 97);
         }
       }
     }
@@ -209,7 +210,7 @@ struct cap64_t
 
         if (type == CAP_TYPE_SEALEDRET) {
           async = (cap_async_t)((v >> 92) & ((uint128_t(1) << 2) - 1));
-          reg = (cap_reg_t)((v >> 87) & ((uint128_t(1) << 5) - 1));
+          reg = (uint8_t)((v >> 87) & ((uint128_t(1) << 5) - 1));
         }
       }
     }

@@ -10,7 +10,7 @@
     cap64_t cap_pc = p->get_state()->cap_pc; \
     bool pc_valid_cap = p->valid_cap(cap_pc.node_id); \
     assert(pc_valid_cap); \
-    bool pc_valid_type = (cap_pc.type == CAP_TYPE_LINEAR || cap_pc.ty == CAP_TYPE_NONLINEAR); \
+    bool pc_valid_type = (cap_pc.type == CAP_TYPE_LINEAR || cap_pc.type == CAP_TYPE_NONLINEAR); \
     assert(pc_valid_type); \
     bool pc_valid_align = ((npc % insn_length(OPCODE)) == 0); \
     assert(pc_valid_align); \

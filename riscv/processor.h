@@ -607,7 +607,7 @@ public:
   }
   /*ccsr*/
   inline cap_reg_t& get_ccsr(uint64_t ccsr_num) {
-    return sim->get_ccsr();
+    return sim->get_ccsr(ccsr_num);
   }
   /*spike parameters*/
   inline bool is_cap_debug_enabled() const {

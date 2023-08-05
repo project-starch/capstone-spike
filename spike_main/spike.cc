@@ -225,9 +225,9 @@ int main(int argc, char** argv)
   bool dtb_enabled = true;
   bool real_time_clint = false;
   // control parameters added for capstone
+  uint64_t mem_partition_addr;
   bool cap_debug_enabled = false;
   bool pure_capstone = false;
-  uint64_t mem_partition_addr;
   // end of capstone control parameters
   size_t nprocs = 1;
   const char* kernel = NULL;
