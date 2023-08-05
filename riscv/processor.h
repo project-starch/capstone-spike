@@ -759,6 +759,11 @@ template <class T, size_t N, bool zero_reg>
 const T&
 regfile_cap_t<T, N, zero_reg>::operator [] (size_t i)
 {
+  if (i == 0 && zero_reg) {
+    return data[0];
+  }
+
+  // in normal world, zero will be read if use a cap reg as an integer operand
   if (p->is_secure_world()) {
     assert(is_data(i)); // FIXME: throw exception
   }
@@ -817,9 +822,7 @@ void
 regfile_cap_t<T, N, zero_reg>::move(size_t to, size_t from)
 {
   if (from == to) return;
-  if (from != 0){
-    assert(is_cap(from)); // FIXME: throw exception
-  }
+  assert(is_cap(from)); // FIXME: throw exception
 
   if (write_cap(to, cap_data[from].cap)) {
     reset_i(from);
