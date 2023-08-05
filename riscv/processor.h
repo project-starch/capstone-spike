@@ -165,11 +165,13 @@ template <class T, size_t N, bool zero_reg>
 class regfile_cap_t
 {
 public:
-  // init & reset
+  /*init & reset*/
   // reset_i is used to clear a linear capability (set to cnull)
   void reset_i(size_t i) {
-    memset(data + i, 0, sizeof(data[i]));
-    cap_data[i].reset_i();
+    if (i != 0 || !zero_reg) {
+      memset(data + i, 0, sizeof(data[i]));
+      cap_data[i].reset_i();
+    }
   }
   // reset is used in system reset
   void reset(processor_t *proc)
@@ -180,16 +182,23 @@ public:
       cap_data[i].reset();
     }
   }
+
+  /*reg file interfaces*/
   // checks
-  inline bool is_data(size_t i) const { return cap_data[i].is_data(); }
-  inline bool is_cap(size_t i) const { return cap_data[i].is_cap(); }
+  bool is_data(size_t i) const {
+    if (i == 0 && zero_reg) return true;
+    return cap_data[i].is_data();
+  }
+  inline bool is_cap(size_t i) const {
+    if (i == 0 && zero_reg) return true;
+    return cap_data[i].is_cap();
+  }
   inline bool zero_reg_required() const { return zero_reg; }
   // basic operations
   inline size_t size() const { return N; }
-  void write(size_t i, T value, bool rc_update=true);
   const T& operator [] (size_t i);
   cap64_t& read_cap(size_t i);
-  bool write_cap(size_t i, const uint128_t &c, bool rc_update=true);
+  void write(size_t i, T value, bool rc_update=true);
   bool write_cap(size_t i, const cap64_t &cap, bool rc_update=true);
   
   // capability manipulation operations
@@ -746,9 +755,11 @@ public:
 /*regfile_cap_t operations impl*/
 /*rc_update is default to be true*/
 // read an integer
-const T& operator [] (size_t i)
+template <class T, size_t N, bool zero_reg>
+const T&
+regfile_cap_t<T, N, zero_reg>::operator [] (size_t i)
 {
-  if (p->is_secure_world() == false) {
+  if (p->is_secure_world()) {
     assert(is_data(i)); // FIXME: throw exception
   }
   else{
@@ -760,8 +771,13 @@ const T& operator [] (size_t i)
 }
 
 // read a capability
-cap64_t& read_cap(size_t i)
+template <class T, size_t N, bool zero_reg>
+cap64_t&
+regfile_cap_t<T, N, zero_reg>::read_cap(size_t i)
 {
+  if (i == 0 && zero_reg) {
+    return cap_data[0].cap;
+  }
   assert(is_cap(i)); // FIXME: throw exception
   return cap_data[i].cap;
 }
@@ -784,22 +800,6 @@ regfile_cap_t<T, N, zero_reg>::write(size_t i, T value, bool rc_update/*=true*/)
 // return value: cap_is_linear; manually remove source if linear after write
 template <class T, size_t N, bool zero_reg>
 bool
-regfile_cap_t<T, N, zero_reg>::write_cap(size_t i, const uint128_t &c, bool rc_update/*=true*/)
-{
-  if (!zero_reg || i != 0){
-    cap64_t cap;
-    cap.from128(c);
-
-    if (rc_update && is_cap(i)) p->updateRC(cap_data[i].cap.node_id, -1);
-    cap_data[i].set_cap(cap);
-    if (rc_update && cap.is_linear() == false) p->updateRC(cap.node_id, 1);
-    return cap.is_linear();
-  }
-  return false;
-}
-
-template <class T, size_t N, bool zero_reg>
-bool
 regfile_cap_t<T, N, zero_reg>::write_cap(size_t i, const cap64_t &cap, bool rc_update/*=true*/)
 {
   if (!zero_reg || i != 0){
@@ -817,7 +817,10 @@ void
 regfile_cap_t<T, N, zero_reg>::move(size_t to, size_t from)
 {
   if (from == to) return;
-  assert(is_cap(from)); // FIXME: throw exception
+  if (from != 0){
+    assert(is_cap(from)); // FIXME: throw exception
+  }
+
   if (write_cap(to, cap_data[from].cap)) {
     reset_i(from);
   }
@@ -827,7 +830,7 @@ regfile_cap_t<T, N, zero_reg>::move(size_t to, size_t from)
 template <class T, size_t N, bool zero_reg>
 void
 regfile_cap_t<T, N, zero_reg>::split_cap(size_t reg, size_t split_reg, reg_t pv, rev_node_id_t split_node_id) {
-  assert(split_node_id != REV_NODE_ID_INVALID); // FIXME: throw exception
+  assert(split_node_id != REV_NODE_ID_INVALID);
   if (is_cap(split_reg)) p->updateRC(cap_data[split_reg].cap.node_id, -1);
   cap_data[split_reg] = cap_data[reg];
   cap_data[split_reg].cap.node_id = split_node_id;
@@ -838,7 +841,7 @@ regfile_cap_t<T, N, zero_reg>::split_cap(size_t reg, size_t split_reg, reg_t pv,
 template <class T, size_t N, bool zero_reg>
 void
 regfile_cap_t<T, N, zero_reg>::delin(size_t reg) {
-  assert(cap_data[reg].cap.type == CAP_TYPE_LINEAR); // FIXME: throw exception
+  assert(cap_data[reg].cap.type == CAP_TYPE_LINEAR);
   cap_data[reg].cap.type = CAP_TYPE_NONLINEAR;
   p->set_nonlinear(cap_data[reg].cap.node_id);
 }
@@ -846,7 +849,7 @@ regfile_cap_t<T, N, zero_reg>::delin(size_t reg) {
 template <class T, size_t N, bool zero_reg>
 void
 regfile_cap_t<T, N, zero_reg>::mrev(size_t reg, size_t cap_reg, rev_node_id_t new_node_id) {
-  assert(new_node_id != REV_NODE_ID_INVALID); // FIXME: throw exception
+  assert(new_node_id != REV_NODE_ID_INVALID);
   if (is_cap(reg)) p->updateRC(cap_data[reg].cap.node_id, -1);
   cap_data[reg] = cap_data[cap_reg];
   cap_data[cap_reg].cap.node_id = new_node_id;
