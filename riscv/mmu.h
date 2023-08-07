@@ -97,13 +97,21 @@ public:
 #endif
 
   // template for functions that load an aligned value from memory
+  // corner case: proc == NULL
   #define load_func(type, prefix, xlate_flags) \
     inline type##_t prefix##_##type(reg_t addr, bool require_alignment = false) { \
-      if(proc) assert(!(proc->is_secure_world() && proc->is_normal_access())); \
+      /*secure world can't access normal memory*/ \
+      if(proc) { \
+        bool illegal_access = proc->is_secure_world() && proc->is_normal_access(); \
+        assert(illegal_access == false); \
+      } \
+      /*alignment requirement check*/ \
       if (unlikely(addr & (sizeof(type##_t)-1))) { \
+        /*capability access must be aligned*/ \
         if (require_alignment || (proc && !(proc->is_normal_access()))) load_reserved_address_misaligned(addr); \
         else return misaligned_load(addr, sizeof(type##_t), xlate_flags); \
       } \
+      /*virtual memory: raw addr in normal world*/ \
       if (!proc || proc->is_normal_access()) { \
         reg_t vpn = addr >> PGSHIFT; \
         size_t size = sizeof(type##_t); \
@@ -123,7 +131,10 @@ public:
         } \
       } \
       target_endian<type##_t> res; \
+      /*slow path is shared by both normal access and capability access*/ \
+      /*capability access only through slow path*/ \
       load_slow_path(addr, sizeof(type##_t), (uint8_t*)&res, (xlate_flags)); \
+      /*disable the flag after handling*/ \
       if (proc) proc->state.cap_access = false; \
       if (proc) READ_MEM(addr, size); \
       return from_target(res); \
@@ -134,7 +145,7 @@ public:
   load_func(uint16, load, 0)
   load_func(uint32, load, 0)
   load_func(uint64, load, 0)
-  load_func(uint128, load, 0)
+  load_func(uint128, load, 0) // load a uint128_t from memory
 
   // load value from guest memory at aligned address; zero extend to register width
   load_func(uint8, guest_load, RISCV_XLATE_VIRT)
@@ -149,7 +160,7 @@ public:
   load_func(int16, load, 0)
   load_func(int32, load, 0)
   load_func(int64, load, 0)
-  load_func(int128, load, 0)
+  load_func(int128, load, 0) // load a int128_t from memory
 
   // load value from guest memory at aligned address; sign extend to register width
   load_func(int8, guest_load, RISCV_XLATE_VIRT)
@@ -167,13 +178,19 @@ public:
   // template for functions that store an aligned value to memory
   #define store_func(type, prefix, xlate_flags) \
     void prefix##_##type(reg_t addr, type##_t val) { \
-      if(proc) assert(!(proc->is_secure_world() && proc->is_normal_access())); \
+      /*secure world can't access the normal memory*/ \
+      if(proc) { \
+        bool illegal_access = proc->is_secure_world() && proc->is_normal_access(); \
+        assert(illegal_access == false); \
+      } \
       if (unlikely(addr & (sizeof(type##_t)-1))) { \
+        /*capability access must be aligned*/ \
         if (proc && !(proc->is_normal_access())) store_conditional_address_misaligned(addr); \
         else return misaligned_store(addr, val, sizeof(type##_t), xlate_flags); \
       } \
       reg_t vpn = addr >> PGSHIFT; \
       size_t size = sizeof(type##_t); \
+      /*normal access through virtual memory first*/ \
       if (!proc || proc->is_normal_access()) { \
         if ((xlate_flags) == 0 && likely(tlb_store_tag[vpn % TLB_ENTRIES] == vpn)) { \
           if (proc) WRITE_MEM(addr, val, size); \
@@ -194,9 +211,11 @@ public:
           if (proc) WRITE_MEM(addr, val, size); \
         } \
       } \
+      /*capability access through slow path only*/ \
       else { \
         target_endian<type##_t> target_val = to_target(val); \
         store_slow_path(addr, sizeof(type##_t), (const uint8_t*)&target_val, (xlate_flags)); \
+        /*disable the flag after handling*/ \
         proc->state.cap_access = false; \
         if (proc) WRITE_MEM(addr, val, size); \
       } \
@@ -249,7 +268,7 @@ public:
   store_func(uint16, store, 0)
   store_func(uint32, store, 0)
   store_func(uint64, store, 0)
-  store_func(uint128, store, 0)
+  store_func(uint128, store, 0) // store a uint128_t value to memory
 
   // store value to guest memory at aligned address
   store_func(uint8, guest_store, RISCV_XLATE_VIRT)
@@ -449,6 +468,7 @@ private:
 
   // ITLB lookup
   inline tlb_entry_t translate_insn_addr(reg_t addr) {
+    /*in secure world, instruction fetch bypass iTLB*/
     if (proc && proc->is_secure_world()) {
       return fetch_slow_path(addr);
     }

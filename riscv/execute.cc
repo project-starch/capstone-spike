@@ -285,6 +285,7 @@ void processor_t::step(size_t n)
       {
         // Main simulation loop, fast path.
         if (is_secure_world()) {
+          // in secure world, we ignore the icache
           insn_fetch_t fetch = mmu->load_insn(pc);
           pc = execute_insn(this, pc, fetch);
           instret++;

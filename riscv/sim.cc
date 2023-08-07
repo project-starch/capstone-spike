@@ -371,6 +371,7 @@ void sim_t::set_rom()
   bus.add_device(DEFAULT_RSTVEC, boot_rom.get());
 }
 
+// from physical memory addr to device memory block pointer
 char* sim_t::addr_to_mem(reg_t addr) {
   if (!paddr_ok(addr))
     return NULL;
