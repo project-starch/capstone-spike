@@ -254,17 +254,16 @@ struct cap64_t
 };
 
 // capability CSR
-class ccsr_t {
+struct ccsr_t {
     cap64_t cap;
-    const bool sw_only; // secure_world_only; if false, normal_world_only
-    const bool readable;
-    const bool writable;
+    bool ccsr_sw_only; // secure_world_only; if false, normal_world_only
+    bool ccsr_readable;
+    bool ccsr_writable;
 
-    ccsr_t (const bool sw_only, const bool readable, const bool writable):
-      sw_only(sw_only),
-      readable(readable),
-      writable(writable)
-    {
+    void set_permission (bool sw_only, bool readable = true, bool writable = true) {
+      ccsr_sw_only = sw_only;
+      ccsr_readable = readable;
+      ccsr_writable = writable;
       cap.reset();
     }
 };

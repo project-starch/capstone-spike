@@ -780,9 +780,9 @@ public:
 /*regfile_cap_t operations impl*/
 /*rc_update is default to be true*/
 // read an integer
-template <class T, size_t N, bool zero_reg>
+template <class T, size_t N>
 const T&
-regfile_cap_t<T, N, zero_reg>::operator [] (size_t i)
+regfile_cap_t<T, N>::operator [] (size_t i)
 {
   if (i == 0 && zero_reg) {
     return data[0];
@@ -801,9 +801,9 @@ regfile_cap_t<T, N, zero_reg>::operator [] (size_t i)
 }
 
 // read a capability
-template <class T, size_t N, bool zero_reg>
+template <class T, size_t N>
 cap64_t&
-regfile_cap_t<T, N, zero_reg>::read_cap(size_t i)
+regfile_cap_t<T, N>::read_cap(size_t i)
 {
   if (i == 0 && zero_reg) {
     return cap_data[0].cap;
@@ -813,9 +813,9 @@ regfile_cap_t<T, N, zero_reg>::read_cap(size_t i)
 }
 
 // write an integer
-template <class T, size_t N, bool zero_reg>
+template <class T, size_t N>
 void
-regfile_cap_t<T, N, zero_reg>::write(size_t i, T value, bool rc_update/*=true*/)
+regfile_cap_t<T, N>::write(size_t i, T value, bool rc_update/*=true*/)
 {
   if (!zero_reg || i != 0){
     data[i] = value;
@@ -828,9 +828,9 @@ regfile_cap_t<T, N, zero_reg>::write(size_t i, T value, bool rc_update/*=true*/)
 
 // write a capability
 // return value: cap_is_linear; manually remove source if linear after write
-template <class T, size_t N, bool zero_reg>
+template <class T, size_t N>
 bool
-regfile_cap_t<T, N, zero_reg>::write_cap(size_t i, const cap64_t &cap, bool rc_update/*=true*/)
+regfile_cap_t<T, N>::write_cap(size_t i, const cap64_t &cap, bool rc_update/*=true*/)
 {
   if (!zero_reg || i != 0){
     if (rc_update && is_cap(i)) p->updateRC(cap_data[i].cap.node_id, -1);
@@ -842,9 +842,9 @@ regfile_cap_t<T, N, zero_reg>::write_cap(size_t i, const cap64_t &cap, bool rc_u
 }
 
 // move a capability
-template <class T, size_t N, bool zero_reg>
+template <class T, size_t N>
 void
-regfile_cap_t<T, N, zero_reg>::move(size_t to, size_t from)
+regfile_cap_t<T, N>::move(size_t to, size_t from)
 {
   if (from == to) return;
   assert(is_cap(from)); // FIXME: throw exception
@@ -855,9 +855,9 @@ regfile_cap_t<T, N, zero_reg>::move(size_t to, size_t from)
 }
 
 // FIXME
-template <class T, size_t N, bool zero_reg>
+template <class T, size_t N>
 void
-regfile_cap_t<T, N, zero_reg>::split_cap(size_t reg, size_t split_reg, reg_t pv, rev_node_id_t split_node_id) {
+regfile_cap_t<T, N>::split_cap(size_t reg, size_t split_reg, reg_t pv, rev_node_id_t split_node_id) {
   assert(split_node_id != REV_NODE_ID_INVALID);
   if (is_cap(split_reg)) p->updateRC(cap_data[split_reg].cap.node_id, -1);
   cap_data[split_reg] = cap_data[reg];
@@ -866,17 +866,17 @@ regfile_cap_t<T, N, zero_reg>::split_cap(size_t reg, size_t split_reg, reg_t pv,
   cap_data[split_reg].cap.base = pv;
 }
 // FIXME
-template <class T, size_t N, bool zero_reg>
+template <class T, size_t N>
 void
-regfile_cap_t<T, N, zero_reg>::delin(size_t reg) {
+regfile_cap_t<T, N>::delin(size_t reg) {
   assert(cap_data[reg].cap.type == CAP_TYPE_LINEAR);
   cap_data[reg].cap.type = CAP_TYPE_NONLINEAR;
   p->set_nonlinear(cap_data[reg].cap.node_id);
 }
 // FIXME
-template <class T, size_t N, bool zero_reg>
+template <class T, size_t N>
 void
-regfile_cap_t<T, N, zero_reg>::mrev(size_t reg, size_t cap_reg, rev_node_id_t new_node_id) {
+regfile_cap_t<T, N>::mrev(size_t reg, size_t cap_reg, rev_node_id_t new_node_id) {
   assert(new_node_id != REV_NODE_ID_INVALID);
   if (is_cap(reg)) p->updateRC(cap_data[reg].cap.node_id, -1);
   cap_data[reg] = cap_data[cap_reg];
