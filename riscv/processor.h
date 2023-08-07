@@ -233,6 +233,11 @@ struct state_t
   regfile_cap_t<reg_t, NXPR, true> XPR;
   regfile_t<freg_t, NFPR, false> FPR;
 
+  // capability control and status registers (CCSRs)
+  ccsr_t ceh;
+  ccsr_t epc;
+  ccsr_t switch_reg;
+
   // control and status registers
   std::unordered_map<uint64_t, csr_t_p> csrmap;
   reg_t prv;    // TODO: Can this be an enum instead?
@@ -566,6 +571,21 @@ public:
   const char* get_symbol(uint64_t addr);
 
   /*interface defined for capstone*/
+  /*ccsr*/
+  ccsr_t& get_ccsr(uint64_t ccsr_num) {
+    switch (ccsr_num) {
+      case CCSR_CEH:
+        return state.ceh;
+      case CCSR_CINIT:
+        return sim->get_cinit();
+      case CCSR_EPC:
+        return state.epc;
+      case CCSR_SWITCH_REG:
+        return state.switch_reg;
+      default:
+        abort();
+    }
+  }
   /*revocation tree interface*/
   inline bool valid_cap(rev_node_id_t node_id) const {
     return sim->get_rev_tree().is_valid(node_id);
@@ -607,10 +627,6 @@ public:
   }
   inline void switch_world(bool to_secure_world) {
     state.world = to_secure_world ? WORLD_SECURE : WORLD_NORMAL;
-  }
-  /*ccsr*/
-  inline cap_reg_t& get_ccsr(uint64_t ccsr_num) {
-    return sim->get_ccsr(ccsr_num);
   }
   /*spike parameters*/
   inline bool is_cap_debug_enabled() const {

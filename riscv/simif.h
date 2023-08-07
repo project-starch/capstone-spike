@@ -26,7 +26,7 @@ public:
   virtual uint64_t get_mem_partition_addr() = 0;
   virtual bool is_cap_debug_enabled() = 0;
   virtual bool is_pure_capstone() = 0;
-  virtual cap_reg_t& get_ccsr(uint64_t ccsr_num) = 0;
+  virtual ccsr_t& get_cinit() = 0;
 };
 
 #endif

@@ -241,7 +241,7 @@ int main(int argc, char** argv)
   std::vector<std::pair<reg_t, mem_t*>> mems;
   // secure memory
   std::vector<std::pair<reg_t, mem_t*>> cap_mems;
-  cap_reg_t secure_mem_init_cap;
+  cap64_t secure_mem_init_cap;
   // end of secure memory
   std::vector<std::pair<reg_t, abstract_device_t*>> plugin_devices;
   std::unique_ptr<icache_sim_t> ic;

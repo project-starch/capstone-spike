@@ -2871,6 +2871,12 @@
 #define MATCH_DTAGSET 0x1400005b
 #define MATCH_DTAGGET 0x1600005b
 /*end of capstone instructions*/
+/*capstone ccsrs*/
+#define CCSR_CEH 0x000
+#define CCSR_CINIT 0x002
+#define CCSR_EPC 0x003
+#define CCSR_SWITCH_REG 0x004
+/*end of capstone ccsrs*/
 /*capstone csrs*/
 // mask: 0x300 -> priviledge level
 // in capstone csrs, it's 0 (PRV_U)
@@ -4879,6 +4885,10 @@ DECLARE_CSR(mhpmcounter28h, CSR_MHPMCOUNTER28H)
 DECLARE_CSR(mhpmcounter29h, CSR_MHPMCOUNTER29H)
 DECLARE_CSR(mhpmcounter30h, CSR_MHPMCOUNTER30H)
 DECLARE_CSR(mhpmcounter31h, CSR_MHPMCOUNTER31H)
+/*capstone csrs*/
+DECLARE_CSR(tval, CSR_TVAL)
+DECLARE_CSR(cause, CSR_CAUSE)
+DECLARE_CSR(emode, CSR_EMODE)
 #endif
 #ifdef DECLARE_CAUSE
 DECLARE_CAUSE("misaligned fetch", CAUSE_MISALIGNED_FETCH)

@@ -96,11 +96,11 @@ private:
   uint64_t mem_partition_addr;
   bool cap_debug_enabled;
   bool pure_capstone;
-  /*capstone shared structure by cores*/
+  /*capstone shared structure by all cores*/
   TagController tag_controller;
   RevTree rev_tree;
-  /*ccsr list*/
-  cap_reg_t ccsr_cinit;
+  /*cinit is shared by all cores*/
+  ccsr_t cinit;
 
 #ifdef HAVE_BOOST_ASIO
   // the following are needed for command socket interface
@@ -175,13 +175,8 @@ private:
   bool is_pure_capstone() {
     return pure_capstone;
   }
-  // capstone ccsr
-  // FIXME
-  cap_reg_t& get_ccsr(uint64_t ccsr_num) {
-    switch (ccsr_num) {
-      case 2: return ccsr_cinit;
-      default: abort();
-    }
+  ccsr_t& get_cinit() {
+    return cinit;
   }
   /*end of shared structures for capstone*/
 

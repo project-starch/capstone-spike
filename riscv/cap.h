@@ -253,6 +253,22 @@ struct cap64_t
   }
 };
 
+// capability CSR
+class ccsr_t {
+    cap64_t cap;
+    const bool sw_only; // secure_world_only; if false, normal_world_only
+    const bool readable;
+    const bool writable;
+
+    ccsr_t (const bool sw_only, const bool readable, const bool writable):
+      sw_only(sw_only),
+      readable(readable),
+      writable(writable)
+    {
+      cap.reset();
+    }
+}
+
 // tag of the register
 typedef enum
 {
@@ -270,10 +286,10 @@ struct cap_reg_t
     tag = WORD_TAG_DATA;
   }
   /*tag check*/
-  bool is_cap() const {
+  inline bool is_cap() const {
     return tag == WORD_TAG_CAP;
   }
-  bool is_data() const {
+  inline bool is_data() const {
     return tag == WORD_TAG_DATA;
   }
   /*tag manipulation*/
@@ -284,15 +300,11 @@ struct cap_reg_t
   void set_data() {
     tag = WORD_TAG_DATA;
   }
-  /*initial capability for cinit*/
-  void init_cap(uint64_t init_base, uint64_t init_size) {
-    tag = WORD_TAG_CAP;
-    cap.init_cap(init_base, init_size);
-  }
   /*reset*/
   // reset is used in system reset
   void reset() {
     tag = WORD_TAG_DATA;
+    cap.reset();
   }
   // reset_i is used when clear a linear capability
   void reset_i() {
