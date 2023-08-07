@@ -43,7 +43,7 @@ public:
 #ifdef HAVE_BOOST_ASIO
         boost::asio::io_service *io_service_ptr_ctor, boost::asio::ip::tcp::acceptor *acceptor_ptr_ctor,  // option -s
 #endif
-        FILE *cmd_file, uint64_t mem_partition_addr, bool cap_debug_enabled, bool pure_capstone); // needed for command line option --cmd
+        FILE *cmd_file, uint64_t mem_partition_addr, bool cap_debug_enabled, bool pure_capstone, size_t rev_tree_node_num); // needed for command line option --cmd
   ~sim_t();
 
   // run the simulation to completion
@@ -96,11 +96,11 @@ private:
   uint64_t mem_partition_addr;
   bool cap_debug_enabled;
   bool pure_capstone;
-  /*capstone shared structure by cores*/
+  /*capstone shared structure by all cores*/
   TagController tag_controller;
   RevTree rev_tree;
-  /*ccsr list*/
-  cap_reg_t ccsr_cinit;
+  /*cinit is shared by all cores*/
+  ccsr_t cinit;
 
 #ifdef HAVE_BOOST_ASIO
   // the following are needed for command socket interface
@@ -175,13 +175,8 @@ private:
   bool is_pure_capstone() {
     return pure_capstone;
   }
-  // capstone ccsr
-  // FIXME
-  cap_reg_t& get_ccsr(uint64_t ccsr_num) {
-    switch (ccsr_num) {
-      case 2: return ccsr_cinit;
-      default: abort();
-    }
+  ccsr_t& get_cinit() {
+    return cinit;
   }
   /*end of shared structures for capstone*/
 

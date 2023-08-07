@@ -41,7 +41,7 @@ sim_t::sim_t(const char* isa, const char* priv, const char* varch,
 #ifdef HAVE_BOOST_ASIO
              boost::asio::io_service *io_service_ptr, boost::asio::ip::tcp::acceptor *acceptor_ptr, // option -s
 #endif
-             FILE *cmd_file, uint64_t mem_partition_addr, bool cap_debug_enabled, bool pure_capstone) // needed for command line option --cmd
+             FILE *cmd_file, uint64_t mem_partition_addr, bool cap_debug_enabled, bool pure_capstone, size_t rev_tree_node_num) // needed for command line option --cmd
   : htif_t(args),
     mems(mems),
     cap_mems(cap_mems),
@@ -58,7 +58,7 @@ sim_t::sim_t(const char* isa, const char* priv, const char* varch,
     mem_partition_addr(mem_partition_addr),
     cap_debug_enabled(cap_debug_enabled),
     pure_capstone(pure_capstone),
-    rev_tree(1024*1024), // TODO: parameterise the revocation tree size
+    rev_tree(rev_tree_node_num),
 #ifdef HAVE_BOOST_ASIO
     io_service_ptr(io_service_ptr), // socket interface
     acceptor_ptr(acceptor_ptr),
@@ -79,8 +79,10 @@ sim_t::sim_t(const char* isa, const char* priv, const char* varch,
   for (auto& x : mems)
     bus.add_device(x.first, x.second);
   
-  ccsr_cinit = secure_mem_init_cap;
-  ccsr_cinit.cap.node_id = rev_tree.allocate(REV_NODE_ID_INVALID);
+  cinit = ccsr_t(false, true, false);
+  secure_mem_init_cap.node_id = rev_tree.allocate(REV_NODE_ID_INVALID);
+  cinit.cap = secure_mem_init_cap;
+
   for (auto& x : cap_mems)
     bus.add_device(x.first, x.second);
 
@@ -371,6 +373,7 @@ void sim_t::set_rom()
   bus.add_device(DEFAULT_RSTVEC, boot_rom.get());
 }
 
+// from physical memory addr to device memory block pointer
 char* sim_t::addr_to_mem(reg_t addr) {
   if (!paddr_ok(addr))
     return NULL;

@@ -48,12 +48,13 @@ static void throw_access_exception(bool virt, reg_t addr, access_type type)
   }
 }
 
+/*translate: from virtual addr to physical addr*/
 reg_t mmu_t::translate(reg_t addr, reg_t len, access_type type, uint32_t xlate_flags)
 {
-  if (!proc)
-    return addr;
+  if (!proc) return addr;
+  // capability access: no translation
   if (!(proc->is_normal_access())) {
-    assert(addr >= sim->get_mem_partition_addr());
+    assert(addr >= sim->get_mem_partition_addr()); // dev check
     return addr;
   }
 
@@ -73,11 +74,13 @@ reg_t mmu_t::translate(reg_t addr, reg_t len, access_type type, uint32_t xlate_f
   }
 
   reg_t paddr = walk(addr, type, mode, virt, hlvx) | (addr & (PGSIZE-1));
-  // PMP is controlled by previledged software, So we don't need to check it if using capability
+  // PMP is controlled by privileged software, so we don't need to check it if using capability
+  // In other words, PMP can't taper the secure memory
   if (!pmp_ok(paddr, len, type, mode))
     throw_access_exception(virt, addr, type);
 
-  assert(paddr < sim->get_mem_partition_addr());
+  /*access to [paddr, paddr + len) can't taper the secure memory*/
+  assert(paddr <= sim->get_mem_partition_addr() - len); // FIXME: exception code
   return paddr;
 }
 
@@ -86,6 +89,7 @@ tlb_entry_t mmu_t::fetch_slow_path(reg_t vaddr)
   reg_t paddr = translate(vaddr, sizeof(fetch_temp), FETCH, 0);
 
   if (auto host_addr = sim->addr_to_mem(paddr)) {
+    /*secure world insn fetch: don't fill tlb*/
     if (proc && proc->is_secure_world()) {
       tlb_entry_t entry = {host_addr - vaddr, paddr - vaddr};
       return entry;
@@ -156,6 +160,7 @@ void mmu_t::load_slow_path(reg_t addr, reg_t len, uint8_t* bytes, uint32_t xlate
 
   if (auto host_addr = sim->addr_to_mem(paddr)) {
     memcpy(bytes, host_addr, len);
+    /*cache info update & tlb update only in normal access*/
     if (!proc || proc->is_normal_access()) {
       if (tracer.interested_in_range(paddr, paddr + PGSIZE, LOAD))
         tracer.trace(paddr, len, LOAD);
@@ -167,6 +172,7 @@ void mmu_t::load_slow_path(reg_t addr, reg_t len, uint8_t* bytes, uint32_t xlate
   }
 
   if (!matched_trigger) {
+    /*currently, breakpoint is not supported for capabilities*/
     reg_t data;
     if (len <= 8) data = reg_from_bytes(len, bytes);
     else data = uint64_t(0);
@@ -181,6 +187,7 @@ void mmu_t::store_slow_path(reg_t addr, reg_t len, const uint8_t* bytes, uint32_
   reg_t paddr = translate(addr, len, STORE, xlate_flags);
 
   if (!matched_trigger) {
+    /*currently, breakpoint is not supported for capabilities*/
     reg_t data;
     if (len <= 8) data = reg_from_bytes(len, bytes);
     else data = uint64_t(0);
@@ -191,6 +198,7 @@ void mmu_t::store_slow_path(reg_t addr, reg_t len, const uint8_t* bytes, uint32_
 
   if (auto host_addr = sim->addr_to_mem(paddr)) {
     memcpy(host_addr, bytes, len);
+    /*cache info update & tlb update only in normal access*/
     if (!proc || proc->is_normal_access()) {
       if (tracer.interested_in_range(paddr, paddr + PGSIZE, STORE))
         tracer.trace(paddr, len, STORE);

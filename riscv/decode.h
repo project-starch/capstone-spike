@@ -216,33 +216,46 @@ private:
 # define WRITE_VSTATUS STATE.log_reg_write[3] = {0, 0};
 #endif
 
-// Capstone macros
-#define require_capstone_debug assert(p->is_cap_debug_enabled())
-#define require_secure_world assert(p->is_secure_world())
+/*CAPSTONE MACROS*/
+
+// require
+#define require_debug assert(p->is_cap_debug_enabled())
 #define require_transcapstone assert(p->is_pure_capstone() == false)
+#define require_secure_world assert(p->is_secure_world())
 #define require_normal_world assert(p->is_secure_world() == false)
+// register operand
+// RS1, RS2, RD are defined elsewhere, meaning the value of the register
 #define Rs1 insn.rs1()
 #define Rs2 insn.rs2()
 #define Rd insn.rd()
-#define IS_CAP(reg) STATE.XPR.is_cap(reg)
-#define IS_DATA(reg) STATE.XPR.is_data(reg)
+// world switch
 #define TO_SECURE_WORLD() p->switch_world(true)
 #define TO_NORMAL_WORLD() p->switch_world(false)
+
+/*reg file interface*/
+#define ZERO_REG STATE.XPR.zero_reg()
+#define RESET_REG(reg) STATE.XPR.reset_i(reg)
+#define IS_CAP(reg) STATE.XPR.is_cap(reg)
+#define IS_DATA(reg) STATE.XPR.is_data(reg)
+// READ_REG and WRITE_REG are defined elsewhere for integer registers
 #define READ_CAP(reg) STATE.XPR.read_cap(reg)
 #define WRITE_CAP(reg, value) STATE.XPR.write_cap(reg, value)
+// write reg without rc update
 #define WRITE_CAP_DUMB(reg, value) STATE.XPR.write_cap(reg, value, false)
 #define WRITE_REG_DUMB(reg, value) STATE.XPR.write(reg, value, false)
+/*processor interface*/
 #define SET_CAP_ACCESS() p->set_cap_access()
-#define READ_CAP_NODE(reg) READ_CAP(reg).node_id
 #define VALID_CAP(reg) assert(p->valid_cap(READ_CAP_NODE(reg)))
-#define REQUIRE_ZERO_REG STATE.XPR.zero_reg_required()
 #define UPDATE_RC_UP(node_id) p->updateRC(node_id, 1)
 #define UPDATE_RC_DOWN(node_id) p->updateRC(node_id, -1)
 #define GET_TAG(addr) p->getTag(addr)
 #define SET_TAG(addr, as_cap) p->setTag(addr, as_cap)
-#define CAP_STRICT_LINEAR(reg) assert(READ_CAP(reg).type == CAP_TYPE_LINEAR)
+
+/*capability inteface*/
 #define CAP_IS_LINEAR(reg) assert(READ_CAP(reg).is_linear())
-#define RESET_REG(reg) STATE.XPR.reset_i(reg)
+#define READ_CAP_NODE(reg) READ_CAP(reg).node_id
+
+// FIXME
 #define MOVE(to, from) STATE.XPR.move(to, from)
 #define TIGHTEN_PERM(reg, x) READ_CAP(reg).tighten_perm(x)
 #define SHRINK_CAP(reg, base, end) READ_CAP(reg).shrink(base, end)
@@ -384,6 +397,7 @@ union reg_value {
   cap64_t cap;
   uint64_t data;
 };
+/*END OF CAPSTONE MACROS*/
 
 // RVC macros
 #define WRITE_RVC_RS1S(value) WRITE_REG(insn.rvc_rs1s(), value)

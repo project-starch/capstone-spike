@@ -17,18 +17,24 @@
 
 
 // implement class csr_t
-csr_t::csr_t(processor_t* const proc, const reg_t addr):
+csr_t::csr_t(processor_t* const proc, const reg_t addr, const bool sw_only /*= false*/):
   proc(proc),
   state(proc->get_state()),
   address(addr),
   csr_priv(get_field(addr, 0x300)),
-  csr_read_only(get_field(addr, 0xC00) == 3) {
+  csr_read_only(get_field(addr, 0xC00) == 3),
+  sw_only(sw_only) {
 }
 
 void csr_t::verify_permissions(insn_t insn, bool write) const {
   // Check permissions. Raise virtual-instruction exception if V=1,
   // privileges are insufficient, and the CSR belongs to supervisor or
   // hypervisor. Raise illegal-instruction exception otherwise.
+  /*check world*/
+  bool world_valid = (sw_only == proc->is_secure_world());
+  if (!world_valid)
+    throw trap_illegal_instruction(insn.bits());
+
   unsigned priv = state->prv == PRV_S && !state->v ? PRV_HS : state->prv;
 
   if ((csr_priv == PRV_S && !proc->extension_enabled('S')) ||
@@ -70,8 +76,8 @@ reg_t csr_t::written_value() const noexcept {
 }
 
 // implement class basic_csr_t
-basic_csr_t::basic_csr_t(processor_t* const proc, const reg_t addr, const reg_t init):
-  csr_t(proc, addr),
+basic_csr_t::basic_csr_t(processor_t* const proc, const reg_t addr, const reg_t init, const sw_only /*= false*/):
+  csr_t(proc, addr, sw_only),
   val(init) {
 }
 
@@ -294,8 +300,8 @@ bool tvec_csr_t::unlogged_write(const reg_t val) noexcept {
 
 
 // implement class cause_csr_t
-cause_csr_t::cause_csr_t(processor_t* const proc, const reg_t addr):
-  basic_csr_t(proc, addr, 0) {
+cause_csr_t::cause_csr_t(processor_t* const proc, const reg_t addr, const bool sw_only /*= false*/):
+  basic_csr_t(proc, addr, 0, sw_only) {
 }
 
 

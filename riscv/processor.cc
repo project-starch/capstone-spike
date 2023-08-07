@@ -390,6 +390,16 @@ void state_t::reset(processor_t* proc, reg_t max_isa)
 
   prv = PRV_M;
   v = false;
+  /*capstone ccsrs*/
+  ccsr_ceh = ccsr_t(true, true, true);
+  ccsr_epc = ccsr_t(true, true, true);
+  ccsr_switch_reg = ccsr_t(false, true, true);
+  /*end of capstone ccsrs*/
+  /*capstone csrs*/
+  csrmap[CSR_TVAL] = tval = std::make_shared<basic_csr_t>(proc, CSR_TVAL, 0, true);
+  csrmap[CSR_CAUSE] = cause = std::make_shared<cause_csr_t>(proc, CSR_CAUSE);
+  csrmap[CSR_EMODE] = emode = std::make_shared<basic_csr_t>(proc, CSR_EMODE, 0, true);
+  /*end of capstone csrs*/
   csrmap[CSR_MISA] = misa = std::make_shared<misa_csr_t>(proc, CSR_MISA, max_isa);
   csrmap[CSR_MSTATUS] = mstatus = std::make_shared<mstatus_csr_t>(proc, CSR_MSTATUS);
   if (xlen == 32) csrmap[CSR_MSTATUSH] = std::make_shared<mstatush_csr_t>(proc, CSR_MSTATUSH, mstatus);

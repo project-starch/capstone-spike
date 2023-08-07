@@ -31,7 +31,7 @@ struct RevNode {
 
 class RevTree {
 private:
-  int size, node_brk;
+  size_t size, node_brk;
   RevNode* nodes; // all nodes available in the system
   RevNode* free_nodes; // free list
   
@@ -43,7 +43,7 @@ private:
   void tryFreeing(RevNode* node);
 
 public:
-  RevTree(int size) : size(size), node_brk(0) {
+  RevTree(size_t size) : size(size), node_brk(0) {
     nodes = (RevNode*)malloc(sizeof(RevNode) * size);
     free_nodes = nullptr;
   }

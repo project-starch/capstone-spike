@@ -15,7 +15,7 @@ struct state_t;
 // Parent, abstract class for all CSRs
 class csr_t {
  public:
-  csr_t(processor_t* const proc, const reg_t addr);
+  csr_t(processor_t* const proc, const reg_t addr, const bool sw_only = false);
 
   // Throw exception if read/write disallowed.
   virtual void verify_permissions(insn_t insn, bool write) const;
@@ -52,6 +52,9 @@ class csr_t {
  private:
   const unsigned csr_priv;
   const bool csr_read_only;
+  /*sw_only: secure world only*/
+  /*default false; normal world only if false*/
+  const bool sw_only;
 };
 
 typedef std::shared_ptr<csr_t> csr_t_p;
@@ -60,7 +63,7 @@ typedef std::shared_ptr<csr_t> csr_t_p;
 // Basic CSRs, with XLEN bits fully readable and writable.
 class basic_csr_t: public csr_t {
  public:
-  basic_csr_t(processor_t* const proc, const reg_t addr, const reg_t init);
+  basic_csr_t(processor_t* const proc, const reg_t addr, const reg_t init, const sw_only = false);
   virtual reg_t read() const noexcept override;
  protected:
   virtual bool unlogged_write(const reg_t val) noexcept override;
@@ -170,7 +173,7 @@ class tvec_csr_t: public csr_t {
 // For mcause, scause, and vscause
 class cause_csr_t: public basic_csr_t {
  public:
-  cause_csr_t(processor_t* const proc, const reg_t addr);
+  cause_csr_t(processor_t* const proc, const reg_t addr, const bool sw_only = false);
 
   virtual reg_t read() const noexcept override;
 };

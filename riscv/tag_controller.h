@@ -4,8 +4,6 @@
 #include "cap.h"
 #include <unordered_set>
 
-const uint64_t WORD_SIZE = 16;
-
 class TagController
 {
 private:
