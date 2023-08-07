@@ -76,7 +76,7 @@ reg_t csr_t::written_value() const noexcept {
 }
 
 // implement class basic_csr_t
-basic_csr_t::basic_csr_t(processor_t* const proc, const reg_t addr, const reg_t init, const sw_only /*= false*/):
+basic_csr_t::basic_csr_t(processor_t* const proc, const reg_t addr, const reg_t init, const bool sw_only /*= false*/):
   csr_t(proc, addr, sw_only),
   val(init) {
 }

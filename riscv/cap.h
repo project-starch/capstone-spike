@@ -267,7 +267,7 @@ class ccsr_t {
     {
       cap.reset();
     }
-}
+};
 
 // tag of the register
 typedef enum

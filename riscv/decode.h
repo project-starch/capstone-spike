@@ -233,7 +233,6 @@ private:
 #define TO_NORMAL_WORLD() p->switch_world(false)
 
 /*reg file interface*/
-#define ZERO_REG STATE.XPR.zero_reg()
 #define RESET_REG(reg) STATE.XPR.reset_i(reg)
 #define IS_CAP(reg) STATE.XPR.is_cap(reg)
 #define IS_DATA(reg) STATE.XPR.is_data(reg)

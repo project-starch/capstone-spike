@@ -2875,7 +2875,7 @@
 #define CCSR_CEH 0x000
 #define CCSR_CINIT 0x002
 #define CCSR_EPC 0x003
-#define CCSR_SWITCH_REG 0x004
+#define CCSR_SWITCH_CAP 0x004
 /*end of capstone ccsrs*/
 /*capstone csrs*/
 // mask: 0x300 -> priviledge level

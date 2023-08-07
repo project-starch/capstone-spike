@@ -161,10 +161,13 @@ struct type_sew_t<64>
 };
 
 // capstone capability-extended register file
-template <class T, size_t N, bool zero_reg>
+template <class T, size_t N>
 class regfile_cap_t
 {
 public:
+  regfile_cap_t () {
+    zero_reg = true;
+  }
   /*init & reset*/
   // reset_i is used to clear a linear capability (set to cnull)
   void reset_i(size_t i) {
@@ -193,9 +196,6 @@ public:
     if (i == 0 && zero_reg) return true;
     return cap_data[i].is_cap();
   }
-  bool zero_reg() const {
-    return zero_reg;
-  }
   // basic operations
   inline size_t size() const { return N; }
   const T& operator [] (size_t i);
@@ -215,6 +215,7 @@ private:
   processor_t *p;
   T data[N];
   cap_reg_t cap_data[N];
+  bool zero_reg;
 };
 
 // architectural state of a RISC-V hart
@@ -230,13 +231,13 @@ struct state_t
   bool cap_access; // set to true if the memory access is 
   world_type_t world;
   /*end of capstone defined processor states*/
-  regfile_cap_t<reg_t, NXPR, true> XPR;
+  regfile_cap_t<reg_t, NXPR> XPR;
   regfile_t<freg_t, NFPR, false> FPR;
 
   // capability control and status registers (CCSRs)
   ccsr_t ceh;
   ccsr_t epc;
-  ccsr_t switch_reg;
+  ccsr_t switch_cap;
   // other shadow registers added in capstone
   uint64_t normal_pc;
   uint64_t normal_sp;
@@ -585,8 +586,8 @@ public:
         return sim->get_cinit();
       case CCSR_EPC:
         return state.epc;
-      case CCSR_SWITCH_REG:
-        return state.switch_reg;
+      case CCSR_SWITCH_CAP:
+        return state.switch_cap;
       default:
         abort();
     }

@@ -391,9 +391,9 @@ void state_t::reset(processor_t* proc, reg_t max_isa)
   prv = PRV_M;
   v = false;
   /*capstone ccsrs*/
-  ccsr_ceh = ccsr_t(true, true, true);
-  ccsr_epc = ccsr_t(true, true, true);
-  ccsr_switch_reg = ccsr_t(false, true, true);
+  ceh = ccsr_t(true, true, true);
+  epc = ccsr_t(true, true, true);
+  switch_cap = ccsr_t(false, true, true);
   /*end of capstone ccsrs*/
   /*capstone csrs*/
   csrmap[CSR_TVAL] = tval = std::make_shared<basic_csr_t>(proc, CSR_TVAL, 0, true);
