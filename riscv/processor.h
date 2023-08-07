@@ -237,6 +237,11 @@ struct state_t
   ccsr_t ceh;
   ccsr_t epc;
   ccsr_t switch_reg;
+  // other shadow registers added in capstone
+  uint64_t normal_pc;
+  uint64_t normal_sp;
+  uint64_t switch_reg;
+  uint64_t exit_reg;
 
   // control and status registers
   std::unordered_map<uint64_t, csr_t_p> csrmap;
