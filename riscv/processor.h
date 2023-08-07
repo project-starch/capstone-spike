@@ -237,6 +237,11 @@ struct state_t
   std::unordered_map<uint64_t, csr_t_p> csrmap;
   reg_t prv;    // TODO: Can this be an enum instead?
   bool v;
+  /*capstone CSRs*/
+  csr_t_p tval;
+  csr_t_p cause;
+  csr_t_p emode;
+  /*end of capstone CSRs*/
   misa_csr_t_p misa;
   mstatus_csr_t_p mstatus;
   csr_t_p mepc;
@@ -255,10 +260,6 @@ struct state_t
   csr_t_p stvec;
   virtualized_csr_t_p satp;
   csr_t_p scause;
-
-  /*capstone CSRs*/
-  // TODO
-  /*end of capstone CSRs*/
 
   csr_t_p mtval2;
   csr_t_p mtinst;

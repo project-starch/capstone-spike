@@ -4,7 +4,6 @@
 #include "insn_macros.h"
 
 // FIXME: throw an exception
-// where is alignment check in the original code? for now, we just check here as well anyway
 #define cap_pc_forward() \
   if (p->is_secure_world()) { \
     cap64_t cap_pc = p->get_state()->cap_pc; \

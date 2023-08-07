@@ -2871,6 +2871,15 @@
 #define MATCH_DTAGSET 0x1400005b
 #define MATCH_DTAGGET 0x1600005b
 /*end of capstone instructions*/
+/*capstone csrs*/
+// mask: 0x300 -> priviledge level
+// in capstone csrs, it's 0 (PRV_U)
+// mask: 0xC00 -> if 3, then read only
+// in capstone csrs, it's 2 (read-write)
+#define CSR_TVAL 0x801
+#define CSR_CAUSE 0x802
+#define CSR_EMODE 0x804
+/*end of capstone csrs*/
 #define CSR_FFLAGS 0x1
 #define CSR_FRM 0x2
 #define CSR_FCSR 0x3
