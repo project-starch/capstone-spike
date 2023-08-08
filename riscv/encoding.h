@@ -3243,6 +3243,16 @@
 #define CAUSE_LOAD_GUEST_PAGE_FAULT 0x15
 #define CAUSE_VIRTUAL_INSTRUCTION 0x16
 #define CAUSE_STORE_GUEST_PAGE_FAULT 0x17
+/*capstone added exception code*/
+#define CAUSE_UNEXPECTED_CAP_OPERAND 0x18
+#define CAUSE_INVALID_CAPABILITY 0x19
+#define CAUSE_UNEXPECTED_CAP_TYPE 0x1a
+#define CAUSE_INSUFFICIENT_CAP_PERMS 0x1b
+#define CAUSE_CAP_OUT_OF_BOUND 0x1c
+#define CAUSE_ILLEGAL_OPERAND_VALUE 0x1d
+// CAUSE_UNHANDLEABLE_EXCEPTION only used in pure capstone
+// #define CAUSE_UNHANDLEABLE_EXCEPTION 0x3f
+/*end of capstone added exception code*/
 #endif
 #ifdef DECLARE_INSN
 DECLARE_INSN(slli_rv32, MATCH_SLLI_RV32, MASK_SLLI_RV32)
@@ -4910,4 +4920,13 @@ DECLARE_CAUSE("fetch guest page fault", CAUSE_FETCH_GUEST_PAGE_FAULT)
 DECLARE_CAUSE("load guest page fault", CAUSE_LOAD_GUEST_PAGE_FAULT)
 DECLARE_CAUSE("virtual instruction", CAUSE_VIRTUAL_INSTRUCTION)
 DECLARE_CAUSE("store guest page fault", CAUSE_STORE_GUEST_PAGE_FAULT)
+/*capstone added exceptions*/
+DECLARE_CAUSE("unexpected capability operand", CAUSE_UNEXPECTED_CAP_OPERAND)
+DECLARE_CAUSE("invalid capability", CAUSE_INVALID_CAPABILITY)
+DECLARE_CAUSE("unexpected capability type", CAUSE_UNEXPECTED_CAP_TYPE)
+DECLARE_CAUSE("insufficient capability permissions", CAUSE_INSUFFICIENT_CAP_PERMS)
+DECLARE_CAUSE("capability out of bound", CAUSE_CAP_OUT_OF_BOUND)
+DECLARE_CAUSE("illegal operand value", CAUSE_ILLEGAL_OPERAND_VALUE)
+// DECLARE_CAUSE("unhandleable exception", CAUSE_UNHANDLEABLE_EXCEPTION)
+/*end of capstone added exceptions*/
 #endif
