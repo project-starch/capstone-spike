@@ -768,12 +768,81 @@ void processor_t::set_mmu_capability(int cap)
   }
 }
 
-// FIXME
+/*interrupt handling*/
 void processor_t::take_interrupt(reg_t pending_interrupts)
 {
   // Do nothing if no pending interrupts
   if (!pending_interrupts) {
     return;
+  }
+
+  /*world switching before taking interrupt if in secure world*/
+  if (is_secure_world()) {
+    /*check if switch_cap is valid for world switching*/
+    cap64_t switch_cap_val = state.switch_cap.cap;
+    bool val_valid_cap = valid_cap(switch_cap_val.node_id);
+    bool val_valid_type = (switch_cap_val.type == CAP_TYPE_LINEAR || switch_cap_val.type == CAP_TYPE_UNINITIALIZED);
+    bool val_base_align = (switch_cap_val.base % CLENBYTES == 0);
+    bool val_valid_perm = switch_cap_val.cap_perm_cmp(CAP_PERM_RW, false);
+    bool val_bound_size = (switch_cap_val.end - switch_cap_val.base >= CLENBYTES * 33);
+
+    bool valid_switch_cap = val_valid_cap && val_valid_type && val_base_align && val_valid_perm && val_bound_size;
+
+    if (valid_switch_cap) {
+      /*switch_cap is a valid ccsr, context switching*/
+      uint64_t tmp_addr = switch_cap_val.base;
+
+      /*pc*/
+      store_update_rc(tmp_addr);
+      set_cap_access();
+      get_mmu()->store_uint128(tmp_addr, state.cap_pc.to128());
+      /*ceh*/
+      tmp_addr += CLENBYTES;
+      store_update_rc(tmp_addr);
+      set_cap_access();
+      get_mmu()->store_uint128(tmp_addr, tmp_data);
+      state.ceh.cap.reset();
+      /*31 GPRs*/
+      for (int i = 1; i < 32; i++) {
+        tmp_addr += CLENBYTES;
+        store_update_rc(tmp_addr);
+        set_cap_access();
+        bool reg_is_cap = state.XPR.is_cap(i);
+        if (reg_is_cap) {
+          get_mmu()->store_uint128(tmp_addr, state.XPR.read_cap(i).to128());
+        }
+        else {
+          get_mmu()->store_uint64(tmp_addr, state.XPR[i]);
+        }
+        // scrub other regs
+        if (i != 2 && i != state.switch_reg) {
+          state.XPR.reset_i(i);
+        }
+      }
+      /*normal_pc & normal_sp*/
+      state.pc = state.normal_pc;
+      state.XPR[2] = state.normal_sp;
+      /*switch_cap*/
+      state.switch_cap.cap.type = CAP_TYPE_SEALED;
+      state.switch_cap.cap.async = CAP_ASYNC_INTERRUPT;
+      state.XPR.write_cap(state.switch_reg, state.switch_cap.cap);
+      state.switch_cap.cap.reset();
+    }
+    else {
+      /*switch_cap is invalid*/
+      // pc, sp, switch_reg
+      state.pc = state.normal_pc;
+      state.XPR[2] = state.normal_sp;
+      state.XPR.reset_i(state.switch_reg);
+      // scrub other regs
+      for (int i = 1; i < 32; i++) {
+        if (i != 2 && i != state.switch_reg) {
+          state.XPR.reset_i(i);
+        }
+      }
+    }
+
+    switch_world(false);
   }
 
   // M-ints have higher priority over HS-ints and VS-ints
@@ -882,6 +951,7 @@ void processor_t::debug_output_log(std::stringstream *s)
   }
 }
 
+// FIXME
 void processor_t::take_trap(trap_t& t, reg_t epc)
 {
   if (debug) {

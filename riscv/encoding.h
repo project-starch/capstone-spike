@@ -4900,6 +4900,7 @@ DECLARE_CSR(tval, CSR_TVAL)
 DECLARE_CSR(cause, CSR_CAUSE)
 DECLARE_CSR(emode, CSR_EMODE)
 #endif
+/*DECLARE_CAUSE is not defined in Spike now, only for future use*/
 #ifdef DECLARE_CAUSE
 DECLARE_CAUSE("misaligned fetch", CAUSE_MISALIGNED_FETCH)
 DECLARE_CAUSE("fetch access", CAUSE_FETCH_ACCESS)

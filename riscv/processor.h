@@ -169,7 +169,7 @@ public:
     zero_reg = true;
   }
   /*init & reset*/
-  // reset_i is used to clear a linear capability (set to cnull)
+  // reset_i is used to clear a linear capability (set to zero/cnull), tag remains the same
   void reset_i(size_t i) {
     if (i != 0 || !zero_reg) {
       memset(data + i, 0, sizeof(data[i]));
@@ -577,20 +577,9 @@ public:
   const char* get_symbol(uint64_t addr);
 
   /*interface defined for capstone*/
-  /*ccsr*/
-  ccsr_t& get_ccsr(uint64_t ccsr_num) {
-    switch (ccsr_num) {
-      case CCSR_CEH:
-        return state.ceh;
-      case CCSR_CINIT:
-        return sim->get_cinit();
-      case CCSR_EPC:
-        return state.epc;
-      case CCSR_SWITCH_CAP:
-        return state.switch_cap;
-      default:
-        abort();
-    }
+  /*cinit*/
+  inline ccsr_t& get_cinit() {
+    return sim->get_cinit();
   }
   /*revocation tree interface*/
   inline bool valid_cap(rev_node_id_t node_id) const {
@@ -618,6 +607,7 @@ public:
   inline void setTag(uint64_t addr, bool as_cap) {
     sim->get_tag_controller().setTag(addr, as_cap);
   }
+  // return_value: is_cap
   virtual bool getTag(uint64_t addr) {
     return sim->get_tag_controller().getTag(addr);
   }
@@ -633,6 +623,17 @@ public:
   }
   inline void switch_world(bool to_secure_world) {
     state.world = to_secure_world ? WORLD_SECURE : WORLD_NORMAL;
+  }
+  /*memory access*/
+  // RC down when overwriting a cap during store
+  void store_update_rc(uint64_t addr, bool is_aligned = true) const {
+    if (!is_aligned) addr &= ~(CLENBYTES - 1);
+    if (getTag(addr)) {
+      set_cap_access();
+      uint128_t data = get_mmu()->load_uint128(addr);
+      cap64_t cap;
+      updateRC(cap.get_node_id(data), -1);
+    }
   }
   /*spike parameters*/
   inline bool is_cap_debug_enabled() const {
