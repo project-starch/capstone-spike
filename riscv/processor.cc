@@ -844,6 +844,7 @@ void processor_t::take_interrupt(reg_t pending_interrupts)
 
     switch_world(false);
   }
+  /*end of transcapstone support*/
 
   // M-ints have higher priority over HS-ints and VS-ints
   const reg_t mie = get_field(state.mstatus->read(), MSTATUS_MIE);
@@ -951,7 +952,7 @@ void processor_t::debug_output_log(std::stringstream *s)
   }
 }
 
-// FIXME
+/*exception handling in normal world*/
 void processor_t::take_trap(trap_t& t, reg_t epc)
 {
   if (debug) {
