@@ -1,13 +1,9 @@
 :isa_var_pure: Pure Capstone
 :isa_var_hybrid: TransCapstone
 
-= Debugging
+= Debugging in Spike
 
-== Spike Debug Mode
-
-== Debugging with Gdb
-
-== Debugging Instructions
+== List of Debugging Instructions
 
 .Debugging instructions
 [%header%autowidth.stretch]

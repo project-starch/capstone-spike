@@ -1,13 +1,61 @@
 = Spike Implementation of the Capstone-RISC-V ISA
 
-== Capability Format
+== Compressed Capability Format
 
-* If the `type` field of the capability is `0` (linear), `1` (non-linear), `2` (revocation) or `3` (uninitialized):
+* If the `type` field of the capability is `0` (linear), `1` (non-linear), `2` (revocation) or `3` (uninitialised):
 
-.capability format for linear, non-linear, revocation and uninitialized capabilities
-image::figs/insn-type-0123.svg[insn-type-0123]
+[#cap-format-0123]
+.capability format for linear, non-linear, revocation and uninitialised capabilities
+image::figs/cap-type-0123.svg[cap-type-0123]
 
-* If the `type` field of the capability is `4` (sealed), `5` (sealed-return), `6` (exit)
+* If the `type` field of the capability is `4` (sealed), `5` (sealed-return), `6` (exit):
 
+[#cap-format-456]
 .capability format for sealed, sealed-return and exit capabilities
-image::figs/insn-type-456.svg[insn-type-456]
+image::figs/cap-type-456.svg[cap-type-456]
+
+=== Fields and Compression Mechanism
+
+The relation between the fields of the capability and bits of the compressed capability format is shown in the following table:
+
+.Decoding correspondence of linear, non-linear, revocation and uninitialized capability format
+[%header%autowidth.stretch]
+|===
+|Field |Bits |Compressed |Additional Data Structure
+|`valid` |`node-id`|- |Revocation Tree
+|`type` |`type`|No |-
+|`cursor` |`cursor`|No |-
+|`base` |`bound`|Yes |-
+|`end` |`bound`|Yes |-
+|`perms` |`perm`|No |-
+|===
+
+.*Note: the compression mechanism of the format*
+[%collapsible]
+====
+****
+The compression mechanism of the `base` and `end` fields is the same as the one used in the compressed capability format of the https://www.cl.cam.ac.uk/techreports/UCAM-CL-TR-951.pdf[CHERI-RISC-V ISA].
+****
+====
+
+.Decoding correspondence of sealed, sealed-return and exit capability format
+[%header%autowidth.stretch]
+|===
+|Field |Bits |Compressed |Additional Data Structure
+|`valid` |`node-id`|- |Revocation Tree
+|`type` |`type`|No |-
+|`cursor` |`cursor`, `base`|Yes |-
+|`base` |`base`|No |-
+|`async` |`async`|No |-
+|`reg` |`reg`|No |-
+|===
+
+.*Note: the compression mechanism of the format*
+[%collapsible]
+====
+****
+The compression mechanism of the `cursor` field is straightforward: `cursor = sign_extend(capability[86:64]) + capability[63:0]`.
+****
+====
+
+== Implementation of the `valid` field
