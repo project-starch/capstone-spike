@@ -17,6 +17,7 @@
     assert(pc_valid_perm); \
     bool pc_in_bounds = cap_pc.in_bound(insn_length(OPCODE)); \
     assert(pc_in_bounds); \
+    /*no need to set state.pc here, it's set by the caller*/ \
     p->get_state()->cap_pc.cursor = npc; \
   }
 

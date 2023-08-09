@@ -225,6 +225,8 @@ struct state_t
 
   static const int num_triggers = 4;
 
+  // pc is served as the functional cursor of cap_pc in the secure world
+  // set pc as well if you want to change the cap_pc
   reg_t pc;
   /*capstone defined processor states*/
   cap64_t cap_pc;

@@ -952,9 +952,85 @@ void processor_t::debug_output_log(std::stringstream *s)
   }
 }
 
-/*exception handling in normal world*/
+/*exception handling*/
 void processor_t::take_trap(trap_t& t, reg_t epc)
 {
+  /*secure world exceptions are handled here*/
+  /*the orignial handling mechanism in RISC-V will not be evoked afterwards*/
+  if (is_secure_world()) {
+    cap64_t ceh_val = state.ceh.cap;
+    bool valid_ceh = valid_cap(ceh_val.node_id);
+    bool enter_eh_domain = (ceh_val.type == CAP_TYPE_SEALED && ceh_val.async == CAP_ASYNC_SYNC);
+    bool in_domain_eh = ((ceh_val.type == CAP_TYPE_LINEAR || ceh_val.type == CAP_TYPE_NONLINEAR) && ceh_val.cap_perm_cmp(CAP_PERM_X, false));
+    const uint64_t exception_code = 0;
+
+    /*exception handler domain*/
+    if (valid_ceh && enter_eh_domain) {
+      cap64_t tmp_cap;
+      uint128_t tmp_data;
+      uint64_t tmp_addr = ceh_val.base;
+
+      /*pc*/
+      set_cap_access();
+      tmp_cap.from128(get_mmu()->load_uint128(tmp_addr));
+      set_cap_access();
+      get_mmu()->store_uint128(tmp_addr, state.cap_pc.to128());
+      state.cap_pc = tmp_cap;
+      state.pc = tmp_cap.cursor;
+      /*31 GPRs*/
+      tmp_addr += CLENBYTES;
+      for (int i = 1; i < 32; i++) {
+        tmp_addr += CLENBYTES;
+        set_cap_access();
+        tmp_cap.from128(get_mmu()->load_uint128(tmp_addr));
+        set_cap_access();
+        get_mmu()->store_uint128(tmp_addr, state.XPR.read_cap(i).to128());
+        state.XPR.write_cap(i, tmp_cap, false);
+      }
+      /*ceh -> cra*/
+      state.ceh.cap.type = CAP_TYPE_SEALEDRET;
+      state.ceh.cap.cursor = state.ceh.cap.base;
+      state.ceh.cap.async = CAP_ASYNC_EXCEPTION;
+      state.XPR.write_cap(1, state.ceh.cap);
+      state.ceh.cap.reset();
+      /*ceh*/
+      tmp_addr = state.XPR.read_cap(1).base + CLENBYTES;
+      set_cap_access();
+      tmp_cap.from128(get_mmu()->load_uint128(tmp_addr));
+      set_cap_access();
+      get_mmu()->store_uint128(tmp_addr, state.ceh.cap.to128());
+      state.ceh.cap = tmp_cap;
+      /*a0*/
+      state.XPR.write(10, exception_code);
+    }
+    /*in-domain exception handling*/
+    else if (valid_ceh && in_domain_eh) {
+      /*pc -> epc*/
+      updateRC(state.epc.node, -1); // corner case cnull is handled in rt impl
+      state.epc.cap = state.cap_pc;
+      /*ceh -> pc*/
+      state.cap_pc = state.ceh.cap;
+      state.pc = state.ceh.cap.cursor;
+      if (state.ceh.cap.is_linear()) {
+        state.ceh.cap.reset();
+      }
+      else {
+        updateRC(state.ceh.node, 1);
+      }
+      /*cause*/
+      state.cause->write(t.cause());
+      /*tval*/
+      state.tval->write(t.get_tval());
+    }
+    /*switch_world: unhandleable exception*/
+    else {
+      // TODO
+    }
+    
+    return;
+  }
+  
+  /*currently the debug machanism is not considered with capstone*/
   if (debug) {
     std::stringstream s; // first put everything in a string, later send it to output
     s << "core " << std::dec << std::setfill(' ') << std::setw(3) << id
