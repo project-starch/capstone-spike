@@ -1,13 +1,9 @@
 :isa_var_pure: Pure Capstone
 :isa_var_hybrid: TransCapstone
 
-= Debugging
+= Debugging in Spike
 
-== Spike Debug Mode
-
-== Debugging with Gdb
-
-== Debugging Instructions
+== List of Debugging Instructions
 
 .Debugging instructions
 [%header%autowidth.stretch]
@@ -72,30 +68,10 @@ The instructions SETWORLD and ONPARTITION are related to world switching
 in {isa_var_hybrid}. 
 
 .SETWORLD instruction format
-[wavedrom,,svg]
-....
-{reg: [
-    {bits: 7, name: '0b1011011'},
-    {bits: 5, name: '*' },
-    {bits: 3, name: '0b000' },
-    {bits: 5, name: 'rs1 (I)' },
-    {bits: 5, name: '*' },
-    {bits: 7, name: '0b0001100' }
-]}
-....
+image::figs/insn/setworld.svg[setworld]
 
 .ONPARTITION instruction format
-[wavedrom,,svg]
-....
-{reg: [
-    {bits: 7, name: '0b1011011'},
-    {bits: 5, name: '*' },
-    {bits: 3, name: '0b000' },
-    {bits: 5, name: 'rs1 (I)' },
-    {bits: 5, name: '*' },
-    {bits: 7, name: '0b0001101' }
-]}
-....
+image::figs/insn/onpartition.svg[onpartition]
 
 The instructions load their operands from
 the register `x[rs1]`, which expects
@@ -120,30 +96,10 @@ The instructions SETEH and ONNORMALEH affect the behaviours of interrupt and exc
 handling.
 
 .SETEH instruction format
-[wavedrom,,svg]
-....
-{reg: [
-    {bits: 7, name: '0b1011011'},
-    {bits: 5, name: '*' },
-    {bits: 3, name: '0b000' },
-    {bits: 5, name: 'rs1 (C)' },
-    {bits: 5, name: '*' },
-    {bits: 7, name: '0b0001110' }
-]}
-....
+image::figs/insn/seteh.svg[seteh]
 
 .ONNORMALEH instruction format
-[wavedrom,,svg]
-....
-{reg: [
-    {bits: 7, name: '0b1011011'},
-    {bits: 5, name: '*' },
-    {bits: 3, name: '0b000' },
-    {bits: 5, name: 'rs1 (I)' },
-    {bits: 5, name: '*' },
-    {bits: 7, name: '0b0001111' }
-]}
-....
+image::figs/insn/onnormaleh.svg[onnormaleh]
 
 The SETEH instruction sets the secure-world
 exception handler domain (i.e., `ceh`) to the specified capability
