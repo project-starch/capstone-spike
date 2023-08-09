@@ -9,8 +9,8 @@ The Capstone-RISC-V Spike Simulator simulates a Capstone-RISC-V processor.
 The interface of the processor follows the [Capstone-RISC-V ISA](https://capstone.kisp-lab.org/specs/), and some implementation-defined specifications are provided:
 
 - [Spike simulator's implementation of Capstone-RISC-V](docs/spike-impl.adoc)
-- [Spike debugging manual](docs/spike-debug.adoc)
-- [Developer's manual](docs/dev-manual.adoc)
+- [Debugging in Spike](docs/spike-debug.adoc)
+- [Capstone-RISC-V Spike developer guide](docs/dev-manual.adoc)
 
 ## Quick Start
 
