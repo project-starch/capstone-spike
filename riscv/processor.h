@@ -170,12 +170,7 @@ public:
   }
   /*init & reset*/
   // reset_i is used to clear a linear capability (set to zero/cnull), tag remains the same
-  void reset_i(size_t i) {
-    if (i != 0 || !zero_reg) {
-      memset(data + i, 0, sizeof(data[i]));
-      cap_data[i].reset_i();
-    }
-  }
+  void reset_i(size_t i, bool rc_update=false);
   // reset is used in system reset
   void reset(processor_t *proc)
   {
@@ -781,7 +776,20 @@ public:
 };
 
 /*regfile_cap_t operations impl*/
-/*rc_update is default to be true*/
+// reset_i is used to reset a register to cnull/zero
+template <class T, size_t N>
+void
+regfile_cap_t<T, N>::reset_i(size_t i, bool rc_update/*=false*/) {
+  if (i != 0 || !zero_reg) {
+    // update reference count
+    if (rc_update && cap_data[i].is_cap()) {
+      p->updateRC(cap_data[i].node_id, -1);
+    }
+    
+    memset(data + i, 0, sizeof(data[i]));
+    cap_data[i].reset_i();
+  }
+}
 // read an integer
 template <class T, size_t N>
 const T&

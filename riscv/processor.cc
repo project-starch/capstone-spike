@@ -821,7 +821,7 @@ void processor_t::take_interrupt(reg_t pending_interrupts)
       }
       /*normal_pc & normal_sp*/
       state.pc = state.normal_pc;
-      state.XPR[2] = state.normal_sp;
+      state.XPR.write(2, state.normal_sp);
       /*switch_cap*/
       state.switch_cap.cap.type = CAP_TYPE_SEALED;
       state.switch_cap.cap.async = CAP_ASYNC_INTERRUPT;
@@ -830,18 +830,19 @@ void processor_t::take_interrupt(reg_t pending_interrupts)
     }
     else {
       /*switch_cap is invalid*/
-      // pc, sp, switch_reg
+      /*pc & sp*/
       state.pc = state.normal_pc;
-      state.XPR[2] = state.normal_sp;
-      state.XPR.reset_i(state.switch_reg);
+      state.XPR.write(2, state.normal_sp);
+      /*x[switch_reg]*/
+      state.XPR.reset_i(state.switch_reg, true);
       // scrub other regs
       for (int i = 1; i < 32; i++) {
         if (i != 2 && i != state.switch_reg) {
-          state.XPR.reset_i(i);
+          state.XPR.reset_i(i, true);
         }
       }
     }
-
+    /*set cwrld*/
     switch_world(false);
   }
   /*end of transcapstone support*/
@@ -962,7 +963,6 @@ void processor_t::take_trap(trap_t& t, reg_t epc)
     bool valid_ceh = valid_cap(ceh_val.node_id);
     bool enter_eh_domain = (ceh_val.type == CAP_TYPE_SEALED && ceh_val.async == CAP_ASYNC_SYNC);
     bool in_domain_eh = ((ceh_val.type == CAP_TYPE_LINEAR || ceh_val.type == CAP_TYPE_NONLINEAR) && ceh_val.cap_perm_cmp(CAP_PERM_X, false));
-    const uint64_t exception_code = 0;
 
     /*exception handler domain*/
     if (valid_ceh && enter_eh_domain) {
@@ -1001,7 +1001,7 @@ void processor_t::take_trap(trap_t& t, reg_t epc)
       get_mmu()->store_uint128(tmp_addr, state.ceh.cap.to128());
       state.ceh.cap = tmp_cap;
       /*a0*/
-      state.XPR.write(10, exception_code);
+      state.XPR.write(10, t.cause());
     }
     /*in-domain exception handling*/
     else if (valid_ceh && in_domain_eh) {
@@ -1024,7 +1024,74 @@ void processor_t::take_trap(trap_t& t, reg_t epc)
     }
     /*switch_world: unhandleable exception*/
     else {
-      // TODO
+      const exit_code = 0;
+      cap64_t switch_cap_val = state.switch_cap.cap;
+      bool val_valid_cap = valid_cap(switch_cap_val.node_id);
+      bool val_valid_type = (switch_cap_val.type == CAP_TYPE_LINEAR || switch_cap_val.type == CAP_TYPE_UNINITIALIZED);
+      bool val_base_align = (switch_cap_val.base % CLENBYTES == 0);
+      bool val_valid_perm = switch_cap_val.cap_perm_cmp(CAP_PERM_RW, false);
+      bool val_bound_size = (switch_cap_val.end - switch_cap_val.base >= CLENBYTES * 33);
+
+      bool valid_switch_cap = val_valid_cap && val_valid_type && val_base_align && val_valid_perm && val_bound_size;
+
+      if (valid_switch_cap) {
+        /*switch_cap is a valid ccsr, context switching*/
+        uint64_t tmp_addr = switch_cap_val.base;
+
+        /*pc*/
+        store_update_rc(tmp_addr);
+        set_cap_access();
+        get_mmu()->store_uint128(tmp_addr, state.cap_pc.to128());
+        /*ceh*/
+        tmp_addr += CLENBYTES;
+        store_update_rc(tmp_addr);
+        set_cap_access();
+        get_mmu()->store_uint128(tmp_addr, tmp_data);
+        state.ceh.cap.reset();
+        /*31 GPRs*/
+        for (int i = 1; i < 32; i++) {
+          tmp_addr += CLENBYTES;
+          store_update_rc(tmp_addr);
+          set_cap_access();
+          bool reg_is_cap = state.XPR.is_cap(i);
+          if (reg_is_cap) {
+            get_mmu()->store_uint128(tmp_addr, state.XPR.read_cap(i).to128());
+          }
+          else {
+            get_mmu()->store_uint64(tmp_addr, state.XPR[i]);
+          }
+          // scrub other regs
+          if (i != 2 && i != state.switch_reg) {
+            state.XPR.reset_i(i);
+          }
+        }
+        /*normal_pc & normal_sp*/
+        state.pc = state.normal_pc;
+        state.XPR.write(2, state.normal_sp);
+        /*switch_cap*/
+        state.switch_cap.cap.type = CAP_TYPE_SEALED;
+        state.switch_cap.cap.async = CAP_ASYNC_EXCEPTION;
+        state.XPR.write_cap(state.switch_reg, state.switch_cap.cap);
+        state.switch_cap.cap.reset();
+      }
+      else {
+        /*switch_cap is invalid*/
+        /*pc & sp*/
+        state.pc = state.normal_pc;
+        state.XPR.write(2, state.normal_sp);
+        /*x[switch_reg], corner case: switch_reg = 2*/
+        state.XPR.reset_i(state.switch_reg, true);
+        /*scrub other regs*/
+        for (int i = 1; i < 32; i++) {
+          if (i != 2 && i != state.switch_reg) {
+            state.XPR.reset_i(i, true);
+          }
+        }
+      }
+      /*exit_reg*/
+      state.XPR.write(state.exit_reg, exit_code);
+      /*set cwrld*/
+      switch_world(false);
     }
     
     return;
