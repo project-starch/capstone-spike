@@ -1,5 +1,6 @@
 = Spike Implementation of the Capstone-RISC-V ISA
 
+[#cap-format]
 == Compressed Capability Format
 
 * If the `type` field of the capability is `0` (linear), `1` (non-linear), `2` (revocation) or `3` (uninitialised):
@@ -59,3 +60,9 @@ The compression mechanism of the `cursor` field is straightforward: `cursor = si
 ====
 
 == Implementation of the `valid` field
+
+In Spike, an additional data structure called _revocation tree_ is used to maintain the `valid` field of the capability.
+The idea of the revocation tree is introduced in our https://www.usenix.org/conference/usenixsecurity23/presentation/yu-jason[USENIX Security '23 paper].
+In the link:#cap-format[compressed capability format], a `node-id` is kept as part of the capability to indicate a node in the revocation tree.
+A reference count is maintained for each node in the revocation tree to indicate the number of capabilities that are currently pointing to the node.
+`<t` relation is maintained as a partial order on the revocation tree to indicate the revocation order of the capabilities.
