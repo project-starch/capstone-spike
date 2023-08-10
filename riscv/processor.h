@@ -801,7 +801,7 @@ regfile_cap_t<T, N>::operator [] (size_t i)
 
   // in normal world, zero will be read if use a cap reg as an integer operand
   if (p->is_secure_world()) {
-    assert(is_data(i)); // FIXME: throw exception
+    assert(is_data(i)); // dev check
   }
   else{
     // delayed zeroing (read before write)
@@ -819,7 +819,7 @@ regfile_cap_t<T, N>::read_cap(size_t i)
   if (i == 0 && zero_reg) {
     return cap_data[0].cap;
   }
-  assert(is_cap(i)); // FIXME: throw exception
+  assert(is_cap(i)); // dev check
   return cap_data[i].cap;
 }
 
@@ -858,7 +858,7 @@ void
 regfile_cap_t<T, N>::move(size_t to, size_t from)
 {
   if (from == to) return;
-  assert(is_cap(from)); // FIXME: throw exception
+  assert(is_cap(from)); // dev check
 
   if (write_cap(to, cap_data[from].cap)) {
     reset_i(from);

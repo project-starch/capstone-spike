@@ -33,7 +33,7 @@ void csr_t::verify_permissions(insn_t insn, bool write) const {
   /*check world*/
   bool world_valid = (sw_only == proc->is_secure_world());
   if (!world_valid)
-    throw trap_illegal_instruction(insn.bits()); // FIXME: tval
+    throw trap_illegal_instruction(insn.bits());
 
   unsigned priv = state->prv == PRV_S && !state->v ? PRV_HS : state->prv;
 

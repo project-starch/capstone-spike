@@ -80,7 +80,8 @@ reg_t mmu_t::translate(reg_t addr, reg_t len, access_type type, uint32_t xlate_f
     throw_access_exception(virt, addr, type);
 
   /*access to [paddr, paddr + len) can't taper the secure memory*/
-  assert(paddr <= sim->get_mem_partition_addr() - len); // FIXME: exception code
+  if (paddr <= sim->get_mem_partition_addr() - len)
+    throw_access_exception(virt, addr, type)
   return paddr;
 }
 
