@@ -3243,6 +3243,16 @@
 #define CAUSE_LOAD_GUEST_PAGE_FAULT 0x15
 #define CAUSE_VIRTUAL_INSTRUCTION 0x16
 #define CAUSE_STORE_GUEST_PAGE_FAULT 0x17
+/*capstone added exception code*/
+#define CAUSE_UNEXPECTED_OPERAND_TYPE 0x18
+#define CAUSE_INVALID_CAPABILITY 0x19
+#define CAUSE_UNEXPECTED_CAP_TYPE 0x1a
+#define CAUSE_INSUFFICIENT_CAP_PERMS 0x1b
+#define CAUSE_CAP_OUT_OF_BOUND 0x1c
+#define CAUSE_ILLEGAL_OPERAND_VALUE 0x1d
+// CAUSE_UNHANDLEABLE_EXCEPTION only used in pure capstone
+// #define CAUSE_UNHANDLEABLE_EXCEPTION 0x3f
+/*end of capstone added exception code*/
 #endif
 #ifdef DECLARE_INSN
 DECLARE_INSN(slli_rv32, MATCH_SLLI_RV32, MASK_SLLI_RV32)
@@ -4890,6 +4900,7 @@ DECLARE_CSR(tval, CSR_TVAL)
 DECLARE_CSR(cause, CSR_CAUSE)
 DECLARE_CSR(emode, CSR_EMODE)
 #endif
+/*DECLARE_CAUSE is not defined in Spike now, only for future use*/
 #ifdef DECLARE_CAUSE
 DECLARE_CAUSE("misaligned fetch", CAUSE_MISALIGNED_FETCH)
 DECLARE_CAUSE("fetch access", CAUSE_FETCH_ACCESS)
@@ -4910,4 +4921,13 @@ DECLARE_CAUSE("fetch guest page fault", CAUSE_FETCH_GUEST_PAGE_FAULT)
 DECLARE_CAUSE("load guest page fault", CAUSE_LOAD_GUEST_PAGE_FAULT)
 DECLARE_CAUSE("virtual instruction", CAUSE_VIRTUAL_INSTRUCTION)
 DECLARE_CAUSE("store guest page fault", CAUSE_STORE_GUEST_PAGE_FAULT)
+/*capstone added exceptions*/
+DECLARE_CAUSE("unexpected operand type", CAUSE_UNEXPECTED_OPERAND_TYPE)
+DECLARE_CAUSE("invalid capability", CAUSE_INVALID_CAPABILITY)
+DECLARE_CAUSE("unexpected capability type", CAUSE_UNEXPECTED_CAP_TYPE)
+DECLARE_CAUSE("insufficient capability permissions", CAUSE_INSUFFICIENT_CAP_PERMS)
+DECLARE_CAUSE("capability out of bound", CAUSE_CAP_OUT_OF_BOUND)
+DECLARE_CAUSE("illegal operand value", CAUSE_ILLEGAL_OPERAND_VALUE)
+// DECLARE_CAUSE("unhandleable exception", CAUSE_UNHANDLEABLE_EXCEPTION)
+/*end of capstone added exceptions*/
 #endif

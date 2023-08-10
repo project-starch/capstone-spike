@@ -25,7 +25,7 @@ static void help(int exit_code = 1)
   fprintf(stderr, "  -m<n>                 Provide <n> MiB of target memory [default 2048]\n");
   fprintf(stderr, "  -m<a:m,b:n,...>       Provide memory regions of size m and n bytes\n");
   fprintf(stderr, "                          at base addresses a and b (with 4 KiB alignment)\n");
-  fprintf(stderr, "  -d                    Interactive debug mode\n");
+  fprintf(stderr, "  -d                    Interactive debug mode (currently not supported with transcapstone)\n");
   fprintf(stderr, "  -g                    Track histogram of PCs\n");
   fprintf(stderr, "  -l                    Generate a log of execution\n");
 #ifdef HAVE_BOOST_ASIO
@@ -34,8 +34,8 @@ static void help(int exit_code = 1)
   fprintf(stderr, "  -h, --help            Print this help message\n");
   fprintf(stderr, "  -H                    Start halted, allowing a debugger to connect\n");
   // arguments added for capstone
-  fprintf(stderr, "  -M<a:m>               Provide secure memory regions of size m and n bytes\n");
-  fprintf(stderr, "                          at base addresses a and b (with 4 KiB alignment)\n");
+  fprintf(stderr, "  -M<a:m>               Provide secure memory regions of size m bytes\n");
+  fprintf(stderr, "                          at base addresses a (with 4 KiB alignment)\n");
   fprintf(stderr, "  -R<n>                 The size of revocation tree [default 1024*1024]\n");
   fprintf(stderr, "  -D                    Enable debug instructions\n");
   fprintf(stderr, "  -P                    Pure Capstone (currently not supported)\n");

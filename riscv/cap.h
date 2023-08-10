@@ -134,6 +134,16 @@ struct cap64_t
   }
   
   // capability decoding
+  inline uint32_t get_node_id(const uint128_t& v) {
+    node_id = uint32_t((v >> 97) & ((uint128_t(1) << 31) - 1));
+    return node_id;
+  }
+
+  inline cap_type_t get_type(const uint128_t& v) {
+    type = (cap_type_t)((v >> 94) & ((uint128_t(1) << 3) - 1));
+    return type;
+  }
+
   void from128(const uint128_t& v) {
     type = (cap_type_t)((v >> 94) & ((uint128_t(1) << 3) - 1));
     node_id = uint32_t((v >> 97) & ((uint128_t(1) << 31) - 1));

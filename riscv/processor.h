@@ -169,13 +169,8 @@ public:
     zero_reg = true;
   }
   /*init & reset*/
-  // reset_i is used to clear a linear capability (set to cnull)
-  void reset_i(size_t i) {
-    if (i != 0 || !zero_reg) {
-      memset(data + i, 0, sizeof(data[i]));
-      cap_data[i].reset_i();
-    }
-  }
+  // reset_i is used to clear a linear capability (set to zero/cnull), tag remains the same
+  void reset_i(size_t i, bool rc_update=false);
   // reset is used in system reset
   void reset(processor_t *proc)
   {
@@ -225,6 +220,8 @@ struct state_t
 
   static const int num_triggers = 4;
 
+  // pc is served as the functional cursor of cap_pc in the secure world
+  // set pc as well if you want to change the cap_pc
   reg_t pc;
   /*capstone defined processor states*/
   cap64_t cap_pc;
@@ -577,20 +574,9 @@ public:
   const char* get_symbol(uint64_t addr);
 
   /*interface defined for capstone*/
-  /*ccsr*/
-  ccsr_t& get_ccsr(uint64_t ccsr_num) {
-    switch (ccsr_num) {
-      case CCSR_CEH:
-        return state.ceh;
-      case CCSR_CINIT:
-        return sim->get_cinit();
-      case CCSR_EPC:
-        return state.epc;
-      case CCSR_SWITCH_CAP:
-        return state.switch_cap;
-      default:
-        abort();
-    }
+  /*cinit*/
+  inline ccsr_t& get_cinit() {
+    return sim->get_cinit();
   }
   /*revocation tree interface*/
   inline bool valid_cap(rev_node_id_t node_id) const {
@@ -618,7 +604,8 @@ public:
   inline void setTag(uint64_t addr, bool as_cap) {
     sim->get_tag_controller().setTag(addr, as_cap);
   }
-  virtual bool getTag(uint64_t addr) {
+  // return_value: is_cap
+  inline bool getTag(uint64_t addr) {
     return sim->get_tag_controller().getTag(addr);
   }
   /*world related information & operation*/
@@ -664,10 +651,13 @@ private:
   insn_desc_t opcode_cache[OPCODE_CACHE_SIZE];
 
   void take_pending_interrupt() { take_interrupt(state.mip->read() & state.mie->read()); }
+  /*add for capstone: RC down when overwriting a cap during store*/
+  void store_update_rc(uint64_t addr, bool is_aligned=true);
   void take_interrupt(reg_t mask); // take first enabled interrupt in mask
   void take_trap(trap_t& t, reg_t epc); // take an exception
   void disasm(insn_t insn); // disassemble and print an instruction
   int paddr_bits();
+  
 
   void enter_debug_mode(uint8_t cause);
 
@@ -778,7 +768,20 @@ public:
 };
 
 /*regfile_cap_t operations impl*/
-/*rc_update is default to be true*/
+// reset_i is used to reset a register to cnull/zero
+template <class T, size_t N>
+void
+regfile_cap_t<T, N>::reset_i(size_t i, bool rc_update/*=false*/) {
+  if (i != 0 || !zero_reg) {
+    // update reference count
+    if (rc_update && cap_data[i].is_cap()) {
+      p->updateRC(cap_data[i].cap.node_id, -1);
+    }
+    
+    memset(data + i, 0, sizeof(data[i]));
+    cap_data[i].reset_i();
+  }
+}
 // read an integer
 template <class T, size_t N>
 const T&
@@ -790,7 +793,7 @@ regfile_cap_t<T, N>::operator [] (size_t i)
 
   // in normal world, zero will be read if use a cap reg as an integer operand
   if (p->is_secure_world()) {
-    assert(is_data(i)); // FIXME: throw exception
+    assert(is_data(i)); // dev check
   }
   else{
     // delayed zeroing (read before write)
@@ -808,7 +811,7 @@ regfile_cap_t<T, N>::read_cap(size_t i)
   if (i == 0 && zero_reg) {
     return cap_data[0].cap;
   }
-  assert(is_cap(i)); // FIXME: throw exception
+  assert(is_cap(i)); // dev check
   return cap_data[i].cap;
 }
 
@@ -847,7 +850,7 @@ void
 regfile_cap_t<T, N>::move(size_t to, size_t from)
 {
   if (from == to) return;
-  assert(is_cap(from)); // FIXME: throw exception
+  assert(is_cap(from)); // dev check
 
   if (write_cap(to, cap_data[from].cap)) {
     reset_i(from);

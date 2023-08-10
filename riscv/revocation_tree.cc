@@ -60,6 +60,8 @@ RevTree::split(rev_node_id_t node_id) {
 
 void
 RevTree::updateRC(rev_node_id_t node_id, int delta){
+  if (node_id == 0) return; // cnull handling
+
   RevNode* node = getNode(node_id);
   node->ref_count += delta;
   tryFreeing(node);

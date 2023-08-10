@@ -26,6 +26,17 @@ class trap_t
   reg_t which;
 };
 
+class capstone_trap_t : public trap_t
+{
+  public:
+  capstone_trap_t(reg_t which, reg_t tval)
+    : trap_t(which), tval(tval) {}
+  bool has_tval() override { return true; }
+  reg_t get_tval() override { return tval; }
+ private:
+  reg_t tval;
+};
+
 class insn_trap_t : public trap_t
 {
  public:
@@ -59,6 +70,12 @@ class mem_trap_t : public trap_t
 #define DECLARE_TRAP(n, x) class trap_##x : public trap_t { \
  public: \
   trap_##x() : trap_t(n) {} \
+  const char* name() { return "trap_"#x; } \
+};
+
+#define DECLARE_CAPSTONE_TRAP(n, x) class trap_##x : public capstone_trap_t { \
+ public: \
+  trap_##x(reg_t tval) : capstone_trap_t(n, tval) {} \
   const char* name() { return "trap_"#x; } \
 };
 
@@ -105,5 +122,22 @@ DECLARE_MEM_GVA_TRAP(CAUSE_FETCH_GUEST_PAGE_FAULT, instruction_guest_page_fault)
 DECLARE_MEM_GVA_TRAP(CAUSE_LOAD_GUEST_PAGE_FAULT, load_guest_page_fault)
 DECLARE_INST_TRAP(CAUSE_VIRTUAL_INSTRUCTION, virtual_instruction)
 DECLARE_MEM_GVA_TRAP(CAUSE_STORE_GUEST_PAGE_FAULT, store_guest_page_fault)
-
+/*transcapstone exceptions*/
+// declared again with capstone_trap_t type, only tval is needed; used in secure world
+DECLARE_CAPSTONE_TRAP(CAUSE_MISALIGNED_FETCH, capstone_instruction_address_misaligned)
+DECLARE_CAPSTONE_TRAP(CAUSE_FETCH_ACCESS, capstone_instruction_access_fault)
+DECLARE_CAPSTONE_TRAP(CAUSE_ILLEGAL_INSTRUCTION, capstone_illegal_instruction)
+DECLARE_CAPSTONE_TRAP(CAUSE_BREAKPOINT, capstone_breakpoint)
+DECLARE_CAPSTONE_TRAP(CAUSE_MISALIGNED_LOAD, capstone_load_address_misaligned)
+DECLARE_CAPSTONE_TRAP(CAUSE_LOAD_ACCESS, capstone_load_access_fault)
+DECLARE_CAPSTONE_TRAP(CAUSE_MISALIGNED_STORE, capstone_store_address_misaligned)
+DECLARE_CAPSTONE_TRAP(CAUSE_STORE_ACCESS, capstone_store_access_fault)
+// added for transcapstone
+DECLARE_CAPSTONE_TRAP(CAUSE_UNEXPECTED_OPERAND_TYPE, capstone_unexpected_operand_type)
+DECLARE_CAPSTONE_TRAP(CAUSE_INVALID_CAPABILITY, capstone_invalid_capability)
+DECLARE_CAPSTONE_TRAP(CAUSE_UNEXPECTED_CAP_TYPE, capstone_unexpected_cap_type)
+DECLARE_CAPSTONE_TRAP(CAUSE_INSUFFICIENT_CAP_PERMS, capstone_insufficient_cap_perms)
+DECLARE_CAPSTONE_TRAP(CAUSE_CAP_OUT_OF_BOUND, capstone_cap_out_of_bound)
+DECLARE_CAPSTONE_TRAP(CAUSE_ILLEGAL_OPERAND_VALUE, capstone_illegal_operand_value)
+/*end of transcapstone exceptions*/
 #endif
