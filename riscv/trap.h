@@ -35,7 +35,7 @@ class capstone_trap_t : public trap_t
   reg_t get_tval() override { return tval; }
  private:
   reg_t tval;
-}
+};
 
 class insn_trap_t : public trap_t
 {
@@ -73,9 +73,9 @@ class mem_trap_t : public trap_t
   const char* name() { return "trap_"#x; } \
 };
 
-#define DECLARE_CAPSTONE_TRAP(n, x) class trap_##x : public trap_t { \
+#define DECLARE_CAPSTONE_TRAP(n, x) class trap_##x : public capstone_trap_t { \
  public: \
-  trap_##x(reg_t tval) : trap_t(n, tval) {} \
+  trap_##x(reg_t tval) : capstone_trap_t(n, tval) {} \
   const char* name() { return "trap_"#x; } \
 };
 

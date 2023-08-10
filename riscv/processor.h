@@ -605,7 +605,7 @@ public:
     sim->get_tag_controller().setTag(addr, as_cap);
   }
   // return_value: is_cap
-  virtual bool getTag(uint64_t addr) {
+  inline bool getTag(uint64_t addr) {
     return sim->get_tag_controller().getTag(addr);
   }
   /*world related information & operation*/
@@ -620,17 +620,6 @@ public:
   }
   inline void switch_world(bool to_secure_world) {
     state.world = to_secure_world ? WORLD_SECURE : WORLD_NORMAL;
-  }
-  /*memory access*/
-  // RC down when overwriting a cap during store
-  void store_update_rc(uint64_t addr, bool is_aligned = true) const {
-    if (!is_aligned) addr &= ~(CLENBYTES - 1);
-    if (getTag(addr)) {
-      set_cap_access();
-      uint128_t data = get_mmu()->load_uint128(addr);
-      cap64_t cap;
-      updateRC(cap.get_node_id(data), -1);
-    }
   }
   /*spike parameters*/
   inline bool is_cap_debug_enabled() const {
@@ -662,10 +651,13 @@ private:
   insn_desc_t opcode_cache[OPCODE_CACHE_SIZE];
 
   void take_pending_interrupt() { take_interrupt(state.mip->read() & state.mie->read()); }
+  /*add for capstone: RC down when overwriting a cap during store*/
+  void store_update_rc(uint64_t addr, bool is_aligned=true);
   void take_interrupt(reg_t mask); // take first enabled interrupt in mask
   void take_trap(trap_t& t, reg_t epc); // take an exception
   void disasm(insn_t insn); // disassemble and print an instruction
   int paddr_bits();
+  
 
   void enter_debug_mode(uint8_t cause);
 
@@ -783,7 +775,7 @@ regfile_cap_t<T, N>::reset_i(size_t i, bool rc_update/*=false*/) {
   if (i != 0 || !zero_reg) {
     // update reference count
     if (rc_update && cap_data[i].is_cap()) {
-      p->updateRC(cap_data[i].node_id, -1);
+      p->updateRC(cap_data[i].cap.node_id, -1);
     }
     
     memset(data + i, 0, sizeof(data[i]));

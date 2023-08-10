@@ -768,6 +768,16 @@ void processor_t::set_mmu_capability(int cap)
   }
 }
 
+void processor_t::store_update_rc(uint64_t addr, bool is_aligned/*=true*/) {
+  if (!is_aligned) addr &= ~(CLENBYTES - 1);
+  if (getTag(addr)) {
+    set_cap_access();
+    uint128_t data = get_mmu()->load_uint128(addr);
+    cap64_t tmp_cap;
+    updateRC(tmp_cap.get_node_id(data), -1);
+  }
+}
+
 /*interrupt handling*/
 void processor_t::take_interrupt(reg_t pending_interrupts)
 {
@@ -800,10 +810,10 @@ void processor_t::take_interrupt(reg_t pending_interrupts)
       tmp_addr += CLENBYTES;
       store_update_rc(tmp_addr);
       set_cap_access();
-      get_mmu()->store_uint128(tmp_addr, tmp_data);
+      get_mmu()->store_uint128(tmp_addr, state.ceh.cap.to128());
       state.ceh.cap.reset();
       /*31 GPRs*/
-      for (int i = 1; i < 32; i++) {
+      for (uint64_t i = 1; i < 32; i++) {
         tmp_addr += CLENBYTES;
         store_update_rc(tmp_addr);
         set_cap_access();
@@ -836,7 +846,7 @@ void processor_t::take_interrupt(reg_t pending_interrupts)
       /*x[switch_reg]*/
       state.XPR.reset_i(state.switch_reg, true);
       // scrub other regs
-      for (int i = 1; i < 32; i++) {
+      for (uint64_t i = 1; i < 32; i++) {
         if (i != 2 && i != state.switch_reg) {
           state.XPR.reset_i(i, true);
         }
@@ -1006,7 +1016,7 @@ void processor_t::take_trap(trap_t& t, reg_t epc)
     /*in-domain exception handling*/
     else if (valid_ceh && in_domain_eh) {
       /*pc -> epc*/
-      updateRC(state.epc.node, -1); // corner case cnull is handled in rt impl
+      updateRC(state.epc.cap.node_id, -1); // corner case cnull is handled in rt impl
       state.epc.cap = state.cap_pc;
       /*ceh -> pc*/
       state.cap_pc = state.ceh.cap;
@@ -1015,7 +1025,7 @@ void processor_t::take_trap(trap_t& t, reg_t epc)
         state.ceh.cap.reset();
       }
       else {
-        updateRC(state.ceh.node, 1);
+        updateRC(state.epc.cap.node_id, 1);
       }
       /*cause*/
       state.cause->write(t.cause());
@@ -1024,7 +1034,7 @@ void processor_t::take_trap(trap_t& t, reg_t epc)
     }
     /*switch_world: unhandleable exception*/
     else {
-      const exit_code = 0;
+      const uint64_t exit_code = 0;
       cap64_t switch_cap_val = state.switch_cap.cap;
       bool val_valid_cap = valid_cap(switch_cap_val.node_id);
       bool val_valid_type = (switch_cap_val.type == CAP_TYPE_LINEAR || switch_cap_val.type == CAP_TYPE_UNINITIALIZED);
@@ -1046,10 +1056,10 @@ void processor_t::take_trap(trap_t& t, reg_t epc)
         tmp_addr += CLENBYTES;
         store_update_rc(tmp_addr);
         set_cap_access();
-        get_mmu()->store_uint128(tmp_addr, tmp_data);
+        get_mmu()->store_uint128(tmp_addr, state.ceh.cap.to128());
         state.ceh.cap.reset();
         /*31 GPRs*/
-        for (int i = 1; i < 32; i++) {
+        for (uint64_t i = 1; i < 32; i++) {
           tmp_addr += CLENBYTES;
           store_update_rc(tmp_addr);
           set_cap_access();
@@ -1082,7 +1092,7 @@ void processor_t::take_trap(trap_t& t, reg_t epc)
         /*x[switch_reg], corner case: switch_reg = 2*/
         state.XPR.reset_i(state.switch_reg, true);
         /*scrub other regs*/
-        for (int i = 1; i < 32; i++) {
+        for (uint64_t i = 1; i < 32; i++) {
           if (i != 2 && i != state.switch_reg) {
             state.XPR.reset_i(i, true);
           }
