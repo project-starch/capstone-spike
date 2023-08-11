@@ -123,6 +123,16 @@ riscv_insn_ext_i = \
 	fence \
 	fence_i \
 
+riscv_insn_capstone = \
+	cs_movc \
+	cs_cincoffset \
+	cs_cincoffsetimm \
+	cs_scc \
+	cs_lcc \
+	cs_shrink \
+	cs_split \
+	cs_tighten \
+
 riscv_insn_ext_a = \
 	amoadd_d \
 	amoadd_w \
@@ -1280,6 +1290,7 @@ riscv_insn_list = \
 	$(riscv_insn_ext_p) \
 	$(riscv_insn_priv) \
 	$(riscv_insn_svinval) \
+	$(riscv_insn_capstone) \
 
 riscv_gen_srcs = \
 	$(addsuffix .cc,$(riscv_insn_list))

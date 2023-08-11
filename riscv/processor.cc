@@ -768,8 +768,8 @@ void processor_t::set_mmu_capability(int cap)
   }
 }
 
-void processor_t::store_update_rc(uint64_t addr, bool is_aligned/*=true*/) {
-  if (!is_aligned) addr &= ~(CLENBYTES - 1);
+void processor_t::store_update_rc(uint64_t addr) {
+  addr &= ~(CLENBYTES - 1);
   if (getTag(addr)) {
     set_cap_access();
     uint128_t data = get_mmu()->load_uint128(addr);

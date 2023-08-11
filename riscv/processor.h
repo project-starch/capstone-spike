@@ -200,7 +200,6 @@ public:
   
   // capability manipulation operations
   void move(size_t to, size_t from);
-  void split_cap(size_t reg, size_t split_reg, reg_t pv, rev_node_id_t split_node_id);
   void delin(size_t reg);
   void mrev(size_t reg, size_t cap_reg, rev_node_id_t new_node_id);
   // debugging
@@ -629,7 +628,7 @@ public:
     return sim->is_pure_capstone();
   }
   /*add for capstone: RC down when overwriting a cap during store*/
-  void store_update_rc(uint64_t addr, bool is_aligned=true);
+  void store_update_rc(uint64_t addr);
 
 private:
   simif_t* sim;
@@ -850,24 +849,13 @@ void
 regfile_cap_t<T, N>::move(size_t to, size_t from)
 {
   if (from == to) return;
-  assert(is_cap(from)); // dev check
 
+  assert(is_cap(from)); // dev check
   if (write_cap(to, cap_data[from].cap)) {
     reset_i(from);
   }
 }
 
-// FIXME
-template <class T, size_t N>
-void
-regfile_cap_t<T, N>::split_cap(size_t reg, size_t split_reg, reg_t pv, rev_node_id_t split_node_id) {
-  assert(split_node_id != REV_NODE_ID_INVALID);
-  if (is_cap(split_reg)) p->updateRC(cap_data[split_reg].cap.node_id, -1);
-  cap_data[split_reg] = cap_data[reg];
-  cap_data[split_reg].cap.node_id = split_node_id;
-  cap_data[reg].cap.end = pv;
-  cap_data[split_reg].cap.base = pv;
-}
 // FIXME
 template <class T, size_t N>
 void
