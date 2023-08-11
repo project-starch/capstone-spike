@@ -628,6 +628,8 @@ public:
   inline bool is_pure_capstone() const {
     return sim->is_pure_capstone();
   }
+  /*add for capstone: RC down when overwriting a cap during store*/
+  void store_update_rc(uint64_t addr, bool is_aligned=true);
 
 private:
   simif_t* sim;
@@ -651,8 +653,6 @@ private:
   insn_desc_t opcode_cache[OPCODE_CACHE_SIZE];
 
   void take_pending_interrupt() { take_interrupt(state.mip->read() & state.mie->read()); }
-  /*add for capstone: RC down when overwriting a cap during store*/
-  void store_update_rc(uint64_t addr, bool is_aligned=true);
   void take_interrupt(reg_t mask); // take first enabled interrupt in mask
   void take_trap(trap_t& t, reg_t epc); // take an exception
   void disasm(insn_t insn); // disassemble and print an instruction
