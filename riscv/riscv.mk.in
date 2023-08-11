@@ -132,6 +132,9 @@ riscv_insn_capstone = \
 	cs_shrink \
 	cs_split \
 	cs_tighten \
+	cs_delin \
+	cs_init \
+	cs_seal \
 
 riscv_insn_ext_a = \
 	amoadd_d \

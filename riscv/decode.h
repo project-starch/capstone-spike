@@ -227,6 +227,7 @@ private:
 #define insn_rs2 insn.rs2()
 #define insn_rd insn.rd()
 #define insn_i_imm insn.i_imm()
+#define insn_ri_imm insn.rs2()
 /*world*/
 #define TO_SECURE_WORLD() p->switch_world(true)
 #define TO_NORMAL_WORLD() p->switch_world(false)
@@ -251,6 +252,7 @@ private:
 /*revocation tree*/
 #define VALID_CAP(reg) (p->valid_cap(READ_CAP_NODE(reg)))
 #define SPLIT_RT(node_id) p->split_rt(node_id)
+#define DELINEAR(node_id) p->set_nonlinear(node_id)
 /*update rc*/
 #define UPDATE_RC_UP(node_id) p->updateRC(node_id, 1)
 #define UPDATE_RC_DOWN(node_id) p->updateRC(node_id, -1)
@@ -261,9 +263,10 @@ private:
 /*capability inteface*/
 #define CAP_IS_LINEAR(reg) (READ_CAP(reg).is_linear())
 #define READ_CAP_NODE(reg) READ_CAP(reg).node_id
+#define CAP_PERM_LTE(reg, perm) (READ_CAP(reg).cap_perm_cmp(perm, true))
+#define CAP_PERM_GTE(reg, perm) (READ_CAP(reg).cap_perm_cmp(perm, false))
 
 // FIXME
-#define DELIN_CAP(reg) STATE.XPR.delin(reg)
 #define REVOKE_CAP(reg) \
   do { \
     VALID_CAP(reg); \
@@ -285,13 +288,6 @@ private:
       rev_node_id_t new_node_id = p->allocate(READ_CAP_NODE(cap_reg)); \
       STATE.XPR.mrev(reg, cap_reg, new_node_id); \
     } \
-  } while (0)
-#define INIT_CAP(reg) \
-  do { \
-    assert(READ_CAP(reg).type == CAP_TYPE_UNINITIALIZED); \
-    assert(READ_CAP(reg).cursor == READ_CAP(reg).end); \
-    VALID_CAP(reg); \
-    READ_CAP(reg).type = CAP_TYPE_LINEAR; \
   } while (0)
 #define DROP_CAP(reg) \
   do { \
@@ -375,13 +371,6 @@ private:
       UPDATE_RC_UP(src_cap.node_id); \
     } \
   } while (0)
-#define SEAL_CAP(reg) \
-  do { \
-    VALID_CAP(reg); \
-    cap64_t cap = READ_CAP(reg); \
-    assert(cap.type == CAP_TYPE_LINEAR && cap.readable() && cap.writable()); \
-    READ_CAP(reg).type = CAP_TYPE_SEALED; \
-  } while (0);
 #define RET_REG 1
 #define ARG_REG 10
 union reg_value {

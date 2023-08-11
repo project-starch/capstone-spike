@@ -1,2 +1,0 @@
-VALID_CAP(Rd);
-DELIN_CAP(Rd);

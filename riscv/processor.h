@@ -197,10 +197,9 @@ public:
   cap64_t& read_cap(size_t i);
   void write(size_t i, T value, bool rc_update=true);
   bool write_cap(size_t i, const cap64_t &cap, bool rc_update=true);
+  void move(size_t to, size_t from);
   
   // capability manipulation operations
-  void move(size_t to, size_t from);
-  void delin(size_t reg);
   void mrev(size_t reg, size_t cap_reg, rev_node_id_t new_node_id);
   // debugging
   inline void debug_set_cap(size_t i) { cap_data[i].tag = WORD_TAG_CAP; }
@@ -856,14 +855,6 @@ regfile_cap_t<T, N>::move(size_t to, size_t from)
   }
 }
 
-// FIXME
-template <class T, size_t N>
-void
-regfile_cap_t<T, N>::delin(size_t reg) {
-  assert(cap_data[reg].cap.type == CAP_TYPE_LINEAR);
-  cap_data[reg].cap.type = CAP_TYPE_NONLINEAR;
-  p->set_nonlinear(cap_data[reg].cap.node_id);
-}
 // FIXME
 template <class T, size_t N>
 void
