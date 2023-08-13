@@ -11,10 +11,12 @@ if (RS1 >= RS2 || (RS1 < READ_CAP(insn_rd).base || RS2 > READ_CAP(insn_rd).end))
 	throw trap_capstone_illegal_operand_value(insn.bits());
 
 /*shrink the bound of x[rd]*/
-READ_CAP(insn_rd).base = RS1;
-READ_CAP(insn_rd).end = RS2;
+if (NOT_ZERO_REG(insn_rd)) {
+	READ_CAP(insn_rd).base = RS1;
+	READ_CAP(insn_rd).end = RS2;
 
-if (READ_CAP(insn_rd).cursor < READ_CAP(insn_rd).base)
-	READ_CAP(insn_rd).cursor = READ_CAP(insn_rd).base;
-if (READ_CAP(insn_rd).cursor > READ_CAP(insn_rd).end)
-	READ_CAP(insn_rd).cursor = READ_CAP(insn_rd).end;
+	if (READ_CAP(insn_rd).cursor < READ_CAP(insn_rd).base)
+		READ_CAP(insn_rd).cursor = READ_CAP(insn_rd).base;
+	if (READ_CAP(insn_rd).cursor > READ_CAP(insn_rd).end)
+		READ_CAP(insn_rd).cursor = READ_CAP(insn_rd).end;
+}

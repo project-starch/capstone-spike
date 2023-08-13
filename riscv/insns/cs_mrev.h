@@ -17,4 +17,6 @@ rev_node_id_t mrev_node_id = ALLOCATE_NODE(READ_CAP_NODE(insn_rs1));
 assert(mrev_node_id != REV_NODE_ID_INVALID); // crush if no node available
 READ_CAP(insn_rs1).node_id = mrev_node_id;
 /*update rd capability type*/
-READ_CAP(insn_rd).type = CAP_TYPE_REVOCATION;
+if (NOT_ZERO_REG(insn_rd)) {
+  READ_CAP(insn_rd).type = CAP_TYPE_REVOCATION;
+}

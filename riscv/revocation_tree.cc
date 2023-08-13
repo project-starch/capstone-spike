@@ -69,6 +69,8 @@ RevTree::updateRC(rev_node_id_t node_id, int delta){
 
 void
 RevTree::set_nonlinear(rev_node_id_t node_id) {
+  if (node_id == 0) return; // cnull handling
+
   RevNode* node = getNode(node_id);
   node->type = REV_NODE_NONLINEAR;
 }

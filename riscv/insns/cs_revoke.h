@@ -1,7 +1,6 @@
 // #include "decode.h"
 // #include "trap.h"
 
-REVOKE_CAP(Rs1);
 /*exception*/
 if (!IS_CAP(insn_rs1))
 	throw trap_capstone_unexpected_operand_type(insn.bits());

@@ -234,6 +234,7 @@ private:
 #define IS_SECURE_WORLD() (p->is_secure_world())
 #define IS_NORMAL_WORLD() (p->is_secure_world() == false)
 /*reg file interface*/
+#define NOT_ZERO_REG(reg) (reg != 0)
 #define RESET_REG(reg) STATE.XPR.reset_i(reg)
 #define IS_CAP(reg) (STATE.XPR.is_cap(reg))
 #define IS_DATA(reg) (STATE.XPR.is_data(reg))
