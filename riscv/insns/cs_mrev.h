@@ -5,9 +5,9 @@
 if (!IS_CAP(insn_rs1))
   throw trap_capstone_unexpected_operand_type(insn.bits());
 if (!VALID_CAP(insn_rs1))
-  throw trap_capstone_invalid_capability(insn_bits());
+  throw trap_capstone_invalid_capability(insn.bits());
 if (READ_CAP(insn_rs1).type != CAP_TYPE_LINEAR)
-  throw trap_capstone_unexpected_cap_type(insn_bits());
+  throw trap_capstone_unexpected_cap_type(insn.bits());
 /*mint a revocation capability*/
 /*rs1 -> rd*/
 if (IS_CAP(insn_rd)) UPDATE_RC_DOWN(READ_CAP_NODE(insn_rd));
