@@ -23,7 +23,7 @@ if (insn_rs1 != insn_rd) {
 	READ_CAP(insn_rs1).cursor = READ_CAP(insn_rs1).base;
 	/*adjust rs2*/
 	// allocate new node
-	rev_node_id_t split_node_id = p->split_rt(READ_CAP_NODE(insn_rs1));
+	rev_node_id_t split_node_id = SPLIT_RT(READ_CAP_NODE(insn_rs1));
 	assert(split_node_id != REV_NODE_ID_INVALID); // crush if no more node
 	READ_CAP(insn_rd).node_id = split_node_id;
 	READ_CAP(insn_rd).base = tmp_val;

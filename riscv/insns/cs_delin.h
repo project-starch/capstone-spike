@@ -7,5 +7,7 @@ if (!IS_CAP(insn_rd))
 if (READ_CAP(insn_rd).type != CAP_TYPE_LINEAR)
 	throw trap_capstone_unexpected_cap_type(insn.bits());
 /*delinearization*/
-READ_CAP(insn_rd).type = CAP_TYPE_NONLINEAR;
-DELINEAR(READ_CAP_NODE(insn_rd));
+if (insn_rd != 0) {
+	READ_CAP(insn_rd).type = CAP_TYPE_NONLINEAR;
+	DELINEAR(READ_CAP_NODE(insn_rd));
+}
