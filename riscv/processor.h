@@ -570,9 +570,31 @@ public:
   const char* get_symbol(uint64_t addr);
 
   /*interface defined for capstone*/
-  /*cinit*/
-  inline ccsr_t& get_cinit() {
-    return sim->get_cinit();
+  /*ccsr*/
+  bool ccsr_num_valid(uint64_t ccsr_num) {
+    switch (ccsr_num) {
+    case CCSR_CEH:
+    case CCSR_CINIT:
+    case CCSR_EPC:
+    case CCSR_SWITCH_CAP:
+      return true;
+    default:
+      return false;
+    }
+  }
+  ccsr_t& get_ccsr(uint64_t ccsr_num) {
+    switch (ccsr_num) {
+    case CCSR_CEH:
+      return state.ceh;
+    case CCSR_CINIT:
+      return sim->get_cinit();
+    case CCSR_EPC:
+      return state.epc;
+    case CCSR_SWITCH_CAP:
+      return state.switch_cap;
+    default:
+      abort();
+    }
   }
   /*revocation tree interface*/
   inline bool valid_cap(rev_node_id_t node_id) const {
@@ -835,9 +857,8 @@ regfile_cap_t<T, N>::write_cap(size_t i, const cap64_t &cap, bool rc_update/*=tr
     if (rc_update && is_cap(i)) p->updateRC(cap_data[i].cap.node_id, -1);
     cap_data[i].set_cap(cap);
     if (rc_update && cap.is_linear() == false) p->updateRC(cap.node_id, 1);
-    return cap.is_linear();
   }
-  return false;
+  return cap.is_linear();
 }
 
 // move a capability

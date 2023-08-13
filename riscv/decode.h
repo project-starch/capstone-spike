@@ -88,6 +88,7 @@ public:
   insn_bits_t bits() { return b & ~((UINT64_MAX) << (length() * 8)); }
   int length() { return insn_length(b); }
   int64_t i_imm() { return int64_t(b) >> 20; }
+  uint64_t i_imm_zext() { return uint64_t(b) >> 20; }
   int64_t shamt() { return x(20, 6); }
   int64_t s_imm() { return x(7, 5) + (xs(25, 7) << 5); }
   int64_t sb_imm() { return (x(8, 4) << 1) + (x(25,6) << 5) + (x(7,1) << 11) + (imm_sign() << 12); }
@@ -227,6 +228,7 @@ private:
 #define insn_rs2 insn.rs2()
 #define insn_rd insn.rd()
 #define insn_i_imm insn.i_imm()
+#define insn_i_imm_zext insn.i_imm_zext()
 #define insn_ri_imm insn.rs2()
 /*world*/
 #define TO_SECURE_WORLD() p->switch_world(true)
@@ -236,6 +238,7 @@ private:
 /*reg file interface*/
 #define NOT_ZERO_REG(reg) (reg != 0)
 #define RESET_REG(reg) STATE.XPR.reset_i(reg)
+#define CLEAR_REG(reg) STATE.XPR.reset_i(reg, true)
 #define IS_CAP(reg) (STATE.XPR.is_cap(reg))
 #define IS_DATA(reg) (STATE.XPR.is_data(reg))
 #define MOVC(to, from) STATE.XPR.move(to, from)
@@ -264,8 +267,11 @@ private:
 /*memory tag*/
 #define GET_TAG(addr) p->getTag(addr)
 #define SET_TAG(addr, as_cap) p->setTag(addr, as_cap)
+/*ccsr*/
+#define CCSR_NUM_VALID(ccsr_num) p->ccsr_num_valid(ccsr_num)
+#define CCSR(ccsr_num) p->get_ccsr(ccsr_num)
 /*capability inteface*/
-#define CAP_IS_LINEAR(reg) (READ_CAP(reg).is_linear())
+#define IS_LINEAR(reg) (READ_CAP(reg).is_linear())
 #define READ_CAP_NODE(reg) READ_CAP(reg).node_id
 #define CAP_PERM_LTE(reg, perm) (READ_CAP(reg).cap_perm_cmp(perm, true))
 #define CAP_PERM_GTE(reg, perm) (READ_CAP(reg).cap_perm_cmp(perm, false))

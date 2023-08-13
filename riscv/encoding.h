@@ -4899,6 +4899,7 @@ DECLARE_CSR(mhpmcounter31h, CSR_MHPMCOUNTER31H)
 DECLARE_CSR(tval, CSR_TVAL)
 DECLARE_CSR(cause, CSR_CAUSE)
 DECLARE_CSR(emode, CSR_EMODE)
+/*end of capstone csrs*/
 #endif
 /*DECLARE_CAUSE is not defined in Spike now, only for future use*/
 #ifdef DECLARE_CAUSE
