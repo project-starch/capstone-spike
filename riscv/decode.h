@@ -253,6 +253,9 @@ private:
 #define VALID_CAP(reg) (p->valid_cap(READ_CAP_NODE(reg)))
 #define SPLIT_RT(node_id) p->split_rt(node_id)
 #define DELINEAR(node_id) p->set_nonlinear(node_id)
+#define DROP_CAP(node_id) p->drop(node_id)
+#define ALLOCATE_NODE(node_id) p->allocate(node_id)
+#define RT_REVOKE(node_id) p->revoke(node_id)
 /*update rc*/
 #define UPDATE_RC_UP(node_id) p->updateRC(node_id, 1)
 #define UPDATE_RC_DOWN(node_id) p->updateRC(node_id, -1)
@@ -267,37 +270,6 @@ private:
 #define CAP_PERM_GTE(reg, perm) (READ_CAP(reg).cap_perm_cmp(perm, false))
 
 // FIXME
-#define REVOKE_CAP(reg) \
-  do { \
-    VALID_CAP(reg); \
-    assert(READ_CAP(reg).type == CAP_TYPE_REVOCATION); \
-    bool all_nonlinear = p->revoke(READ_CAP_NODE(reg)); \
-    if (all_nonlinear || !(READ_CAP(reg).writable())) { \
-      READ_CAP(reg).type = CAP_TYPE_LINEAR; \
-    } \
-    else { \
-      READ_CAP(reg).type = CAP_TYPE_UNINITIALIZED; \
-      READ_CAP(reg).cursor = READ_CAP(reg).base; \
-    } \
-  } while (0)
-#define MREV_CAP(reg, cap_reg) \
-  do { \
-    if (!REQUIRE_ZERO_REG || reg != 0) { \
-      CAP_STRICT_LINEAR(cap_reg); \
-      VALID_CAP(cap_reg); \
-      rev_node_id_t new_node_id = p->allocate(READ_CAP_NODE(cap_reg)); \
-      STATE.XPR.mrev(reg, cap_reg, new_node_id); \
-    } \
-  } while (0)
-#define DROP_CAP(reg) \
-  do { \
-    CAP_IS_LINEAR(reg); \
-    VALID_CAP(reg); \
-    uint32_t drop_node_id = READ_CAP_NODE(reg); \
-    p->drop(drop_node_id); \
-    UPDATE_RC_DOWN(drop_node_id); \
-    RESET_REG(reg); \
-  } while (0)
 #define LOAD_S(load_type, src_reg) \
   do { \
     if (!REQUIRE_ZERO_REG || Rd != 0) { \

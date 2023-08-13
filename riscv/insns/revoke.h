@@ -1,1 +1,0 @@
-REVOKE_CAP(Rs1);

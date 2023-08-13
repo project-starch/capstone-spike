@@ -199,9 +199,7 @@ public:
   bool write_cap(size_t i, const cap64_t &cap, bool rc_update=true);
   void move(size_t to, size_t from);
   
-  // capability manipulation operations
-  void mrev(size_t reg, size_t cap_reg, rev_node_id_t new_node_id);
-  // debugging
+  /*for debugging*/
   inline void debug_set_cap(size_t i) { cap_data[i].tag = WORD_TAG_CAP; }
 
 private:
@@ -853,17 +851,6 @@ regfile_cap_t<T, N>::move(size_t to, size_t from)
   if (write_cap(to, cap_data[from].cap)) {
     reset_i(from);
   }
-}
-
-// FIXME
-template <class T, size_t N>
-void
-regfile_cap_t<T, N>::mrev(size_t reg, size_t cap_reg, rev_node_id_t new_node_id) {
-  assert(new_node_id != REV_NODE_ID_INVALID);
-  if (is_cap(reg)) p->updateRC(cap_data[reg].cap.node_id, -1);
-  cap_data[reg] = cap_data[cap_reg];
-  cap_data[cap_reg].cap.node_id = new_node_id;
-  cap_data[reg].cap.type = CAP_TYPE_REVOCATION;
 }
 
 #endif

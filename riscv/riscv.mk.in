@@ -135,6 +135,9 @@ riscv_insn_capstone = \
 	cs_delin \
 	cs_init \
 	cs_seal \
+	cs_drop \
+	cs_mrev \
+	cs_revoke \
 
 riscv_insn_ext_a = \
 	amoadd_d \

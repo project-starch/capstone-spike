@@ -1,1 +1,0 @@
-DROP_CAP(Rs1);
