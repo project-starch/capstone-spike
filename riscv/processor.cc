@@ -831,6 +831,8 @@ void processor_t::take_interrupt(reg_t pending_interrupts)
       }
       /*normal_pc & normal_sp*/
       state.pc = state.normal_pc;
+      updateRC(state.cap_pc.node_id, -1);
+      state.cap_pc.reset();
       state.XPR.write(2, state.normal_sp);
       /*switch_cap*/
       state.switch_cap.cap.type = CAP_TYPE_SEALED;
@@ -842,6 +844,8 @@ void processor_t::take_interrupt(reg_t pending_interrupts)
       /*switch_cap is invalid*/
       /*pc & sp*/
       state.pc = state.normal_pc;
+      updateRC(state.cap_pc.node_id, -1);
+      state.cap_pc.reset();
       state.XPR.write(2, state.normal_sp);
       /*x[switch_reg]*/
       state.XPR.reset_i(state.switch_reg, true);
@@ -1025,7 +1029,7 @@ void processor_t::take_trap(trap_t& t, reg_t epc)
         state.ceh.cap.reset();
       }
       else {
-        updateRC(state.epc.cap.node_id, 1);
+        updateRC(state.ceh.cap.node_id, 1);
       }
       /*cause*/
       state.cause->write(t.cause());
@@ -1077,6 +1081,8 @@ void processor_t::take_trap(trap_t& t, reg_t epc)
         }
         /*normal_pc & normal_sp*/
         state.pc = state.normal_pc;
+        updateRC(state.cap_pc.node_id, -1);
+        state.cap_pc.reset();
         state.XPR.write(2, state.normal_sp);
         /*switch_cap*/
         state.switch_cap.cap.type = CAP_TYPE_SEALED;
@@ -1088,6 +1094,8 @@ void processor_t::take_trap(trap_t& t, reg_t epc)
         /*switch_cap is invalid*/
         /*pc & sp*/
         state.pc = state.normal_pc;
+        updateRC(state.cap_pc.node_id, -1);
+        state.cap_pc.reset();
         state.XPR.write(2, state.normal_sp);
         /*x[switch_reg], corner case: switch_reg = 2*/
         state.XPR.reset_i(state.switch_reg, true);

@@ -4540,7 +4540,7 @@ DECLARE_INSN(cs_cincoffsetimm, MATCH_CINCOFFSETIMM, MASK_I_S)
 // DECLARE_INSN(cs_capenter, MATCH_CAPENTER, MASK_R_RI)
 // DECLARE_INSN(cs_capexit, MATCH_CAPEXIT, MASK_R_RI)
 // ctrl-status-insn
-// DECLARE_INSN(cs_ccsrrw, MATCH_CCSRRW, MASK_I_S)
+DECLARE_INSN(cs_ccsrrw, MATCH_CCSRRW, MASK_I_S)
 // debug instrucstions
 // DECLARE_INSN(debug_query, MATCH_DQUERY, MASK_R_RI)
 // DECLARE_INSN(debug_rcupdate, MATCH_DRCUPDATE, MASK_R_RI)
