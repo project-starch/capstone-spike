@@ -229,6 +229,7 @@ private:
 #define insn_rd insn.rd()
 #define insn_i_imm insn.i_imm()
 #define insn_i_imm_zext insn.i_imm_zext()
+#define insn_s_imm insn.s_imm()
 #define insn_ri_imm insn.rs2()
 /*world*/
 #define TO_SECURE_WORLD() p->switch_world(true)
@@ -263,7 +264,7 @@ private:
 /*update rc*/
 #define UPDATE_RC_UP(node_id) p->updateRC(node_id, 1)
 #define UPDATE_RC_DOWN(node_id) p->updateRC(node_id, -1)
-#define STORE_RC_UPDATE(addr) p->store_update_rc(addr)
+#define STORE_UPDATE_RC(addr) p->store_update_rc(addr)
 /*memory tag*/
 #define GET_TAG(addr) p->getTag(addr)
 #define SET_TAG(addr, as_cap) p->setTag(addr, as_cap)
@@ -314,31 +315,6 @@ private:
     SET_TAG(cap.cursor, false); \
     if (cap.type == CAP_TYPE_UNINITIALIZED) { \
       READ_CAP(Rd).cursor += sizeof(store_type##_t); \
-    } \
-  } while (0)
-#define STORE_CAP(src_reg) \
-  do { \
-    VALID_CAP(Rd); \
-    cap64_t cap = READ_CAP(Rd); \
-    assert(cap.inbound() && cap.accessible() && cap.writable()); \
-    if (GET_TAG(cap.cursor)) { \
-      uint64_t masked_addr = cap.cursor & ~(16 - 1); \
-      SET_CAP_ACCESS(); \
-      uint128_t value = MMU.load_uint128(masked_addr); \
-      cap64_t old_cap; \
-      old_cap.from128(value); \
-      UPDATE_RC_DOWN(old_cap.node_id); \
-    } \
-    cap64_t src_cap = READ_CAP(src_reg); \
-    SET_CAP_ACCESS(); \
-    MMU.store_uint128(cap.cursor, src_cap.to128()); \
-    SET_TAG(cap.cursor, true); \
-    if (src_cap.is_linear()){ \
-      RESET_REG(src_reg); \
-      if (cap.type == CAP_TYPE_UNINITIALIZED) READ_CAP(Rd).cursor += 16; \
-    } \
-    else { \
-      UPDATE_RC_UP(src_cap.node_id); \
     } \
   } while (0)
 union reg_value {

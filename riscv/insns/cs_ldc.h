@@ -38,9 +38,6 @@ if (capability_access) {
 	if (WRITE_CAP(insn_rd, tmp_cap)) {
 		MMU.store_uint128(tmp_addr, uint128_t(0));
 	}
-	else {
-		UPDATE_RC_UP(READ_CAP_NODE(insn_rd));
-	}
 }
 /*raw address access*/
 else {
@@ -60,8 +57,5 @@ else {
 	tmp_cap.from128(tmp_val);
 	if (WRITE_CAP(insn_rd, tmp_cap)) {
 		MMU.store_uint128(tmp_addr, uint128_t(0));
-	}
-	else {
-		UPDATE_RC_UP(READ_CAP_NODE(insn_rd));
 	}
 }
