@@ -270,11 +270,20 @@ private:
 /*ccsr*/
 #define CCSR_NUM_VALID(ccsr_num) p->ccsr_num_valid(ccsr_num)
 #define CCSR(ccsr_num) p->get_ccsr(ccsr_num)
+/*csr*/
+#define CSR(csr_num) p->get_csr(csr_num, insn, true)
 /*capability inteface*/
 #define IS_LINEAR(reg) (READ_CAP(reg).is_linear())
 #define READ_CAP_NODE(reg) READ_CAP(reg).node_id
 #define CAP_PERM_LTE(reg, perm) (READ_CAP(reg).cap_perm_cmp(perm, true))
 #define CAP_PERM_GTE(reg, perm) (READ_CAP(reg).cap_perm_cmp(perm, false))
+/*register alias name*/
+#define cra_index 1
+#define csp_index 2
+#define a0_index 10
+/*encoding mode*/
+#define INT_ENCODING_MODE 0
+#define CAP_ENCODING_MODE 1
 
 // FIXME
 #define LOAD_S(load_type, src_reg) \
@@ -285,24 +294,6 @@ private:
       assert(cap.inbound() && cap.accessible() && cap.readable()); \
       SET_CAP_ACCESS(); \
       WRITE_RD(MMU.load_##load_type(cap.cursor)); \
-    } \
-  } while (0)
-#define LOAD_CAP(src_reg) \
-  do { \
-    if (!REQUIRE_ZERO_REG || Rd != 0) { \
-      VALID_CAP(src_reg); \
-      cap64_t cap = READ_CAP(src_reg); \
-      assert(cap.inbound() && cap.accessible() && cap.readable()); \
-      assert(GET_TAG(cap.cursor)); \
-      SET_CAP_ACCESS(); \
-      uint128_t value = MMU.load_uint128(cap.cursor); \
-      if (WRITE_CAP(Rd, value)) { \
-        assert(cap.writable()); \
-        SET_TAG(cap.cursor, false); \
-      } \
-      else { \
-        UPDATE_RC_UP(READ_CAP_NODE(Rd)); \
-      } \
     } \
   } while (0)
 #define STORE_S(store_type, src_reg) \
@@ -350,8 +341,6 @@ private:
       UPDATE_RC_UP(src_cap.node_id); \
     } \
   } while (0)
-#define RET_REG 1
-#define ARG_REG 10
 union reg_value {
   cap64_t cap;
   uint64_t data;

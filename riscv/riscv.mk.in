@@ -139,6 +139,7 @@ riscv_insn_capstone = \
 	cs_mrev \
 	cs_revoke \
 	cs_ccsrrw \
+	cs_ldc \
 
 riscv_insn_ext_a = \
 	amoadd_d \
