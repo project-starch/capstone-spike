@@ -287,26 +287,6 @@ private:
 #define CAP_ENCODING_MODE 1
 
 // FIXME
-#define STORE_S(store_type, src_reg) \
-  do { \
-    VALID_CAP(Rd); \
-    cap64_t cap = READ_CAP(Rd); \
-    assert(cap.inbound() && cap.accessible() && cap.writable()); \
-    if (GET_TAG(cap.cursor)) { \
-      uint64_t masked_addr = cap.cursor & ~(16 - 1); \
-      SET_CAP_ACCESS(); \
-      uint128_t value = MMU.load_uint128(masked_addr); \
-      cap64_t old_cap; \
-      old_cap.from128(value); \
-      UPDATE_RC_DOWN(old_cap.node_id); \
-    } \
-    SET_CAP_ACCESS(); \
-    MMU.store_##store_type(cap.cursor, READ_REG(src_reg)); \
-    SET_TAG(cap.cursor, false); \
-    if (cap.type == CAP_TYPE_UNINITIALIZED) { \
-      READ_CAP(Rd).cursor += sizeof(store_type##_t); \
-    } \
-  } while (0)
 union reg_value {
   cap64_t cap;
   uint64_t data;

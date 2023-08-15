@@ -1,5 +1,5 @@
-#include "decode.h"
-#include "trap.h"
+// #include "decode.h"
+// #include "trap.h"
 
 bool capability_access = (IS_SECURE_WORLD() || (CSR(CSR_EMODE) == CAP_ENCODING_MODE));
 /*capability access*/
