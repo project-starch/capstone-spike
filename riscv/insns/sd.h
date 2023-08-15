@@ -23,9 +23,9 @@ if (capability_access) {
 	uint64_t tmp_base = READ_CAP(insn_rs1).base;
 	uint64_t tmp_end = READ_CAP(insn_rs1).end;
 	if ((tmp_type == CAP_TYPE_LINEAR || tmp_type == CAP_TYPE_NONLINEAR || tmp_type == CAP_TYPE_UNINITIALIZED) && (tmp_addr < tmp_base || tmp_addr > tmp_end - size))
-		throw trap_capstone_cap_out_of_bounds(insn.bits());
+		throw trap_capstone_cap_out_of_bound(insn.bits());
 	if ((tmp_type == CAP_TYPE_SEALEDRET || tmp_type == CAP_TYPE_EXIT) && (tmp_addr < tmp_base + 3 * CLENBYTES || tmp_addr > tmp_base + 33 * CLENBYTES - size))
-		throw trap_capstone_cap_out_of_bounds(insn.bits());
+		throw trap_capstone_cap_out_of_bound(insn.bits());
 	if (tmp_addr % size != 0)
 		throw trap_capstone_store_address_misaligned(insn.bits());
 	/*store a size-byte integer with a capability*/
@@ -43,5 +43,5 @@ if (capability_access) {
 else {
 	uint64_t tmp_addr = RS1 + insn.s_imm();
 	MMU.store_uint64(tmp_addr, RS2);
-	SET_TAG(tmp_addr, false)
+	SET_TAG(tmp_addr, false);
 }
