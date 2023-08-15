@@ -391,13 +391,16 @@ void state_t::reset(processor_t* proc, reg_t max_isa)
   prv = PRV_M;
   v = false;
   /*capstone ccsrs*/
-  ceh.set_permission(true);
-  epc.set_permission(true);
-  switch_cap.set_permission(false);
+  ceh.init_ccsr(true);
+  epc.init_ccsr(true);
+  switch_cap.init_ccsr(false);
   /*end of capstone ccsrs*/
   /*capstone csrs*/
+  // optional: tval has initial value of 0
   csrmap[CSR_TVAL] = tval = std::make_shared<basic_csr_t>(proc, CSR_TVAL, 0, true);
+  // optional: cause is cause_csr_t and has initial value of 0 inexplicitly
   csrmap[CSR_CAUSE] = cause = std::make_shared<cause_csr_t>(proc, CSR_CAUSE);
+  // emode has initial value of 0
   csrmap[CSR_EMODE] = emode = std::make_shared<basic_csr_t>(proc, CSR_EMODE, 0, true);
   /*end of capstone csrs*/
   csrmap[CSR_MISA] = misa = std::make_shared<misa_csr_t>(proc, CSR_MISA, max_isa);

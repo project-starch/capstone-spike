@@ -270,7 +270,8 @@ struct ccsr_t {
     bool ccsr_readable;
     bool ccsr_writable;
 
-    void set_permission (bool sw_only, bool readable = true, bool writable = true) {
+    /*set the initial permission and reset the capability to cnull*/
+    void init_ccsr (bool sw_only, bool readable = true, bool writable = true) {
       ccsr_sw_only = sw_only;
       ccsr_readable = readable;
       ccsr_writable = writable;

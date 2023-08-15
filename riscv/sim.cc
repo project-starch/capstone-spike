@@ -79,7 +79,7 @@ sim_t::sim_t(const char* isa, const char* priv, const char* varch,
   for (auto& x : mems)
     bus.add_device(x.first, x.second);
   
-  cinit.set_permission(false, true, false);
+  cinit.init_ccsr(false, true, false);
   secure_mem_init_cap.node_id = rev_tree.allocate(REV_NODE_ID_INVALID);
   cinit.cap = secure_mem_init_cap;
 
