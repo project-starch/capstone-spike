@@ -1,3 +1,5 @@
+require_normal_world;
+
 switch (STATE.prv)
 {
   case PRV_U: throw trap_user_ecall();

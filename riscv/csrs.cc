@@ -30,7 +30,9 @@ void csr_t::verify_permissions(insn_t insn, bool write) const {
   // Check permissions. Raise virtual-instruction exception if V=1,
   // privileges are insufficient, and the CSR belongs to supervisor or
   // hypervisor. Raise illegal-instruction exception otherwise.
+
   /*check world*/
+  /*raise illegal instruction if CSR is accessed in the wrong world*/
   bool world_valid = (sw_only == proc->is_secure_world());
   if (!world_valid)
     throw trap_illegal_instruction(insn.bits());

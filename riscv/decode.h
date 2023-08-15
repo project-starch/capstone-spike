@@ -220,8 +220,9 @@ private:
 /*CAPSTONE INSN MACROS*/
 
 /*require*/
-#define require_debug assert(p->is_cap_debug_enabled())
-#define require_transcapstone assert(p->is_pure_capstone() == false)
+#define require_debug require(p->is_cap_debug_enabled())
+#define require_normal_world require(p->is_secure_world() == false)
+#define require_transcapstone require(p->is_pure_capstone() == false)
 /*register operand*/
 // RS1, RS2, RD are defined elsewhere, meaning the value of the register
 #define insn_rs1 insn.rs1()
@@ -330,7 +331,18 @@ union reg_value {
 #define require_novirt() if (unlikely(STATE.v)) throw trap_virtual_instruction(insn.bits())
 #define require_rv64 require(xlen == 64)
 #define require_rv32 require(xlen == 32)
-#define require_extension(s) require(p->extension_enabled(s))
+/*capstone extension requirement*/
+// #define require_extension(s) require(p->extension_enabled(s))
+#define require_extension(s) \
+  do { \
+    if (IS_SECURE_WORLD()) { \
+      bool allowed_extension = false; \
+      require(allowed_extension); \
+    } \
+    else { \
+      require(p->extension_enabled(s)); \
+    } \
+  } while (0);
 #define require_either_extension(A,B) require(p->extension_enabled(A) || p->extension_enabled(B));
 #define require_impl(s) require(p->supports_impl(s))
 #define require_fp          require(STATE.sstatus->enabled(SSTATUS_FS))
