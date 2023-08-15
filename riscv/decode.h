@@ -287,16 +287,6 @@ private:
 #define CAP_ENCODING_MODE 1
 
 // FIXME
-#define LOAD_S(load_type, src_reg) \
-  do { \
-    if (!REQUIRE_ZERO_REG || Rd != 0) { \
-      VALID_CAP(src_reg); \
-      cap64_t cap = READ_CAP(src_reg); \
-      assert(cap.inbound() && cap.accessible() && cap.readable()); \
-      SET_CAP_ACCESS(); \
-      WRITE_RD(MMU.load_##load_type(cap.cursor)); \
-    } \
-  } while (0)
 #define STORE_S(store_type, src_reg) \
   do { \
     VALID_CAP(Rd); \

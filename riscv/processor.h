@@ -808,16 +808,17 @@ regfile_cap_t<T, N>::operator [] (size_t i)
   if (i == 0 && zero_reg) {
     return data[0];
   }
-
-  // in normal world, zero will be read if use a cap reg as an integer operand
-  if (p->is_secure_world()) {
+  /*if in secure world or normal world capability encoding mode*/
+  /*the type constraint of instruction operand is tight*/
+  if (p->is_secure_world() || p->get_state()->emode == 1) {
     assert(is_data(i)); // dev check
   }
+  /*if in normal world integer encoding mode, just return 0*/
+  /*when accessing a capability register for compatibility*/
   else{
     // delayed zeroing (read before write)
     if (is_cap(i)) memset(data + i, 0, sizeof(data[i]));
   }
-  
   return data[i];
 }
 
