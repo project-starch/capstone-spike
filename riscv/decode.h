@@ -273,7 +273,7 @@ private:
 #define CCSR_NUM_VALID(ccsr_num) p->ccsr_num_valid(ccsr_num)
 #define CCSR(ccsr_num) p->get_ccsr(ccsr_num)
 /*csr*/
-#define CSR(csr_num) p->get_csr(csr_num, insn, true)
+#define CSR(csr_num) p->get_csr(csr_num, insn, false, true)
 /*capability inteface*/
 #define IS_LINEAR(reg) (READ_CAP(reg).is_linear())
 #define READ_CAP_NODE(reg) READ_CAP(reg).node_id
