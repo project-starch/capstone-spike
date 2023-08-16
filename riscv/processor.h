@@ -809,10 +809,16 @@ regfile_cap_t<T, N>::operator [] (size_t i)
     return data[0];
   }
 
-  /*for all capstone instructions, the type of the register is checked before accessing*/
-  /*for existing RISC-V instructions, if they access a capability register as an integer operand*/
-  /*just return zero*/
-  if (is_cap(i)) memset(data + i, 0, sizeof(data[i]));
+  /*for all capstone instructions, the type of the register is checked before accessing it*/
+  /*for existing RISC-V instructions
+  /*if they access a register containing a capability as an integer operand*/
+  /*the cursor or base field of this capability will be used instead*/
+  if (is_cap(i)) {
+    if (cap_data[i].cap.type == CAP_TYPE_SEALED)
+      return cap_data[i].cap.base;
+    else
+      return cap_data[i].cap.cursor;
+  }
 
   return data[i];
 }
