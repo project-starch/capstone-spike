@@ -4,7 +4,9 @@
 #include "insn_macros.h"
 
 #define cap_pc_forward(update_cursor) \
-  if (update_cursor && p->is_secure_world()) { \
+  if (p->is_secure_world()) { \
+    /*no need to set state.pc here, it's set by the caller*/ \
+    if (update_cursor) p->get_state()->cap_pc.cursor = npc; \
     cap64_t cap_pc = p->get_state()->cap_pc; \
     bool pc_valid_cap = p->valid_cap(cap_pc.node_id); \
     if (!pc_valid_cap) throw trap_capstone_instruction_access_fault(insn.bits()); \
@@ -16,8 +18,6 @@
     if (!pc_valid_perm) throw trap_capstone_instruction_access_fault(insn.bits()); \
     bool pc_in_bounds = cap_pc.in_bound(insn_length(OPCODE)); \
     if (!pc_in_bounds) throw trap_capstone_instruction_access_fault(insn.bits()); \
-    /*no need to set state.pc here, it's set by the caller*/ \
-    p->get_state()->cap_pc.cursor = npc; \
   }
 
 reg_t rv32i_NAME(processor_t* p, insn_t insn, reg_t pc)
