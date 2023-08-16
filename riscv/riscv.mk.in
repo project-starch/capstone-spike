@@ -141,6 +141,8 @@ riscv_insn_capstone = \
 	cs_ccsrrw \
 	cs_ldc \
 	cs_stc \
+	cs_cjalr \
+	cs_cbnz \
 
 riscv_insn_ext_a = \
 	amoadd_d \

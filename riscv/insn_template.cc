@@ -3,8 +3,8 @@
 #include "insn_template.h"
 #include "insn_macros.h"
 
-#define cap_pc_forward() \
-  if (p->is_secure_world()) { \
+#define cap_pc_forward(update_cursor) \
+  if (update_cursor && p->is_secure_world()) { \
     cap64_t cap_pc = p->get_state()->cap_pc; \
     bool pc_valid_cap = p->valid_cap(cap_pc.node_id); \
     if (!pc_valid_cap) throw trap_capstone_instruction_access_fault(insn.bits()); \
@@ -27,7 +27,6 @@ reg_t rv32i_NAME(processor_t* p, insn_t insn, reg_t pc)
   #include "insns/NAME.h"
   trace_opcode(p, OPCODE, insn);
   #undef xlen
-  cap_pc_forward();
   return npc;
 }
 
@@ -35,10 +34,11 @@ reg_t rv64i_NAME(processor_t* p, insn_t insn, reg_t pc)
 {
   #define xlen 64
   reg_t npc = sext_xlen(pc + insn_length(OPCODE));
+  bool update_cursor = true;
   #include "insns/NAME.h"
   trace_opcode(p, OPCODE, insn);
   #undef xlen
-  cap_pc_forward();
+  cap_pc_forward(update_cursor);
   return npc;
 }
 
@@ -52,7 +52,6 @@ reg_t rv32e_NAME(processor_t* p, insn_t insn, reg_t pc)
   #include "insns/NAME.h"
   trace_opcode(p, OPCODE, insn);
   #undef xlen
-  cap_pc_forward();
   return npc;
 }
 
@@ -60,9 +59,10 @@ reg_t rv64e_NAME(processor_t* p, insn_t insn, reg_t pc)
 {
   #define xlen 64
   reg_t npc = sext_xlen(pc + insn_length(OPCODE));
+  bool update_cursor = true;
   #include "insns/NAME.h"
   trace_opcode(p, OPCODE, insn);
   #undef xlen
-  cap_pc_forward();
+  cap_pc_forward(update_cursor);
   return npc;
 }
