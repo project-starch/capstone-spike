@@ -139,5 +139,6 @@ DECLARE_CAPSTONE_TRAP(CAUSE_UNEXPECTED_CAP_TYPE, capstone_unexpected_cap_type)
 DECLARE_CAPSTONE_TRAP(CAUSE_INSUFFICIENT_CAP_PERMS, capstone_insufficient_cap_perms)
 DECLARE_CAPSTONE_TRAP(CAUSE_CAP_OUT_OF_BOUND, capstone_cap_out_of_bound)
 DECLARE_CAPSTONE_TRAP(CAUSE_ILLEGAL_OPERAND_VALUE, capstone_illegal_operand_value)
+DECLARE_CAPSTONE_TRAP(CAUSE_INSUFFICIENT_SYSTEM_RESOURCES, capstone_insufficient_system_resources)
 /*end of transcapstone exceptions*/
 #endif

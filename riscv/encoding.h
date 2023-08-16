@@ -3250,7 +3250,7 @@
 #define CAUSE_INSUFFICIENT_CAP_PERMS 0x1b
 #define CAUSE_CAP_OUT_OF_BOUND 0x1c
 #define CAUSE_ILLEGAL_OPERAND_VALUE 0x1d
-// CAUSE_UNHANDLEABLE_EXCEPTION only used in pure capstone
+#define CAUSE_INSUFFICIENT_SYSTEM_RESOURCES 0x1e
 // #define CAUSE_UNHANDLEABLE_EXCEPTION 0x3f
 /*end of capstone added exception code*/
 #endif
@@ -4929,6 +4929,8 @@ DECLARE_CAUSE("unexpected capability type", CAUSE_UNEXPECTED_CAP_TYPE)
 DECLARE_CAUSE("insufficient capability permissions", CAUSE_INSUFFICIENT_CAP_PERMS)
 DECLARE_CAUSE("capability out of bound", CAUSE_CAP_OUT_OF_BOUND)
 DECLARE_CAUSE("illegal operand value", CAUSE_ILLEGAL_OPERAND_VALUE)
+DECLARE_CAUSE("insufficient system resources", CAUSE_INSUFFICIENT_SYSTEM_RESOURCES)
+
 // DECLARE_CAUSE("unhandleable exception", CAUSE_UNHANDLEABLE_EXCEPTION)
 /*end of capstone added exceptions*/
 #endif

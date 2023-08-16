@@ -25,7 +25,8 @@ if (insn_rs1 != insn_rd) {
 	// allocate new node
 	if (NOT_ZERO_REG(insn_rd)) {
 		rev_node_id_t split_node_id = SPLIT_RT(READ_CAP_NODE(insn_rs1));
-		assert(split_node_id != REV_NODE_ID_INVALID); // crush if no more node
+		if (split_node_id == REV_NODE_ID_INVALID)
+  			throw trap_capstone_insufficient_system_resources(insn.bits());
 		READ_CAP(insn_rd).node_id = split_node_id;
 		READ_CAP(insn_rd).base = tmp_val;
 		READ_CAP(insn_rd).cursor = tmp_val;

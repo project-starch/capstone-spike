@@ -14,7 +14,8 @@ if (IS_CAP(insn_rd)) UPDATE_RC_DOWN(READ_CAP_NODE(insn_rd));
 WRITE_CAP_DUMB(insn_rd, READ_CAP(insn_rs1));
 /*update rs1 capability node_id*/
 rev_node_id_t mrev_node_id = ALLOCATE_NODE(READ_CAP_NODE(insn_rs1));
-assert(mrev_node_id != REV_NODE_ID_INVALID); // crush if no node available
+if (mrev_node_id == REV_NODE_ID_INVALID)
+  throw trap_capstone_insufficient_system_resources(insn.bits());
 READ_CAP(insn_rs1).node_id = mrev_node_id;
 /*update rd capability type*/
 if (NOT_ZERO_REG(insn_rd)) {
