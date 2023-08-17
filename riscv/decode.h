@@ -223,6 +223,8 @@ private:
 #define require_debug require(p->is_cap_debug_enabled())
 #define require_normal_world require(p->is_secure_world() == false)
 #define require_transcapstone require(p->is_pure_capstone() == false)
+/*simulator status*/
+#define IS_PURE_CAPSTONE (p->is_pure_capstone())
 /*register operand*/
 // RS1, RS2, RD are defined elsewhere, meaning the value of the register
 #define insn_rs1 insn.rs1()
