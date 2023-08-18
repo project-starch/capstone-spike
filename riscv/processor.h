@@ -233,6 +233,7 @@ struct state_t
   ccsr_t switch_cap;
   // other shadow registers added in capstone
   uint64_t normal_pc;
+  cap_reg_t normal_sp_cap;
   uint64_t normal_sp;
   uint64_t switch_reg;
   uint64_t exit_reg;
