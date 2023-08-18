@@ -93,6 +93,7 @@ else {
 		STATE.ceh.cap = READ_CAP(insn_rs1);
 		RESET_REG(insn_rs1);
 		/*31 GPRs*/
+		// FIXME
 		for (uint64_t i = 1; i < 32; i++) {
 			tmp_addr += CLENBYTES;
 			SET_CAP_ACCESS();

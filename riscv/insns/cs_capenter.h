@@ -1,5 +1,5 @@
-#include "decode.h"
-#include "trap.h"
+// #include "decode.h"
+// #include "trap.h"
 require_transcapstone;
 
 /*exception*/
