@@ -9,6 +9,7 @@ if (READ_CAP(insn_rs1).type != CAP_TYPE_UNINITIALIZED)
 if (READ_CAP(insn_rs1).cursor != READ_CAP(insn_rs1).end)
 	throw trap_capstone_illegal_operand_value(insn.bits());
 /*init an uninitialized capability*/
-READ_CAP(insn_rs1).type = CAP_TYPE_LINEAR;
-READ_CAP(insn_rs1).cursor = READ_CAP(insn_rs1).base + RS2;
+uint64_t val = RS2;
 MOVC(insn_rd, insn_rs1);
+READ_CAP(insn_rd).type = CAP_TYPE_LINEAR;
+READ_CAP(insn_rd).cursor = READ_CAP(insn_rs1).base + val;

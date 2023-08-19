@@ -10,12 +10,12 @@ if (tmp_type != CAP_TYPE_LINEAR && tmp_type != CAP_TYPE_NONLINEAR && tmp_type !=
 if (insn_ri_imm < 7 && !CAP_PERM_GTE(insn_rs1, static_cast<cap_perm_t>(insn_ri_imm)))
 	throw trap_capstone_illegal_operand_value(insn.bits());
 /*tighten the permission*/
-if (NOT_ZERO_REG(insn_rs1)) {
+MOVC(insn_rd, insn_rs1);
+if (NOT_ZERO_REG(insn_rd)) {
 	if (insn_ri_imm > 7) {
-		READ_CAP(insn_rs1).perm = CAP_PERM_NA;
+		READ_CAP(insn_rd).perm = CAP_PERM_NA;
 	}
 	else {
-		READ_CAP(insn_rs1).perm = static_cast<cap_perm_t>(insn_ri_imm);
+		READ_CAP(insn_rd).perm = static_cast<cap_perm_t>(insn_ri_imm);
 	}
 }
-MOVC(insn_rd, insn_rs1);
