@@ -21,7 +21,6 @@ tmp_val = MMU.load_uint128(tmp_addr);
 tmp_cap.from128(tmp_val);
 SET_CAP_ACCESS();
 MMU.store_uint128(tmp_addr, STATE.cap_pc.to128());
-update_cursor = false;
 STATE.cap_pc = tmp_cap;
 set_pc(tmp_cap.cursor);
 /*ceh*/

@@ -31,7 +31,6 @@ if (READ_CAP(insn_rs1).async == CAP_ASYNC_SYNC) {
 	SET_CAP_ACCESS();
 	uint128_t tmp_val = MMU.load_uint128(tmp_addr);
 	tmp_cap.from128(tmp_val);
-	update_cursor = false;
 	UPDATE_RC_DOWN(STATE.cap_pc.node_id);
 	STATE.cap_pc = tmp_cap;
 	set_pc(tmp_cap.cursor);
@@ -82,7 +81,6 @@ else {
 	uint128_t tmp_val = MMU.load_uint128(tmp_addr);
 	tmp_cap.from128(tmp_val);
 	UPDATE_RC_UP(tmp_cap.node_id);
-	update_cursor = false;
 	UPDATE_RC_DOWN(STATE.cap_pc.node_id);
 	STATE.cap_pc = tmp_cap;
 	set_pc(tmp_cap.cursor);

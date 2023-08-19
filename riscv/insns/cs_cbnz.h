@@ -10,7 +10,6 @@ if (!IS_CAP(insn_rd) || !IS_DATA(insn_rs1))
 if (RS1 != 0) {
 	/*rd -> pc*/
 	UPDATE_RC_DOWN(STATE.cap_pc.node_id);
-	update_cursor = false;
 	STATE.cap_pc = READ_CAP(insn_rd);
 	/*update pc cursor*/
 	STATE.cap_pc.cursor += insn_i_imm;

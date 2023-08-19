@@ -811,7 +811,7 @@ regfile_cap_t<T, N>::operator [] (size_t i)
   }
 
   /*for all capstone instructions, the type of the register is checked before accessing it*/
-  /*for existing RISC-V instructions
+  /*for existing RISC-V instructions*/
   /*if they access a register containing a capability as an integer operand*/
   /*the cursor or base field of this capability will be used instead*/
   if (is_cap(i)) {

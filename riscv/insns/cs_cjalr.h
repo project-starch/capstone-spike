@@ -13,7 +13,6 @@ STATE.cap_pc.cursor = npc;
 WRITE_CAP(insn_rd, STATE.cap_pc);
 /*cap -> pc*/
 // disable cap_pc cursor update in insn_template.cc
-update_cursor = false;
 tmp_cap.cursor += insn_i_imm;
 STATE.cap_pc = tmp_cap;
 // pc is replaced by npc outside this function
