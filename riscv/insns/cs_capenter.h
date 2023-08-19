@@ -23,7 +23,7 @@ if (READ_CAP(insn_rs1).async == CAP_ASYNC_SYNC) {
 	}
 	else {
 		STATE.normal_sp_cap.set_data();
-		STATE.normal_sp = STATE.XPR[csp_index];
+		STATE.normal_sp = READ_REG(csp_index);
 	}
 	/*pc*/
 	uint64_t tmp_addr = READ_CAP(cra_index).base;
@@ -73,7 +73,7 @@ else {
 	}
 	else {
 		STATE.normal_sp_cap.set_data();
-		STATE.normal_sp = STATE.XPR[csp_index];
+		STATE.normal_sp = READ_REG(csp_index);
 	}
 	/*pc*/
 	uint64_t tmp_addr = STATE.switch_cap.cap.base;

@@ -93,15 +93,35 @@ else {
 		STATE.ceh.cap = READ_CAP(insn_rs1);
 		RESET_REG(insn_rs1);
 		/*31 GPRs*/
-		// FIXME
+		uint64_t tmp_data;
 		for (uint64_t i = 1; i < 32; i++) {
 			tmp_addr += CLENBYTES;
+			// memory
+			bool mem_is_cap = GET_TAG(tmp_addr);
 			SET_CAP_ACCESS();
-			tmp_val = MMU.load_uint128(tmp_addr);
-			tmp_cap.from128(tmp_val);
+			if (mem_is_cap) {
+				tmp_val = MMU.load_uint128(tmp_addr);
+				tmp_cap.from128(tmp_val);
+			}
+			else {
+				tmp_data = MMU.load_uint64(tmp_addr);
+			}
+			// register
+			bool reg_is_cap = IS_CAP(i);
 			SET_CAP_ACCESS();
-			MMU.store_uint128(tmp_addr, READ_CAP(i).to128());
-			WRITE_CAP_DUMB(i, tmp_cap);
+			if (reg_is_cap) {
+				MMU.store_uint128(tmp_addr, READ_CAP(i).to128());
+			}
+			else {
+				MMU.store_uint64(tmp_addr, READ_REG(i));
+			}
+			// update register
+			if (mem_is_cap) {
+				WRITE_CAP_DUMB(i, tmp_cap);
+			}
+			else {
+				WRITE_DATA_DUMB(i, tmp_data);
+			}
 		}
 	}
 	/*interrupt, used for interrupt handling domain return*/

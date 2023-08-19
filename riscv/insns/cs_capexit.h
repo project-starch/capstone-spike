@@ -30,7 +30,7 @@ if (IS_CAP(csp_index)) {
 	MMU.store_uint128(tmp_addr, READ_CAP(csp_index).to128());
 }
 else {
-	MMU.store_uint128(tmp_addr, STATE.XPR[csp_index]);
+	MMU.store_uint128(tmp_addr, READ_REG(csp_index));
 }
 /*normal_pc & normal_sp*/
 set_pc(STATE.normal_pc + 4);

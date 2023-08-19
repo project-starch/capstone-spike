@@ -836,7 +836,12 @@ void processor_t::take_interrupt(reg_t pending_interrupts)
       state.pc = state.normal_pc;
       updateRC(state.cap_pc.node_id, -1);
       state.cap_pc.reset();
-      state.XPR.write(2, state.normal_sp);
+      if (state.normal_sp_cap.is_cap()) {
+        state.XPR.write_cap(2, state.normal_sp_cap.cap);
+      }
+      else {
+        state.XPR.write(2, state.normal_sp);
+      }
       /*switch_cap*/
       state.switch_cap.cap.type = CAP_TYPE_SEALED;
       state.switch_cap.cap.async = CAP_ASYNC_INTERRUPT;
@@ -849,7 +854,12 @@ void processor_t::take_interrupt(reg_t pending_interrupts)
       state.pc = state.normal_pc;
       updateRC(state.cap_pc.node_id, -1);
       state.cap_pc.reset();
-      state.XPR.write(2, state.normal_sp);
+      if (state.normal_sp_cap.is_cap()) {
+        state.XPR.write_cap(2, state.normal_sp_cap.cap);
+      }
+      else {
+        state.XPR.write(2, state.normal_sp);
+      }
       /*x[switch_reg]*/
       state.XPR.reset_i(state.switch_reg, true);
       // scrub other regs
@@ -984,7 +994,7 @@ void processor_t::take_trap(trap_t& t, reg_t epc)
     /*exception handler domain*/
     if (valid_ceh && enter_eh_domain) {
       cap64_t tmp_cap;
-      uint128_t tmp_data;
+      uint64_t tmp_data;
       uint64_t tmp_addr = ceh_val.base;
 
       /*pc*/
@@ -998,11 +1008,31 @@ void processor_t::take_trap(trap_t& t, reg_t epc)
       tmp_addr += CLENBYTES;
       for (int i = 1; i < 32; i++) {
         tmp_addr += CLENBYTES;
+        // memeory
+        bool mem_is_cap = getTag(tmp_addr);
         set_cap_access();
-        tmp_cap.from128(get_mmu()->load_uint128(tmp_addr));
+        if (mem_is_cap) {
+          tmp_cap.from128(get_mmu()->load_uint128(tmp_addr));
+        }
+        else {
+          tmp_data = get_mmu()->load_uint64(tmp_addr);
+        }
+        // register
+        bool reg_is_cap = state.XPR.is_cap(i);
         set_cap_access();
-        get_mmu()->store_uint128(tmp_addr, state.XPR.read_cap(i).to128());
-        state.XPR.write_cap(i, tmp_cap, false);
+        if (reg_is_cap) {
+          get_mmu()->store_uint128(tmp_addr, state.XPR.read_cap(i).to128());
+        }
+        else {
+          get_mmu()->store_uint64(tmp_addr, state.XPR[i]);
+        }
+        // update register
+        if (mem_is_cap) {
+          state.XPR.write_cap(i, tmp_cap, false);
+        }
+        else {
+          state.XPR.write(i, tmp_data, false);
+        }
       }
       /*ceh -> cra*/
       state.ceh.cap.type = CAP_TYPE_SEALEDRET;
@@ -1086,7 +1116,12 @@ void processor_t::take_trap(trap_t& t, reg_t epc)
         state.pc = state.normal_pc + 4;
         updateRC(state.cap_pc.node_id, -1);
         state.cap_pc.reset();
-        state.XPR.write(2, state.normal_sp);
+        if (state.normal_sp_cap.is_cap()) {
+          state.XPR.write_cap(2, state.normal_sp_cap.cap);
+        }
+        else {
+          state.XPR.write(2, state.normal_sp);
+        }
         /*switch_cap*/
         state.switch_cap.cap.type = CAP_TYPE_SEALED;
         state.switch_cap.cap.async = CAP_ASYNC_EXCEPTION;
@@ -1099,7 +1134,12 @@ void processor_t::take_trap(trap_t& t, reg_t epc)
         state.pc = state.normal_pc + 4;
         updateRC(state.cap_pc.node_id, -1);
         state.cap_pc.reset();
-        state.XPR.write(2, state.normal_sp);
+        if (state.normal_sp_cap.is_cap()) {
+          state.XPR.write_cap(2, state.normal_sp_cap.cap);
+        }
+        else {
+          state.XPR.write(2, state.normal_sp);
+        }
         /*x[switch_reg], corner case: switch_reg = 2*/
         state.XPR.reset_i(state.switch_reg, true);
         /*scrub other regs*/
