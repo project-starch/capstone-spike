@@ -81,6 +81,7 @@ else {
 	SET_CAP_ACCESS();
 	uint128_t tmp_val = MMU.load_uint128(tmp_addr);
 	tmp_cap.from128(tmp_val);
+	UPDATE_RC_UP(tmp_cap.node_id);
 	update_cursor = false;
 	UPDATE_RC_DOWN(STATE.cap_pc.node_id);
 	STATE.cap_pc = tmp_cap;
@@ -90,6 +91,7 @@ else {
 	SET_CAP_ACCESS();
 	tmp_val = MMU.load_uint128(tmp_addr);
 	tmp_cap.from128(tmp_val);
+	UPDATE_RC_UP(tmp_cap.node_id);
 	UPDATE_RC_DOWN(STATE.ceh.cap.node_id);
 	STATE.ceh.cap = tmp_cap;
 	/*31 GPRs*/
