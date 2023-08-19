@@ -45,7 +45,7 @@ The compression mechanism of the `base` and `end` fields is the same as the one 
 |Field |Bits |Compressed |Additional Data Structure
 |`valid` |`node-id`|- |Revocation Tree
 |`type` |`type`|No |-
-|`cursor` |`cursor`, `base`|Yes |-
+|`cursor` |`offset`, `base`|Yes |-
 |`base` |`base`|No |-
 |`async` |`async`|No |-
 |`reg` |`reg`|No |-
@@ -55,7 +55,7 @@ The compression mechanism of the `base` and `end` fields is the same as the one 
 [%collapsible]
 ====
 ****
-The compression mechanism of the `cursor` field is straightforward: `cursor = sign_extend(capability[86:64]) + capability[63:0]`.
+The compression mechanism of the `cursor` field is straightforward: `cursor = sign_extend(offset) + base`.
 ****
 ====
 
