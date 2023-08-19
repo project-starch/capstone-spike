@@ -294,6 +294,7 @@ struct cap_reg_t
 
   cap_reg_t() {
     tag = WORD_TAG_DATA;
+    cap.reset();
   }
   /*tag check*/
   inline bool is_cap() const {

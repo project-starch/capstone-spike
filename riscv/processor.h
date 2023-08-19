@@ -233,6 +233,7 @@ struct state_t
   ccsr_t switch_cap;
   // other shadow registers added in capstone
   uint64_t normal_pc;
+  cap_reg_t normal_sp_cap;
   uint64_t normal_sp;
   uint64_t switch_reg;
   uint64_t exit_reg;
@@ -810,7 +811,7 @@ regfile_cap_t<T, N>::operator [] (size_t i)
   }
 
   /*for all capstone instructions, the type of the register is checked before accessing it*/
-  /*for existing RISC-V instructions
+  /*for existing RISC-V instructions*/
   /*if they access a register containing a capability as an integer operand*/
   /*the cursor or base field of this capability will be used instead*/
   if (is_cap(i)) {

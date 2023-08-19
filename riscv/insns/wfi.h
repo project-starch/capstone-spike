@@ -1,3 +1,4 @@
+require_normal_world;
 if (STATE.v && STATE.prv == PRV_U) {
   require_novirt();
 } else if (get_field(STATE.mstatus->read(), MSTATUS_TW)) {
