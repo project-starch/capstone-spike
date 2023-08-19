@@ -1083,7 +1083,7 @@ void processor_t::take_trap(trap_t& t, reg_t epc)
           }
         }
         /*normal_pc & normal_sp*/
-        state.pc = state.normal_pc;
+        state.pc = state.normal_pc + 4;
         updateRC(state.cap_pc.node_id, -1);
         state.cap_pc.reset();
         state.XPR.write(2, state.normal_sp);
@@ -1096,7 +1096,7 @@ void processor_t::take_trap(trap_t& t, reg_t epc)
       else {
         /*switch_cap is invalid*/
         /*pc & sp*/
-        state.pc = state.normal_pc;
+        state.pc = state.normal_pc + 4;
         updateRC(state.cap_pc.node_id, -1);
         state.cap_pc.reset();
         state.XPR.write(2, state.normal_sp);
