@@ -1,4 +1,4 @@
 // #include "decode.h"
 require_capstone_debug;
 
-WRITE_DATA(insn_rd, ALLOCATE_NODE(RS1));
+RT_REVOKE(RS1);

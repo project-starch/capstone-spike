@@ -220,7 +220,7 @@ private:
 /*CAPSTONE INSN MACROS*/
 
 /*require*/
-#define require_debug require(p->is_cap_debug_enabled())
+#define require_capstone_debug require(p->is_cap_debug_enabled())
 #define require_normal_world require(p->is_secure_world() == false)
 #define require_transcapstone require(p->is_pure_capstone() == false)
 /*simulator status*/
@@ -264,6 +264,7 @@ private:
 #define DROP_CAP(node_id) p->drop(node_id)
 #define ALLOCATE_NODE(node_id) p->allocate(node_id)
 #define RT_REVOKE(node_id) p->revoke(node_id)
+#define UPDATE_RC(node_id, delta) p->updateRC(node_id, delta)
 /*update rc*/
 #define UPDATE_RC_UP(node_id) p->updateRC(node_id, 1)
 #define UPDATE_RC_DOWN(node_id) p->updateRC(node_id, -1)
@@ -288,12 +289,6 @@ private:
 /*encoding mode*/
 #define INT_ENCODING_MODE 0
 #define CAP_ENCODING_MODE 1
-
-// FIXME
-union reg_value {
-  cap64_t cap;
-  uint64_t data;
-};
 /*END OF CAPSTONE INSN MACROS*/
 
 // RVC macros

@@ -1,2 +1,4 @@
+// #include "decode.h"
 require_capstone_debug;
-p->updateRC(RS1, RS2);
+
+UPDATE_RC(RS1, RS2);
