@@ -10,7 +10,6 @@ The interface of the processor follows the [Capstone-RISC-V ISA](https://capston
 
 - [Spike simulator's implementation of Capstone-RISC-V](docs/spike-impl.adoc)
 - [Debugging in Spike](docs/spike-debug.adoc)
-- [Capstone-RISC-V Spike developer guide](docs/dev-manual.adoc)
 
 ## Quick Start
 
@@ -36,4 +35,3 @@ Both an [Apptainer](https://apptainer.org/) image and a building script are prov
 | `-M<a:m>` | Provide secure memory regions of size m bytes at base addresses a (with 4 KiB alignment) |
 | `-R<n>` | The size of revocation tree (default `1024*1024`) |
 | `-D` | Enable debug instructions | RISC-V privilege modes supported (default `msu`) |
-| `-P` | Pure Capstone (currently not supported) |
