@@ -235,6 +235,7 @@ private:
 #define insn_s_imm insn.s_imm()
 #define insn_ri_imm insn.rs2()
 /*world*/
+#define SWITCH_WORLD(to_secure) p->switch_world(to_secure)
 #define TO_SECURE_WORLD() p->switch_world(true)
 #define TO_NORMAL_WORLD() p->switch_world(false)
 #define IS_SECURE_WORLD() (p->is_secure_world())

@@ -2871,6 +2871,8 @@
 #define MATCH_DPRINT 0x1400005b
 #define MATCH_DTAGSET 0x1600005b
 #define MATCH_DTAGGET 0x1800005b
+#define MATCH_DSETWORLD 0x1a00005b
+#define MATCH_DSETEH 0x1c00005b
 /*end of capstone instructions*/
 /*capstone ccsrs*/
 #define CCSR_CEH 0x000
@@ -4556,6 +4558,9 @@ DECLARE_INSN(debug_capreg, MATCH_DCAPREG, MASK_R_RI)
 DECLARE_INSN(debug_print, MATCH_DPRINT, MASK_R_RI)
 DECLARE_INSN(debug_tagset, MATCH_DTAGSET, MASK_R_RI)
 DECLARE_INSN(debug_tagget, MATCH_DTAGGET, MASK_R_RI)
+DECLARE_INSN(debug_tagget, MATCH_DTAGGET, MASK_R_RI)
+DECLARE_INSN(debug_setworld, MATCH_DSETWORLD, MASK_R_RI)
+DECLARE_INSN(debug_seteh, MATCH_DSETEH, MASK_R_RI)
 /*end of capstone instructions*/
 #endif
 #ifdef DECLARE_CSR

@@ -162,6 +162,8 @@ riscv_insn_capstone_debug = \
 	debug_print \
 	debug_tagset \
 	debug_tagget \
+	debug_setworld \
+	debug_seteh \
 
 riscv_insn_ext_a = \
 	amoadd_d \
@@ -1321,6 +1323,7 @@ riscv_insn_list = \
 	$(riscv_insn_priv) \
 	$(riscv_insn_svinval) \
 	$(riscv_insn_capstone) \
+	$(riscv_insn_capstone_debug) \
 
 riscv_gen_srcs = \
 	$(addsuffix .cc,$(riscv_insn_list))
