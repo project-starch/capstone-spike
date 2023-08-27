@@ -218,7 +218,6 @@ private:
 #endif
 
 /*CAPSTONE INSN MACROS*/
-
 /*require*/
 #define require_capstone_debug require(p->is_cap_debug_enabled())
 #define require_normal_world require(p->is_secure_world() == false)

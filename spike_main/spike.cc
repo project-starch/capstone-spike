@@ -25,7 +25,7 @@ static void help(int exit_code = 1)
   fprintf(stderr, "  -m<n>                 Provide <n> MiB of target memory [default 2048]\n");
   fprintf(stderr, "  -m<a:m,b:n,...>       Provide memory regions of size m and n bytes\n");
   fprintf(stderr, "                          at base addresses a and b (with 4 KiB alignment)\n");
-  fprintf(stderr, "  -d                    Interactive debug mode (currently not supported with transcapstone)\n");
+  fprintf(stderr, "  -d                    Interactive debug mode\n");
   fprintf(stderr, "  -g                    Track histogram of PCs\n");
   fprintf(stderr, "  -l                    Generate a log of execution\n");
 #ifdef HAVE_BOOST_ASIO
@@ -38,7 +38,7 @@ static void help(int exit_code = 1)
   fprintf(stderr, "                          at base addresses a (with 4 KiB alignment)\n");
   fprintf(stderr, "  -R<n>                 The size of revocation tree [default 1024*1024]\n");
   fprintf(stderr, "  -D                    Enable debug instructions\n");
-  fprintf(stderr, "  -P                    Pure Capstone (currently not supported)\n");
+  // fprintf(stderr, "  -P                    Pure Capstone\n");
   // end of capstone arguments
   fprintf(stderr, "  --log=<name>          File name for option -l\n");
   fprintf(stderr, "  --debug-cmd=<name>    Read commands from file (use with -d)\n");
@@ -348,7 +348,7 @@ int main(int argc, char** argv)
   });
   parser.option('R', 0, 1, [&](const char* s){rev_tree_node_num = atoul_nonzero_safe(s);});
   parser.option('D', 0, 0, [&](const char* s){cap_debug_enabled = true;});
-  parser.option('P', 0, 0, [&](const char* s){pure_capstone = true;});
+  // parser.option('P', 0, 0, [&](const char* s){pure_capstone = true;});
   // End of capstone arguments
   parser.option(0, "rbb-port", 1, [&](const char* s){use_rbb = true; rbb_port = atoul_safe(s);});
   parser.option(0, "pc", 1, [&](const char* s){start_pc = strtoull(s, 0, 0);});

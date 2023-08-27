@@ -12,6 +12,8 @@ if (NOT_ZERO_REG(insn_rs1) && !VALID_CAP(insn_rs1))
 	throw trap_capstone_invalid_capability(insn.bits());
 if (NOT_ZERO_REG(insn_rs1) && READ_CAP(insn_rs1).type != CAP_TYPE_SEALEDRET)
 	throw trap_capstone_unexpected_cap_type(insn.bits());
+if (NOT_ZERO_REG(insn_rs1) && READ_CAP(insn_rs1).async == CAP_ASYNC_INTERRUPT)
+	throw trap_capstone_unexpected_cap_type(insn.bits());
 /*rs1 = 0, used for in-domain exception handling return*/
 if (insn_rs1 == 0) {
 	STATE.cap_pc.cursor = RS2;
@@ -122,11 +124,11 @@ else {
 			}
 		}
 	}
-	/*interrupt, used for interrupt handling domain return*/
-	/*only reachable in pure capstone*/
-	else {
-		assert(tmp_async == CAP_ASYNC_INTERRUPT); // dev check
-		assert(IS_PURE_CAPSTONE); // dev check
-		// TODO
-	}
+	// /*interrupt, used for interrupt handling domain return*/
+	// /*only reachable in pure capstone*/
+	// else {
+	// 	assert(tmp_async == CAP_ASYNC_INTERRUPT); // dev check
+	// 	assert(IS_PURE_CAPSTONE); // dev check
+	// 	// TODO
+	// }
 }
