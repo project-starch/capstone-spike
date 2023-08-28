@@ -198,6 +198,13 @@ void mmu_t::store_slow_path(reg_t addr, reg_t len, const uint8_t* bytes, uint32_
   }
 
   if (auto host_addr = sim->addr_to_mem(paddr)) {
+    /* if a clen-bit data is stored, we treat the data being stored as a capability.
+     * set the tag for every store access.
+     */
+    if (proc) {
+      bool set_as_cap = (len == 16)? true : false;
+      proc->setTag(paddr, set_as_cap);
+    }
     memcpy(host_addr, bytes, len);
     /*cache info update & tlb update only in normal access*/
     if (!proc || proc->is_normal_access()) {
