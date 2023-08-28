@@ -249,12 +249,10 @@ private:
 // READ_REG and WRITE_REG are defined elsewhere for integer registers
 #define READ_CAP(reg) STATE.XPR.read_cap(reg)
 #define WRITE_CAP(reg, value) STATE.XPR.write_cap(reg, value)
+#define WRITE_CAP_DUMB(reg, value) STATE.XPR.write_cap(reg, value, false) // write reg without rc update
 // for rc update issue, we declare our own write_reg
 #define WRITE_DATA(reg, value) STATE.XPR.write(reg, value)
 #define WRITE_DATA_DUMB(reg, value) STATE.XPR.write(reg, value, false)
-// write reg without rc update
-#define WRITE_CAP_DUMB(reg, value) STATE.XPR.write_cap(reg, value, false)
-#define WRITE_REG_DUMB(reg, value) STATE.XPR.write(reg, value, false)
 /*memory access*/
 #define SET_CAP_ACCESS() p->set_cap_access()
 /*revocation tree*/
@@ -270,7 +268,7 @@ private:
 #define UPDATE_RC_DOWN(node_id) p->updateRC(node_id, -1)
 #define STORE_UPDATE_RC(addr) p->store_update_rc(addr)
 /*memory tag*/
-#define GET_TAG(addr) p->getTag(addr)
+#define GET_TAG(addr) (p->getTag(addr))
 #define SET_TAG(addr, as_cap) p->setTag(addr, as_cap)
 /*ccsr*/
 #define CCSR_NUM_VALID(ccsr_num) p->ccsr_num_valid(ccsr_num)
