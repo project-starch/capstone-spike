@@ -35,7 +35,7 @@ The relation between the fields of the capability and bits of the compressed cap
 [%collapsible]
 ====
 ****
-The compression mechanism of the `base` and `end` fields is the same as the one used in the compressed capability format of the https://www.cl.cam.ac.uk/techreports/UCAM-CL-TR-951.pdf[CHERI-RISC-V ISA].
+The compression mechanism of the `base` and `end` fields is the same as the one used in the compressed capability format of the https://www.cl.cam.ac.uk/techreports/UCAM-CL-TR-951.pdf[CHERI ISAv8].
 ****
 ====
 
@@ -66,4 +66,4 @@ The idea of the revocation tree is introduced in our https://www.usenix.org/conf
 In the link:#cap-format[compressed capability format], a `node-id` is kept as part of the capability to indicate a node in the revocation tree.
 A reference count is maintained for each node in the revocation tree to indicate the number of capabilities that are currently pointing to the node.
 `<t` relation is maintained as a partial order on the revocation tree to indicate the revocation order of the capabilities.
-A `Insufficient system resources (30)` exception will be raised if the allocation of a new node in the revocation tree fails.
+An `Insufficient system resources (30)` exception will be raised if the allocation of a new node in the revocation tree fails.
