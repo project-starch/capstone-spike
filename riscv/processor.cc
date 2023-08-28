@@ -983,8 +983,10 @@ void processor_t::debug_output_log(std::stringstream *s)
 /*exception handling*/
 void processor_t::take_trap(trap_t& t, reg_t epc)
 {
-  /*secure world exceptions are handled here*/
-  /*the orignial handling mechanism in RISC-V will not be evoked afterwards*/
+  /* secure world exceptions are handled here.
+   * the orignial handling mechanism in RISC-V will *not* be evoked afterwards.
+   * epc doesn't need to be updated here, since it's not used in secure world exception handling
+   */
   if (is_secure_world()) {
     cap64_t ceh_val = state.ceh.cap;
     bool valid_ceh = valid_cap(ceh_val.node_id);
