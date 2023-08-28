@@ -43,13 +43,19 @@ if (READ_CAP(insn_rs1).async == CAP_ASYNC_SYNC) {
 	STATE.ceh.cap = tmp_cap;
 	/*csp*/
 	tmp_addr += CLENBYTES;
-	SET_CAP_ACCESS();
-	tmp_val = MMU.load_uint128(tmp_addr);
-	tmp_cap.from128(tmp_val);
-	if (IS_CAP(csp_index)) {
-		UPDATE_RC_DOWN(READ_CAP_NODE(csp_index));
+	if (GET_TAG(tmp_addr)) {
+		SET_CAP_ACCESS();
+		tmp_val = MMU.load_uint128(tmp_addr);
+		tmp_cap.from128(tmp_val);
+		if (IS_CAP(csp_index)) {
+			UPDATE_RC_DOWN(READ_CAP_NODE(csp_index));
+		}
+		WRITE_CAP_DUMB(csp_index, tmp_cap);
 	}
-	WRITE_CAP_DUMB(csp_index, tmp_cap);
+	else {
+		SET_CAP_ACCESS();
+		WRITE_DATA(csp_index, MMU.load_uint64(tmp_addr));
+	}
 	/*cra*/
 	READ_CAP(cra_index).type = CAP_TYPE_EXIT;
 	READ_CAP(cra_index).cursor = READ_CAP(cra_index).base;

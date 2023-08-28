@@ -60,7 +60,12 @@ else {
 		tmp_val = MMU.load_uint128(tmp_addr);
 		tmp_cap.from128(tmp_val);
 		SET_CAP_ACCESS();
-		MMU.store_uint128(tmp_addr, READ_CAP(csp_index).to128());
+		if (IS_CAP(csp_index)) {
+			MMU.store_uint128(tmp_addr, READ_CAP(csp_index).to128());
+		}
+		else {
+			MMU.store_uint64(tmp_addr, READ_REG(csp_index));
+		}
 		WRITE_CAP_DUMB(csp_index, tmp_cap);
 		/*write to x[reg]*/
 		assert(cap.reg != 0); // dev check
