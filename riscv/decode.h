@@ -272,7 +272,7 @@ private:
 #define GET_TAG(addr) (p->getTag(addr))
 #define SET_TAG(addr, as_cap) p->setTag(addr, as_cap)
 /*ccsr*/
-#define CCSR_NUM_VALID(ccsr_num) p->ccsr_num_valid(ccsr_num)
+#define CCSR_NUM_VALID(ccsr_num) (p->ccsr_num_valid(ccsr_num))
 #define CCSR(ccsr_num) p->get_ccsr(ccsr_num)
 /*csr*/
 #define CSR(csr_num) p->get_csr(csr_num, insn, false, true)
