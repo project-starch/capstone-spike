@@ -6,7 +6,7 @@
 /* in the capstone-risc-v spec, the pc is checked in the instruction fetch stage.
  * however, the original spike implementation is not capability-aware, so we
  * check the pc every time it's modified, i.e., end of the instruction execution (here),
- * end of exception handling and end of interrupt handling (both in processor.cc).
+ * and end of exception handling (in processor.cc).
  */
 #define cap_pc_forward() \
   if (p->is_secure_world()) { \
