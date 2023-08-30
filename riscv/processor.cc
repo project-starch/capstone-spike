@@ -771,11 +771,19 @@ void processor_t::set_mmu_capability(int cap)
   }
 }
 
-void processor_t::store_update_rc(uint64_t addr) {
-  addr &= ~(CLENBYTES - 1);
-  if (getTag(addr)) {
-    set_cap_access();
-    uint128_t data = get_mmu()->load_uint128(addr);
+void processor_t::store_update_rc(uint64_t addr, bool addr_is_paddr/*=true*/) {
+  uint64_t paddr;
+  if (addr_is_paddr) {
+    paddr = addr;
+  }
+  else {
+    assert(state.cap_access == false); // dev check
+    paddr = get_mmu()->translate(addr, 16, LOAD, 0);
+  }
+  paddr &= ~(CLENBYTES - 1);
+  if (getTag(paddr)) {
+    if (addr_is_paddr) set_cap_access();
+    uint128_t data = get_mmu()->load_uint128(paddr);
     cap64_t tmp_cap;
     updateRC(tmp_cap.get_node_id(data), -1);
   }

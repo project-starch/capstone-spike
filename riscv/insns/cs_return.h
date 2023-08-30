@@ -108,11 +108,11 @@ else {
 		STATE.cap_pc.cursor = RS2;
 		uint64_t tmp_addr = READ_CAP(insn_rs1).base;
 		uint128_t tmp_val;
+		cap64_t tmp_cap;
 		uint64_t tmp_data;
 		if (GET_TAG(tmp_addr)) {
 			SET_CAP_ACCESS();
 			tmp_val = MMU.load_uint128(tmp_addr);
-			cap64_t tmp_cap;
 			tmp_cap.from128(tmp_val);
 			SET_CAP_ACCESS();
 			MMU.store_uint128(tmp_addr, STATE.cap_pc.to128());
