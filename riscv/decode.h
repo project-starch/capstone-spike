@@ -267,6 +267,7 @@ private:
 #define UPDATE_RC_UP(node_id) p->updateRC(node_id, 1)
 #define UPDATE_RC_DOWN(node_id) p->updateRC(node_id, -1)
 #define STORE_UPDATE_RC(addr) p->store_update_rc(addr)
+#define STORE_UPDATE_RC_VIRT(addr) p->store_update_rc(addr, false)
 /*memory tag*/
 #define GET_TAG(addr) (p->getTag(addr))
 #define SET_TAG(addr, as_cap) p->setTag(addr, as_cap)

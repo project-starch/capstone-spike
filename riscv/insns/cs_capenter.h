@@ -1,5 +1,5 @@
-#include "decode.h"
-#include "trap.h"
+// #include "decode.h"
+// #include "trap.h"
 require_transcapstone;
 
 /*exception*/
@@ -95,13 +95,25 @@ else {
 	/*pc*/
 	uint64_t tmp_addr = STATE.switch_cap.cap.base;
 	cap64_t tmp_cap;
-	SET_CAP_ACCESS();
-	uint128_t tmp_val = MMU.load_uint128(tmp_addr);
-	tmp_cap.from128(tmp_val);
-	UPDATE_RC_UP(tmp_cap.node_id);
-	UPDATE_RC_DOWN(STATE.cap_pc.node_id);
-	STATE.cap_pc = tmp_cap;
-	set_pc(tmp_cap.cursor);
+	uint128_t tmp_val;
+	uint64_t tmp_data;
+	if (GET_TAG(tmp_addr)) {
+		SET_CAP_ACCESS();
+		tmp_val = MMU.load_uint128(tmp_addr);
+		tmp_cap.from128(tmp_val);
+		UPDATE_RC_UP(tmp_cap.node_id);
+		UPDATE_RC_DOWN(STATE.cap_pc.node_id);
+		STATE.cap_pc = tmp_cap;
+		set_pc(tmp_cap.cursor);
+		next_pc_is_cap = true;
+	}
+	else {
+		SET_CAP_ACCESS();
+		tmp_data = MMU.load_uint64(tmp_addr);
+		UPDATE_RC_DOWN(STATE.cap_pc.node_id);
+		STATE.cap_pc.reset();
+		set_pc(tmp_data);
+	}
 	/*ceh*/
 	tmp_addr += CLENBYTES;
 	SET_CAP_ACCESS();
@@ -122,7 +134,8 @@ else {
 			WRITE_CAP_DUMB(i, tmp_cap);
 		}
 		else {
-			WRITE_DATA(i, MMU.load_uint64(tmp_addr));
+			tmp_data = MMU.load_uint64(tmp_addr);
+			WRITE_DATA(i, tmp_data);
 		}
 	}
 	/*switch_cap*/

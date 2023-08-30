@@ -32,10 +32,15 @@ if (IS_CAP(csp_index)) {
 else {
 	MMU.store_uint64(tmp_addr, READ_REG(csp_index));
 }
-/*normal_pc & normal_sp*/
+/*normal_pc*/
+STATE.cap_pc.reset();
 set_pc(STATE.normal_pc + 4);
+next_pc_is_cap = false;
+/*normal_sp*/
 if (STATE.normal_sp_cap.is_cap()) {
-	UPDATE_RC_DOWN(READ_CAP_NODE(csp_index));
+	if (IS_CAP(csp_index)) {
+		UPDATE_RC_DOWN(READ_CAP_NODE(csp_index));
+	}
 	WRITE_CAP_DUMB(csp_index, STATE.normal_sp_cap.cap);
 }
 else {
