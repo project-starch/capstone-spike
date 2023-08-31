@@ -9,7 +9,7 @@
 [%header%autowidth.stretch]
 |===
 |Mnemonic |Format |Func3  |Func7 | rs1 | rs2 | rd | imm[11:0] | World
-|RCUPDATE    |R |`000`    |`0000000` | I | - | I | - | *
+|RCUPDATE    |R |`000`    |`0000000` | I | I | - | - | *
 |ALLOC       |R |`000`    |`0000001` | I | - | I | - | *
 |REV         |R |`000`    |`0000010` | I | - | - | - | *
 |CAPCREATE   |R |`000`    |`0000011` | - | - | C | - | *
@@ -30,6 +30,8 @@
 [%collapsible]
 ====
 ****
+*Note:* This constraints are only suggestions for the programmer using the debugging instructions. The Spike itself won't check the constraints or raise any exceptions if the constraints are violated.
+
 *For instruction operands:*
 
 I:: Integer register
@@ -50,4 +52,105 @@ N:: Normal world
 S:: Secure world
 *:: Either world
 ****
+====
+
+== Debugging Instructions
+
+=== Revocation Tree
+
+RCUPDATE
+
+====
+Update the revocation tree node with node id `x[rs1]` by `x[rs2]`.
+====
+
+ALLOC
+
+====
+Allocate a new revocation tree node whose parent node has a node id `x[rs1]`, and write the node id of the new node to `x[rd]`.
+====
+
+REV
+
+====
+Revoke the revocation tree node (and the nodes of its subtree) with node id `x[rs1]`.
+====
+
+=== Capability Manipulation
+
+CAPCREATE
+
+====
+Make the tag of the register `x[rd]` to refer to a capability.
+====
+
+CAPTYPE
+
+====
+Set `x[rd].type` to `x[rs1]`.
+====
+
+CAPNODE
+
+====
+Set `x[rd].node` to `x[rs1]`.
+====
+
+CAPPERM
+
+====
+Set `x[rd].perm` to `x[rs1]`.
+====
+
+CAPBOUND
+
+====
+. Set `x[rd].base` to `x[rs1]`.
+. If `x[rs2]` is not `zero`, set `x[rd].end` to `x[rs2]`.
+====
+
+CAPASYNC
+
+====
+Set `x[rd].async` to `x[rs1]`.
+====
+
+CAPREG
+
+====
+Set `x[rd].reg` to `x[rs1]`.
+====
+
+CAPPRINT
+
+====
+Print the content in `x[rs1]` to the console.
+====
+
+=== Memory
+
+TAGSET
+
+====
+Set the tag of the CLEN-bit aligned memory region containing the memory address `x[rs1]` to refer to a capability if `x[rs2]` is not `zero`, or to refer to an integer register otherwise.
+====
+
+TAGGET
+
+====
+If the tag of the CLEN-bit aligned memory region containing the memory address `x[rs1]` refers to a capability, set `x[rd]` to `1`; otherwise, set `x[rd]` to `0`.
+====
+
+=== Others
+
+SETWORLD
+
+====
+Set `cwrld` to `0` if `x[rs1]` is `zero`, or to `1` otherwise.
+====
+
+SETEH
+
+====
+Set `ceh` to `x[rs1]`.
 ====
