@@ -145,7 +145,8 @@ public:
   load_func(uint16, load, 0)
   load_func(uint32, load, 0)
   load_func(uint64, load, 0)
-  load_func(uint128, load, 0) // load a uint128_t from memory
+  // load a uint128_t from memory
+  load_func(uint128, load, 0)
 
   // load value from guest memory at aligned address; zero extend to register width
   load_func(uint8, guest_load, RISCV_XLATE_VIRT)
@@ -160,7 +161,8 @@ public:
   load_func(int16, load, 0)
   load_func(int32, load, 0)
   load_func(int64, load, 0)
-  load_func(int128, load, 0) // load a int128_t from memory
+  // load a int128_t from memory
+  load_func(int128, load, 0)
 
   // load value from guest memory at aligned address; sign extend to register width
   load_func(int8, guest_load, RISCV_XLATE_VIRT)
@@ -195,6 +197,10 @@ public:
         if ((xlate_flags) == 0 && likely(tlb_store_tag[vpn % TLB_ENTRIES] == vpn)) { \
           if (proc) WRITE_MEM(addr, val, size); \
           *(target_endian<type##_t>*)(tlb_data[vpn % TLB_ENTRIES].host_offset + addr) = to_target(val); \
+          if (proc) { \
+            uint64_t paddr = tlb_data[vpn % TLB_ENTRIES].target_offset + addr; \
+            proc->setTag(paddr, false); \
+          } \
         } \
         else if ((xlate_flags) == 0 && unlikely(tlb_store_tag[vpn % TLB_ENTRIES] == (vpn | TLB_CHECK_TRIGGERS))) { \
           if (!matched_trigger) { \
@@ -204,6 +210,10 @@ public:
           } \
           if (proc) WRITE_MEM(addr, val, size); \
           *(target_endian<type##_t>*)(tlb_data[vpn % TLB_ENTRIES].host_offset + addr) = to_target(val); \
+          if (proc) { \
+            uint64_t paddr = tlb_data[vpn % TLB_ENTRIES].target_offset + addr; \
+            proc->setTag(paddr, false); \
+          } \
         } \
         else { \
           target_endian<type##_t> target_val = to_target(val); \
@@ -268,7 +278,8 @@ public:
   store_func(uint16, store, 0)
   store_func(uint32, store, 0)
   store_func(uint64, store, 0)
-  store_func(uint128, store, 0) // store a uint128_t value to memory
+  // store a uint128_t value to memory, currently for capability store only
+  store_func(uint128, store, 0)
 
   // store value to guest memory at aligned address
   store_func(uint8, guest_store, RISCV_XLATE_VIRT)

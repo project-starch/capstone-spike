@@ -1,3 +1,5 @@
+// #include "decode.h"
 require_capstone_debug;
-if (GET_TAG(RS2)) WRITE_RD(1);
-else WRITE_RD(0);
+
+uint64_t tmp_val = GET_TAG(RS1)? 1 : 0;
+WRITE_DATA(insn_rd, tmp_val);

@@ -218,9 +218,8 @@ private:
 #endif
 
 /*CAPSTONE INSN MACROS*/
-
 /*require*/
-#define require_debug require(p->is_cap_debug_enabled())
+#define require_capstone_debug require(p->is_cap_debug_enabled())
 #define require_normal_world require(p->is_secure_world() == false)
 #define require_transcapstone require(p->is_pure_capstone() == false)
 /*simulator status*/
@@ -235,6 +234,7 @@ private:
 #define insn_s_imm insn.s_imm()
 #define insn_ri_imm insn.rs2()
 /*world*/
+#define SWITCH_WORLD(to_secure) p->switch_world(to_secure)
 #define TO_SECURE_WORLD() p->switch_world(true)
 #define TO_NORMAL_WORLD() p->switch_world(false)
 #define IS_SECURE_WORLD() (p->is_secure_world())
@@ -249,12 +249,10 @@ private:
 // READ_REG and WRITE_REG are defined elsewhere for integer registers
 #define READ_CAP(reg) STATE.XPR.read_cap(reg)
 #define WRITE_CAP(reg, value) STATE.XPR.write_cap(reg, value)
+#define WRITE_CAP_DUMB(reg, value) STATE.XPR.write_cap(reg, value, false) // write reg without rc update
 // for rc update issue, we declare our own write_reg
 #define WRITE_DATA(reg, value) STATE.XPR.write(reg, value)
 #define WRITE_DATA_DUMB(reg, value) STATE.XPR.write(reg, value, false)
-// write reg without rc update
-#define WRITE_CAP_DUMB(reg, value) STATE.XPR.write_cap(reg, value, false)
-#define WRITE_REG_DUMB(reg, value) STATE.XPR.write(reg, value, false)
 /*memory access*/
 #define SET_CAP_ACCESS() p->set_cap_access()
 /*revocation tree*/
@@ -264,15 +262,16 @@ private:
 #define DROP_CAP(node_id) p->drop(node_id)
 #define ALLOCATE_NODE(node_id) p->allocate(node_id)
 #define RT_REVOKE(node_id) p->revoke(node_id)
+#define UPDATE_RC(node_id, delta) p->updateRC(node_id, delta)
 /*update rc*/
 #define UPDATE_RC_UP(node_id) p->updateRC(node_id, 1)
 #define UPDATE_RC_DOWN(node_id) p->updateRC(node_id, -1)
 #define STORE_UPDATE_RC(addr) p->store_update_rc(addr)
 /*memory tag*/
-#define GET_TAG(addr) p->getTag(addr)
+#define GET_TAG(addr) (p->getTag(addr))
 #define SET_TAG(addr, as_cap) p->setTag(addr, as_cap)
 /*ccsr*/
-#define CCSR_NUM_VALID(ccsr_num) p->ccsr_num_valid(ccsr_num)
+#define CCSR_NUM_VALID(ccsr_num) (p->ccsr_num_valid(ccsr_num))
 #define CCSR(ccsr_num) p->get_ccsr(ccsr_num)
 /*csr*/
 #define CSR(csr_num) p->get_csr(csr_num, insn, false, true)
@@ -288,12 +287,6 @@ private:
 /*encoding mode*/
 #define INT_ENCODING_MODE 0
 #define CAP_ENCODING_MODE 1
-
-// FIXME
-union reg_value {
-  cap64_t cap;
-  uint64_t data;
-};
 /*END OF CAPSTONE INSN MACROS*/
 
 // RVC macros

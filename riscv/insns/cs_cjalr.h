@@ -10,7 +10,10 @@ if (!IS_CAP(insn_rs1))
 cap64_t tmp_cap = READ_CAP(insn_rs1);
 /*pc -> rd*/
 STATE.cap_pc.cursor = npc;
-WRITE_CAP(insn_rd, STATE.cap_pc);
+if (IS_CAP(insn_rd)) {
+	UPDATE_RC_DOWN(READ_CAP_NODE(insn_rd));
+}
+WRITE_CAP_DUMB(insn_rd, STATE.cap_pc);
 /*cap -> pc*/
 // disable cap_pc cursor update in insn_template.cc
 tmp_cap.cursor += insn_i_imm;

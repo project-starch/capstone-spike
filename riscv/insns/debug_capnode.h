@@ -1,2 +1,5 @@
+// #include "decode.h"
 require_capstone_debug;
-READ_CAP(Rd).node_id = RS1;
+
+if (NOT_ZERO_REG(insn_rd))
+    READ_CAP(insn_rd).node_id = RS1;

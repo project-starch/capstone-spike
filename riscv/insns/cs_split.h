@@ -16,7 +16,7 @@ if (insn_rs1 != insn_rd) {
 	uint64_t tmp_val = RS2;
 	/*rs1 -> rd*/
 	// update rc
-  if (IS_CAP(insn_rd)) UPDATE_RC_DOWN(READ_CAP_NODE(insn_rd));
+	if (IS_CAP(insn_rd)) UPDATE_RC_DOWN(READ_CAP_NODE(insn_rd));
 	WRITE_CAP_DUMB(insn_rd, READ_CAP(insn_rs1));
 	/*adjust rs1*/
 	READ_CAP(insn_rs1).end = tmp_val;

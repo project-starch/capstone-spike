@@ -32,8 +32,6 @@ if (capability_access) {
 	STORE_UPDATE_RC(tmp_addr);
 	SET_CAP_ACCESS();
 	MMU.store_uint32(tmp_addr, RS2);
-	/*tag*/
-	SET_TAG(tmp_addr, false);
 	/*update cursor*/
 	if (tmp_type == CAP_TYPE_UNINITIALIZED) {
 		READ_CAP(insn_rs1).cursor += size;
@@ -41,6 +39,6 @@ if (capability_access) {
 }
 else {
 	uint64_t tmp_addr = RS1 + insn.s_imm();
+	/*wip: rc update*/
 	MMU.store_uint32(tmp_addr, RS2);
-	SET_TAG(tmp_addr, false);
 }

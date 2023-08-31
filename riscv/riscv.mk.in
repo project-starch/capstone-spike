@@ -148,6 +148,23 @@ riscv_insn_capstone = \
 	cs_capenter \
 	cs_capexit \
 
+riscv_insn_capstone_debug = \
+	debug_rcupdate \
+	debug_alloc \
+	debug_rev \
+	debug_capcreate \
+	debug_captype \
+	debug_capnode \
+	debug_capperm \
+	debug_capbound \
+	debug_capasync \
+	debug_capreg \
+	debug_capprint \
+	debug_tagset \
+	debug_tagget \
+	debug_setworld \
+	debug_seteh \
+
 riscv_insn_ext_a = \
 	amoadd_d \
 	amoadd_w \
@@ -1306,6 +1323,7 @@ riscv_insn_list = \
 	$(riscv_insn_priv) \
 	$(riscv_insn_svinval) \
 	$(riscv_insn_capstone) \
+	$(riscv_insn_capstone_debug) \
 
 riscv_gen_srcs = \
 	$(addsuffix .cc,$(riscv_insn_list))

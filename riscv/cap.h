@@ -245,7 +245,7 @@ struct cap64_t
   /*bound check*/
   // size of the load/store need to be provided
   bool in_bound(uint64_t size) const {
-    if (type == CAP_TYPE_LINEAR || type == CAP_TYPE_NONLINEAR || type == CAP_TYPE_UNINITIALIZED){
+    if (type == CAP_TYPE_LINEAR || type == CAP_TYPE_NONLINEAR || type == CAP_TYPE_UNINITIALIZED) {
       return cursor >= base && cursor <= end - size;
     }
     if (type == CAP_TYPE_SEALEDRET || type == CAP_TYPE_EXIT) {

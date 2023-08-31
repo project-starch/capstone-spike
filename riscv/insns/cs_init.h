@@ -11,5 +11,7 @@ if (READ_CAP(insn_rs1).cursor != READ_CAP(insn_rs1).end)
 /*init an uninitialized capability*/
 uint64_t val = RS2;
 MOVC(insn_rd, insn_rs1);
-READ_CAP(insn_rd).type = CAP_TYPE_LINEAR;
-READ_CAP(insn_rd).cursor = READ_CAP(insn_rs1).base + val;
+if (NOT_ZERO_REG(insn_rd)) {
+	READ_CAP(insn_rd).type = CAP_TYPE_LINEAR;
+	READ_CAP(insn_rd).cursor = READ_CAP(insn_rd).base + val;
+}

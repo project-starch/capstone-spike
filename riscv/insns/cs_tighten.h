@@ -7,7 +7,7 @@ if (!IS_CAP(insn_rs1))
 cap_type_t tmp_type = READ_CAP(insn_rs1).type;
 if (tmp_type != CAP_TYPE_LINEAR && tmp_type != CAP_TYPE_NONLINEAR && tmp_type != CAP_TYPE_UNINITIALIZED)
 	throw trap_capstone_unexpected_cap_type(insn.bits());
-if (insn_ri_imm < 7 && !CAP_PERM_GTE(insn_rs1, static_cast<cap_perm_t>(insn_ri_imm)))
+if (insn_ri_imm <= 7 && !CAP_PERM_GTE(insn_rs1, static_cast<cap_perm_t>(insn_ri_imm)))
 	throw trap_capstone_illegal_operand_value(insn.bits());
 /*tighten the permission*/
 MOVC(insn_rd, insn_rs1);

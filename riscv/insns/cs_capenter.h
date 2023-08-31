@@ -17,8 +17,7 @@ if (READ_CAP(insn_rs1).async == CAP_ASYNC_SYNC) {
 	/*normal_pc, normal_sp*/
 	STATE.normal_pc = STATE.pc;
 	if (IS_CAP(csp_index)) {
-		// normal_sp is a shadow register
-		// no RC update for the content of it
+		// no rc update for csp
 		STATE.normal_sp_cap.set_cap(READ_CAP(csp_index));
 	}
 	else {
@@ -27,13 +26,25 @@ if (READ_CAP(insn_rs1).async == CAP_ASYNC_SYNC) {
 	}
 	/*pc*/
 	uint64_t tmp_addr = READ_CAP(cra_index).base;
+	uint128_t tmp_val;
 	cap64_t tmp_cap;
-	SET_CAP_ACCESS();
-	uint128_t tmp_val = MMU.load_uint128(tmp_addr);
-	tmp_cap.from128(tmp_val);
-	UPDATE_RC_DOWN(STATE.cap_pc.node_id);
-	STATE.cap_pc = tmp_cap;
-	set_pc(tmp_cap.cursor);
+	uint64_t tmp_data;
+	if (GET_TAG(tmp_addr)) {
+		SET_CAP_ACCESS();
+		tmp_val = MMU.load_uint128(tmp_addr);
+		tmp_cap.from128(tmp_val);
+		UPDATE_RC_DOWN(STATE.cap_pc.node_id);
+		STATE.cap_pc = tmp_cap;
+		set_pc(tmp_cap.cursor);
+		next_pc_is_cap = true;
+	}
+	else {
+		SET_CAP_ACCESS();
+		tmp_data = MMU.load_uint64(tmp_addr);
+		UPDATE_RC_DOWN(STATE.cap_pc.node_id);
+		STATE.cap_pc.reset();
+		set_pc(tmp_data);
+	}
 	/*ceh*/
 	tmp_addr += CLENBYTES;
 	SET_CAP_ACCESS();
@@ -43,13 +54,20 @@ if (READ_CAP(insn_rs1).async == CAP_ASYNC_SYNC) {
 	STATE.ceh.cap = tmp_cap;
 	/*csp*/
 	tmp_addr += CLENBYTES;
-	SET_CAP_ACCESS();
-	tmp_val = MMU.load_uint128(tmp_addr);
-	tmp_cap.from128(tmp_val);
-	if (IS_CAP(csp_index)) {
-		UPDATE_RC_DOWN(READ_CAP_NODE(csp_index));
+	if (GET_TAG(tmp_addr)) {
+		SET_CAP_ACCESS();
+		tmp_val = MMU.load_uint128(tmp_addr);
+		tmp_cap.from128(tmp_val);
+		if (IS_CAP(csp_index)) {
+			UPDATE_RC_DOWN(READ_CAP_NODE(csp_index));
+		}
+		WRITE_CAP_DUMB(csp_index, tmp_cap);
 	}
-	WRITE_CAP_DUMB(csp_index, tmp_cap);
+	else {
+		SET_CAP_ACCESS();
+		tmp_data = MMU.load_uint64(tmp_addr);
+		WRITE_DATA(csp_index, tmp_data);
+	}
 	/*cra*/
 	READ_CAP(cra_index).type = CAP_TYPE_EXIT;
 	READ_CAP(cra_index).cursor = READ_CAP(cra_index).base;
@@ -77,13 +95,25 @@ else {
 	/*pc*/
 	uint64_t tmp_addr = STATE.switch_cap.cap.base;
 	cap64_t tmp_cap;
-	SET_CAP_ACCESS();
-	uint128_t tmp_val = MMU.load_uint128(tmp_addr);
-	tmp_cap.from128(tmp_val);
-	UPDATE_RC_UP(tmp_cap.node_id);
-	UPDATE_RC_DOWN(STATE.cap_pc.node_id);
-	STATE.cap_pc = tmp_cap;
-	set_pc(tmp_cap.cursor);
+	uint128_t tmp_val;
+	uint64_t tmp_data;
+	if (GET_TAG(tmp_addr)) {
+		SET_CAP_ACCESS();
+		tmp_val = MMU.load_uint128(tmp_addr);
+		tmp_cap.from128(tmp_val);
+		UPDATE_RC_UP(tmp_cap.node_id);
+		UPDATE_RC_DOWN(STATE.cap_pc.node_id);
+		STATE.cap_pc = tmp_cap;
+		set_pc(tmp_cap.cursor);
+		next_pc_is_cap = true;
+	}
+	else {
+		SET_CAP_ACCESS();
+		tmp_data = MMU.load_uint64(tmp_addr);
+		UPDATE_RC_DOWN(STATE.cap_pc.node_id);
+		STATE.cap_pc.reset();
+		set_pc(tmp_data);
+	}
 	/*ceh*/
 	tmp_addr += CLENBYTES;
 	SET_CAP_ACCESS();
@@ -104,7 +134,8 @@ else {
 			WRITE_CAP_DUMB(i, tmp_cap);
 		}
 		else {
-			WRITE_DATA(i, MMU.load_uint64(tmp_addr));
+			tmp_data = MMU.load_uint64(tmp_addr);
+			WRITE_DATA(i, tmp_data);
 		}
 	}
 	/*switch_cap*/

@@ -647,7 +647,9 @@ public:
   inline bool is_pure_capstone() const {
     return sim->is_pure_capstone();
   }
-  /*add for capstone: RC down when overwriting a cap during store*/
+  /* add for capstone: RC down when overwriting a cap during store.
+   * don't set cap_access before calling this function.
+   */
   void store_update_rc(uint64_t addr);
 
 private:

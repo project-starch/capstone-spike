@@ -29,8 +29,8 @@ if (capability_access) {
 		throw trap_capstone_store_address_misaligned(insn.bits());
 	/*store a capability*/
 	/*store x[rs2]*/
-	SET_CAP_ACCESS();
 	STORE_UPDATE_RC(tmp_addr);
+	SET_CAP_ACCESS();
 	MMU.store_uint128(tmp_addr, READ_CAP(insn_rs2).to128());
 	/*cursor update for uninitialized capability*/
 	if (READ_CAP(insn_rs1).type == CAP_TYPE_UNINITIALIZED) {
@@ -55,8 +55,8 @@ else {
 	// [SBASE, SEND) check is handle in mmu
 	/*store a capability*/
 	/*store x[rs2]*/
-	SET_CAP_ACCESS();
 	STORE_UPDATE_RC(tmp_addr);
+	SET_CAP_ACCESS();
 	MMU.store_uint128(tmp_addr, READ_CAP(insn_rs2).to128());
 	/*x[rs2]*/
 	if (IS_LINEAR(insn_rs2)) {
