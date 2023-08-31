@@ -1,2 +1,4 @@
+// #include "decode.h"
 require_capstone_debug;
-p->drop(RS1);
+
+DROP_CAP(RS1);
