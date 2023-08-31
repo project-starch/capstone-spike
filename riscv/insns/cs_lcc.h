@@ -19,7 +19,7 @@ cap64_t tmp_cap = READ_CAP(insn_rs1);
 
 switch (insn_i_imm) {
   case 0:
-    tmp_value = VALID_CAP(insn_rs1);
+    tmp_value = VALID_CAP(insn_rs1)? 1 : 0;
     break;
   case 1:
     tmp_value = tmp_cap.type;
@@ -37,10 +37,10 @@ switch (insn_i_imm) {
     tmp_value = tmp_cap.perm;
     break;
   case 6:
-    tmp_value = tmp_cap.reg;
+    tmp_value = tmp_cap.async;
     break;
   case 7:
-    tmp_value = tmp_cap.async;
+    tmp_value = tmp_cap.reg;
     break;
   default:
     tmp_value = 0;

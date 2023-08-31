@@ -18,5 +18,7 @@ if (!GET_TAG(tmp_addr))
 
 /*seal a linear capability*/
 MOVC(insn_rd, insn_rs1);
-READ_CAP(insn_rd).type = CAP_TYPE_SEALED;
-READ_CAP(insn_rd).async = CAP_ASYNC_SYNC;
+if (NOT_ZERO_REG(insn_rd)) {
+	READ_CAP(insn_rd).type = CAP_TYPE_SEALED;
+	READ_CAP(insn_rd).async = CAP_ASYNC_SYNC;
+}

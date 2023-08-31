@@ -13,4 +13,3 @@ MOVC(insn_rd, insn_rs1);
 if (NOT_ZERO_REG(insn_rd)) {
   READ_CAP(insn_rd).cursor += val;
 }
-
