@@ -159,7 +159,7 @@ riscv_insn_capstone_debug = \
 	debug_capbound \
 	debug_capasync \
 	debug_capreg \
-	debug_print \
+	debug_capprint \
 	debug_tagset \
 	debug_tagget \
 	debug_setworld \
