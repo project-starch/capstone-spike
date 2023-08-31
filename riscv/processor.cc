@@ -1101,18 +1101,19 @@ void processor_t::take_trap(trap_t& t, reg_t epc)
         /*tval*/
         state.tval->write(t.get_tval());
       }
+      uint64_t tval = t.get_tval();
       /*pc check for exception handling inside secure world*/
-      if (!next_pc_is_cap) throw trap_capstone_instruction_access_fault(insn.bits());
+      if (!next_pc_is_cap) throw trap_capstone_instruction_access_fault(tval);
       bool pc_valid_cap = valid_cap(state.cap_pc.node_id);
-      if (!pc_valid_cap) throw trap_capstone_instruction_access_fault(insn.bits());
+      if (!pc_valid_cap) throw trap_capstone_instruction_access_fault(tval);
       bool pc_valid_type = (state.cap_pc.type == CAP_TYPE_LINEAR || state.cap_pc.type == CAP_TYPE_NONLINEAR);
-      if (!pc_valid_type) throw trap_capstone_instruction_access_fault(insn.bits());
+      if (!pc_valid_type) throw trap_capstone_instruction_access_fault(tval);
       bool pc_valid_align = ((state.pc % 4) == 0);
-      if (!pc_valid_align) throw trap_capstone_instruction_address_misaligned(insn.bits());
+      if (!pc_valid_align) throw trap_capstone_instruction_address_misaligned(tval);
       bool pc_valid_perm = state.cap_pc.cap_perm_cmp(CAP_PERM_X, false);
-      if (!pc_valid_perm) throw trap_capstone_instruction_access_fault(insn.bits());
+      if (!pc_valid_perm) throw trap_capstone_instruction_access_fault(tval);
       bool pc_in_bounds = state.cap_pc.in_bound(4);
-      if (!pc_in_bounds) throw trap_capstone_instruction_access_fault(insn.bits());
+      if (!pc_in_bounds) throw trap_capstone_instruction_access_fault(tval);
     }
     /*switch_world: unhandleable exception*/
     else {
