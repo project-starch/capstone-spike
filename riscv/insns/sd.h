@@ -40,6 +40,5 @@ if (capability_access) {
 }
 else {
 	uint64_t tmp_addr = RS1 + insn.s_imm();
-	/*wip: rc update*/
 	MMU.store_uint64(tmp_addr, RS2);
 }

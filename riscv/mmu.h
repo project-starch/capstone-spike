@@ -97,7 +97,6 @@ public:
 #endif
 
   // template for functions that load an aligned value from memory
-  // corner case: proc == NULL
   #define load_func(type, prefix, xlate_flags) \
     inline type##_t prefix##_##type(reg_t addr, bool require_alignment = false) { \
       /*secure world can't access normal memory*/ \
@@ -196,11 +195,20 @@ public:
       if (!proc || proc->is_normal_access()) { \
         if ((xlate_flags) == 0 && likely(tlb_store_tag[vpn % TLB_ENTRIES] == vpn)) { \
           if (proc) WRITE_MEM(addr, val, size); \
-          *(target_endian<type##_t>*)(tlb_data[vpn % TLB_ENTRIES].host_offset + addr) = to_target(val); \
           if (proc) { \
             uint64_t paddr = tlb_data[vpn % TLB_ENTRIES].target_offset + addr; \
-            proc->setTag(paddr, false); \
+            bool mem_tag_is_cap = proc->getTag(paddr); \
+            if (mem_tag_is_cap) { \
+              /*set memory tag*/ \
+              proc->setTag(paddr, false); \
+              /*update reference count*/ \
+              uint64_t aligned_addr = addr & ~(uint64_t(CLENBYTES - 1)); \
+              uint128_t tmp_val = from_target(*(target_endian<uint128_t>*)(tlb_data[vpn % TLB_ENTRIES].host_offset + aligned_addr)); \
+              cap64_t tmp_cap; \
+              proc->updateRC(tmp_cap.get_node_id(tmp_val), -1); \
+            } \
           } \
+          *(target_endian<type##_t>*)(tlb_data[vpn % TLB_ENTRIES].host_offset + addr) = to_target(val); \
         } \
         else if ((xlate_flags) == 0 && unlikely(tlb_store_tag[vpn % TLB_ENTRIES] == (vpn | TLB_CHECK_TRIGGERS))) { \
           if (!matched_trigger) { \
@@ -209,15 +217,33 @@ public:
               throw *matched_trigger; \
           } \
           if (proc) WRITE_MEM(addr, val, size); \
-          *(target_endian<type##_t>*)(tlb_data[vpn % TLB_ENTRIES].host_offset + addr) = to_target(val); \
           if (proc) { \
             uint64_t paddr = tlb_data[vpn % TLB_ENTRIES].target_offset + addr; \
-            proc->setTag(paddr, false); \
+            bool mem_tag_is_cap = proc->getTag(paddr); \
+            if (mem_tag_is_cap) { \
+              /*set memory tag*/ \
+              proc->setTag(paddr, false); \
+              /*update reference count*/ \
+              uint64_t aligned_addr = addr & ~(uint64_t(CLENBYTES - 1)); \
+              uint128_t tmp_val = from_target(*(target_endian<uint128_t>*)(tlb_data[vpn % TLB_ENTRIES].host_offset + aligned_addr)); \
+              cap64_t tmp_cap; \
+              proc->updateRC(tmp_cap.get_node_id(tmp_val), -1); \
+            } \
           } \
+          *(target_endian<type##_t>*)(tlb_data[vpn % TLB_ENTRIES].host_offset + addr) = to_target(val); \
         } \
         else { \
           target_endian<type##_t> target_val = to_target(val); \
-          store_slow_path(addr, sizeof(type##_t), (const uint8_t*)&target_val, (xlate_flags)); \
+          target_endian<uint128_t> clen_val; \
+          bool virtual_mem_rc_update = store_slow_path(addr, sizeof(type##_t), (const uint8_t*)&target_val, (xlate_flags), (uint8_t*)&clen_val); \
+          if (virtual_mem_rc_update) { \
+            if (proc) { \
+              /*update reference count*/ \
+              uint128_t tmp_val = from_target(clen_val); \
+              cap64_t tmp_cap; \
+              proc->updateRC(tmp_cap.get_node_id(tmp_val), -1); \
+            } \
+          } \
           if (proc) WRITE_MEM(addr, val, size); \
         } \
       } \
@@ -471,7 +497,7 @@ private:
   // handle uncommon cases: TLB misses, page faults, MMIO
   tlb_entry_t fetch_slow_path(reg_t addr);
   void load_slow_path(reg_t addr, reg_t len, uint8_t* bytes, uint32_t xlate_flags);
-  void store_slow_path(reg_t addr, reg_t len, const uint8_t* bytes, uint32_t xlate_flags);
+  bool store_slow_path(reg_t addr, reg_t len, const uint8_t* bytes, uint32_t xlate_flags, uint8_t* clen_bytes=NULL);
   bool mmio_load(reg_t addr, size_t len, uint8_t* bytes);
   bool mmio_store(reg_t addr, size_t len, const uint8_t* bytes);
   bool mmio_ok(reg_t addr, access_type type);

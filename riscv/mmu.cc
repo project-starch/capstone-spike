@@ -183,8 +183,9 @@ void mmu_t::load_slow_path(reg_t addr, reg_t len, uint8_t* bytes, uint32_t xlate
   }
 }
 
-void mmu_t::store_slow_path(reg_t addr, reg_t len, const uint8_t* bytes, uint32_t xlate_flags)
+bool mmu_t::store_slow_path(reg_t addr, reg_t len, const uint8_t* bytes, uint32_t xlate_flags, uint8_t* clen_bytes/*=NULL*/)
 {
+  bool virtual_mem_rc_update = false;
   reg_t paddr = translate(addr, len, STORE, xlate_flags);
 
   if (!matched_trigger) {
@@ -198,11 +199,22 @@ void mmu_t::store_slow_path(reg_t addr, reg_t len, const uint8_t* bytes, uint32_
   }
 
   if (auto host_addr = sim->addr_to_mem(paddr)) {
-    /* if a clen-bit data is stored, we treat the data being stored as a capability.
+    /* if a CLEN-bit value is stored, we treat the value being stored as a capability.
      * set the tag for every store access.
+     * load the CLEN-aligned value if the memory is a capability. 
      */
     if (proc) {
-      bool set_as_cap = (len == 16)? true : false;
+      /*update reference count for virtual memory access*/
+      if (proc->is_normal_access()) {
+        bool mem_tag_is_cap = proc->getTag(paddr);
+        if (mem_tag_is_cap) {
+          auto host_addr_aligned = host_addr - addr + (addr & ~(uint64_t(CLENBYTES - 1)));
+          memcpy(clen_bytes, host_addr_aligned, CLENBYTES);
+          virtual_mem_rc_update = true;
+        }
+      }
+      /*set memory tag*/
+      bool set_as_cap = (len == CLENBYTES)? true : false;
       proc->setTag(paddr, set_as_cap);
     }
     memcpy(host_addr, bytes, len);
@@ -216,6 +228,8 @@ void mmu_t::store_slow_path(reg_t addr, reg_t len, const uint8_t* bytes, uint32_
   } else if (!mmio_store(paddr, len, bytes)) {
     throw trap_store_access_fault((proc) ? proc->state.v : false, addr, 0, 0);
   }
+  
+  return virtual_mem_rc_update;
 }
 
 tlb_entry_t mmu_t::refill_tlb(reg_t vaddr, reg_t paddr, char* host_addr, access_type type)
