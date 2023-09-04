@@ -13,7 +13,7 @@ The interface of the processor follows the [Capstone-RISC-V ISA](https://capston
 
 ## Quick Start
 
-Please refer to the [Capstone-RISC-V Spike Simulator SDK](https://github.com/project-starch/transcapstone-sim).
+Please refer to the [Capstone-RISC-V Spike Simulator SDK](https://github.com/project-starch/capstone-sim).
 
 ## Building
 
